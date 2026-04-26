@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farmer Water Advisory</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://unpkg.com/i18next@24.2.3/dist/umd/i18next.min.js"></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="top">
+        <h1 data-i18n="title">Farmer Water Advisory</h1>
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="te">తెలుగు</option>
+        </select>
+      </header>
+
+      <section class="card">
+        <button id="locateBtn" class="btn" data-i18n="locate">Locate My Village</button>
+        <p id="villageLabel" class="muted" data-i18n="villageUnknown">Village not identified yet</p>
+      </section>
+
+      <section class="card center">
+        <img id="tankIcon" src="./tank-safe.svg" alt="tank status" width="86" height="86" />
+        <h2 id="statusText">Safe</h2>
+        <p id="depthText" class="muted">--</p>
+      </section>
+
+      <section class="card">
+        <h3 data-i18n="cropTitle">Crop Recommendation</h3>
+        <p id="cropText">--</p>
+      </section>
+    </main>
+
+    <script src="./main.js"></script>
+  </body>
+</html>

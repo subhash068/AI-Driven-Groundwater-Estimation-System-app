@@ -1,0 +1,5 @@
+# Airflow is kept separate because the pinned version used by this project
+# is not available for the current Python 3.13 environment.
+# Install this in a supported Python environment only when you need DAG runs.
+
+apache-airflow==2.10.4

@@ -1,0 +1,62 @@
+:root {
+  --bg: #f1f6ef;
+  --card: #ffffff;
+  --ink: #1f2b24;
+  --muted: #5c695f;
+  --line: #d6dfd5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+}
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.center {
+  text-align: center;
+}
+
+.btn {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #2c6f3a;
+  color: #fff;
+  padding: 12px;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}

@@ -1,0 +1,6424 @@
+{
+  "source": "Pumping Data.xlsx",
+  "sheet_name": "Sheet1",
+  "record_count": 713,
+  "rows": [
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Bethavolu (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Aripirala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Pushadam",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Moparru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 39.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Kunderu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 339.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Inapuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 138.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Ayyanki",
+      "structure_type": "Filter Points",
+      "functioning_wells": 84.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Yakamuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 147.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Kandalampadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 84.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Gundupalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Madduru-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 289.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Thummalapalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Venkatrajugudem",
+      "structure_type": "BWs",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 1.08
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Aswaraopalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 11.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Tativarru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 43.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Chennuru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Koduru-6",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.48,
+      "non_monsoon_draft_ha_m": 1.24
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Kanumolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 27.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "V.Rudravaram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 103.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Ramachandrapuram-10",
+      "structure_type": "Filter Points",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.06
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Gopavarapugudem",
+      "structure_type": "BWs",
+      "functioning_wells": 105.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Juvvanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 59.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Dantaguntla",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Chirichintala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Siddhantam",
+      "structure_type": "Filter Points",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Indupalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 303.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Kappaladoddi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Tadigadapa",
+      "structure_type": "Filter Points",
+      "functioning_wells": 210.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Arisepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Venkatapuram-18",
+      "structure_type": "Filter Points",
+      "functioning_wells": 33.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Maheswarapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 47.0,
+      "monsoon_draft_ha_m": 0.32,
+      "non_monsoon_draft_ha_m": 0.96
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Gudivada (M)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Veldipadu Khandrika",
+      "structure_type": "Filter Points",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Polavaram-8",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Idugullapalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Daliparru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Lankapalle Agraharam",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Edulamaddali",
+      "structure_type": "Filter Points",
+      "functioning_wells": 126.0,
+      "monsoon_draft_ha_m": 0.32,
+      "non_monsoon_draft_ha_m": 0.96
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Sobhanadripuram",
+      "structure_type": "Deep TW",
+      "functioning_wells": 59.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Saipuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 73.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Anamanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Sagguruamani",
+      "structure_type": "BWs",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Kapileswarapuram-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 684.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "China Yerukapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Pasumarru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Appikatla-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 78.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Gudivada (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 38.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Neppalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 157.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Vanukuru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 376.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KRUTHIVENNU",
+      "village": "Tadivennu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Penamaluru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 488.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Prakarla",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Nemmikuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 31.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Tuttagunta",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Garapadu-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Palankipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Kankatava",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Zamidaggumilli",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Kurumaddali",
+      "structure_type": "Filter Points",
+      "functioning_wells": 140.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Chiruvolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 61.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Oddulameraka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 24.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Vempadu-9",
+      "structure_type": "Filter Points",
+      "functioning_wells": 45.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Chilakalapudi (Rural)-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Nibhanupudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Aginiparru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 99.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Bokinala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 55.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Bommuluru Khandrika",
+      "structure_type": "Deep TW",
+      "functioning_wells": 58.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Veeravalli-1",
+      "structure_type": "Deep TW",
+      "functioning_wells": 247.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 1.08
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Gangadharapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Mullapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 82.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Bollapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 171.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Kesarapalle",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.08,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Kesarapalle",
+      "structure_type": "BWs",
+      "functioning_wells": 50.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Puritigadda-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 63.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Nuthulapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 44.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Mallampalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 59.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Nandigama-4",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Chodavaram-5",
+      "structure_type": "Filter Points",
+      "functioning_wells": 333.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.64
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Edlanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Somavarappadu-4",
+      "structure_type": "Filter Points",
+      "functioning_wells": 55.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Choragudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 210.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Madaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Madaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "ENAMALAKUDURU",
+      "structure_type": "Filter Points",
+      "functioning_wells": 108.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Vuyyuru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 144.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Pedalingala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 11.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Tamirisa",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Inampudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 60.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Koyyuru-1",
+      "structure_type": "DW",
+      "functioning_wells": 127.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.55
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Kothapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Venkatapuram-16",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 1.08
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Pittallanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Metlapalle",
+      "structure_type": "BWs",
+      "functioning_wells": 155.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Tempalle",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.08,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Tempalle",
+      "structure_type": "BWs",
+      "functioning_wells": 128.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Ayodhya",
+      "structure_type": "Filter Points",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Mopidevi Lanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 105.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Chikinala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 97.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Gurjepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Kakulapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Srikakulam-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 171.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Kaza-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 42.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Mudunuru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 429.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Elukapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Unguturu-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Chedurthipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Balliparru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Mellamarru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.26,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Chinnapuram-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Vemulamada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 212.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Rimmanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Chikkavaram",
+      "structure_type": "BWs",
+      "functioning_wells": 141.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Bhatla Penumarru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 128.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Rudravaram-7",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Gosala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 149.0,
+      "monsoon_draft_ha_m": 0.15,
+      "non_monsoon_draft_ha_m": 0.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Bandarugudem",
+      "structure_type": "STW",
+      "functioning_wells": 38.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 1.08
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KRUTHIVENNU",
+      "village": "Nidamarru-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Nandamuru-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 187.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Lankapalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 107.0,
+      "monsoon_draft_ha_m": 0.25,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Dokiparru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Chinalingala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Ventrapragada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 368.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Ramanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NAGAYALANKA",
+      "village": "Etimoga",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Iluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 86.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Katuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 625.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Kuderu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 262.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Ameenapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 179.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Birudugadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Dandiganapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Kolavennu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 478.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Madicherla-2",
+      "structure_type": "Deep TW",
+      "functioning_wells": 485.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.45
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Veerapanenigudem",
+      "structure_type": "BWs",
+      "functioning_wells": 127.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "South Valluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 206.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Balliparru-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Gudapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 97.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Madhurapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 26.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 26.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Deep TW",
+      "functioning_wells": 116.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 0.45
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "STW",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 101.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "BWs",
+      "functioning_wells": 302.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "MTW",
+      "functioning_wells": 83.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "DW",
+      "functioning_wells": 72.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Deep TW",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "STW",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 28.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "BWs",
+      "functioning_wells": 102.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "MTW",
+      "functioning_wells": 174.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "DW",
+      "functioning_wells": 133.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Deep TW",
+      "functioning_wells": 549.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "STW",
+      "functioning_wells": 492.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 19.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ampapuram",
+      "structure_type": "BWs",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Devarakota",
+      "structure_type": "Filter Points",
+      "functioning_wells": 121.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Guduru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Seri Dintakurru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 22.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Yaddanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 58.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Vemanda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 110.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Tenneru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 235.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Venkatanarasimhapuram-1",
+      "structure_type": "STW",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.35,
+      "non_monsoon_draft_ha_m": 0.98
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Nadakuduru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.95
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Salempalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Vekanuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Nimmagadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 180.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Challapalle-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 31.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Kokkiligadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 238.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Mellamarthi Lanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 210.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Lankapalli",
+      "structure_type": "Filter Points",
+      "functioning_wells": 56.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Chalivendrapalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 92.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Kapavaram-7",
+      "structure_type": "Filter Points",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Penamakuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 367.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Marrivada-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 68.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Vemulapalle-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 48.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Yarlagadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 232.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Vinjarampadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 37.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Gokavaram-4",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 59.0,
+      "monsoon_draft_ha_m": 0.219,
+      "non_monsoon_draft_ha_m": 0.438
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Gokavaram-4",
+      "structure_type": "Filter Points",
+      "functioning_wells": 59.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.105
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Gokavaram-4",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Telaprolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 135.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Kodurupadu-1",
+      "structure_type": "STW",
+      "functioning_wells": 97.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Angaluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 60.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Nagavarappadu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Kondapavuluru",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.08,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Kondapavuluru",
+      "structure_type": "BWs",
+      "functioning_wells": 133.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Peda Ogirala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 331.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Allapuram",
+      "structure_type": "BWs",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Modumudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 53.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Remalle",
+      "structure_type": "Deep TW",
+      "functioning_wells": 280.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Seri Golvepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "PEDANA (M)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Nagavarappadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Pedasanagallu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 77.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Savarigudem",
+      "structure_type": "BWs",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Buthumillipadu",
+      "structure_type": "BWs",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Tallapalem-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Amudalapalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 38.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Ainampudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 23.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Bhushanagulla (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 63.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Veldipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Pedapudi-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 130.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Ramannapeta",
+      "structure_type": "Filter Points",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Bommuluru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 25.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "China Ogirala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 331.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Kurada-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KRUTHIVENNU",
+      "village": "Laxmipuram-6",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Chilakamudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Mopidevi-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 254.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Nimmaluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Krishnapuram-17",
+      "structure_type": "Filter Points",
+      "functioning_wells": 258.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Ganguru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 134.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.45
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Kankipadu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 63.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Pedaparupudi-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 195.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Bobbarlanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 205.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "China Kallepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 75.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Atkuru",
+      "structure_type": "Deep TW",
+      "functioning_wells": 185.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Ghantasala-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 267.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "China Avutapalle",
+      "structure_type": "Deep TW",
+      "functioning_wells": 86.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Veeranki",
+      "structure_type": "Filter Points",
+      "functioning_wells": 163.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Ravulapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Kowtaram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Uppaluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 273.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Akulamannadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Puttagunta",
+      "structure_type": "Filter Points",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Kanumuru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 121.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Poranki (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 290.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Kothapalle-24",
+      "structure_type": "Deep TW",
+      "functioning_wells": 152.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Nidumolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 1.2,
+      "non_monsoon_draft_ha_m": 2.1
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Saidepudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 9.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Guntakoduru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Chowtapalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Meduru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 574.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Madhirapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 53.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Sreerangapuram-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 94.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Mukkollu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Jujjavaram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 31.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Ramachandrapuram-7",
+      "structure_type": "BWs",
+      "functioning_wells": 9.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Lankapalle Lanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Gurivindapalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 133.0,
+      "monsoon_draft_ha_m": 0.15,
+      "non_monsoon_draft_ha_m": 0.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Polavaram-7",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Rangannagudem",
+      "structure_type": "Deep TW",
+      "functioning_wells": 153.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Mukkapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Balliparru",
+      "structure_type": "BWs",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Ajjampudi",
+      "structure_type": "BWs",
+      "functioning_wells": 38.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Chinapulipaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 121.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Peda Avutapalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 108.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Gannavaram-3",
+      "structure_type": "BWs",
+      "functioning_wells": 43.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.45
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Manthena",
+      "structure_type": "Filter Points",
+      "functioning_wells": 221.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Singannagudem",
+      "structure_type": "Deep TW",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Barlapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 112.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.1
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Buddavaram",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.08,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Buddavaram",
+      "structure_type": "STW",
+      "functioning_wells": 49.0,
+      "monsoon_draft_ha_m": 0.27,
+      "non_monsoon_draft_ha_m": 0.88
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Godavarru-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 416.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Mallavolu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Seri Kalavapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Manikonda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 606.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Kadavakollu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 66.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Penjendra",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Mulakalapalle-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 9.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Chirivada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.21,
+      "non_monsoon_draft_ha_m": 0.49
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Chandrala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Bapulapadu",
+      "structure_type": "Deep TW",
+      "functioning_wells": 96.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Chennuruvaripalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Boddapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 207.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Annavaram-11",
+      "structure_type": "Filter Points",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Vakkalagadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 85.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.65
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Pagolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 189.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Bommuluru",
+      "structure_type": "Deep TW",
+      "functioning_wells": 79.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Janardhanapuram-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Kalvapudi Agraharam",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Tadanki",
+      "structure_type": "Filter Points",
+      "functioning_wells": 113.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Mallavilli",
+      "structure_type": "Deep TW",
+      "functioning_wells": 469.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Jakkulanekkalam",
+      "structure_type": "BWs",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Bollapadu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Dibbanapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.36,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ramannagudem-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Hanumanthapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 178.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.45
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Undrapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Kanakavalli",
+      "structure_type": "Filter Points",
+      "functioning_wells": 157.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Polukonda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Ogirala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.21,
+      "non_monsoon_draft_ha_m": 0.49
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Kondiparru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 25.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Komaravolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 33.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Chitturpu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 212.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Devarapalle-8",
+      "structure_type": "Filter Points",
+      "functioning_wells": 510.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Kodali",
+      "structure_type": "Filter Points",
+      "functioning_wells": 306.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Elikala Kuduru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Chiruvolu Lanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 225.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Zamidintakurru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 116.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Teluguraopalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 122.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Kuripirala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 14.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "MTW",
+      "functioning_wells": 160.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "DW",
+      "functioning_wells": 315.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 108.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "Deep TW",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "STW",
+      "functioning_wells": 62.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.21,
+      "non_monsoon_draft_ha_m": 0.49
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "BWs",
+      "functioning_wells": 260.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "MTW",
+      "functioning_wells": 403.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "DW",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Arugolanu-1",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BANTUMILLI",
+      "village": "Pedatummidi",
+      "structure_type": "STW",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.64,
+      "non_monsoon_draft_ha_m": 1.24
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Tarigoppula",
+      "structure_type": "Filter Points",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "KANNURU",
+      "structure_type": "Filter Points",
+      "functioning_wells": 147.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Davuluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 123.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Kothapalle-26",
+      "structure_type": "Filter Points",
+      "functioning_wells": 72.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Mantada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 68.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "North Valluru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 423.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Valivarthipadu (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Ullipalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Mandapakala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Puligadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 165.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PENAMALURU",
+      "village": "Pedapulipaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 210.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.64
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Billapadu (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Rayavaram-6",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Pamidimukkala-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 134.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Chinamuttevi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 37.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Venkatanarasimhapuram",
+      "structure_type": "BWs",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Mandapadu (Rural)",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Kummamuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 164.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Serinarasannapalem",
+      "structure_type": "Deep TW",
+      "functioning_wells": 34.0,
+      "monsoon_draft_ha_m": 0.45,
+      "non_monsoon_draft_ha_m": 1.08
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Purushottapatnam-1",
+      "structure_type": "BWs",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Chinaparupudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 80.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Nagayatippa",
+      "structure_type": "Filter Points",
+      "functioning_wells": 182.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Pedamuttevi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 119.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Seepudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Konathanapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 57.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Prodduturu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 178.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Addada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Veeravalli Mokhasa",
+      "structure_type": "Filter Points",
+      "functioning_wells": 53.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Pamarru-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 98.0,
+      "monsoon_draft_ha_m": 1.2,
+      "non_monsoon_draft_ha_m": 2.1
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Kaptanupalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Nandivada-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Jagannadhapuram-11",
+      "structure_type": "Filter Points",
+      "functioning_wells": 53.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Lakshmipuram-5",
+      "structure_type": "Filter Points",
+      "functioning_wells": 138.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Cheedepudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 52.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Majeru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 105.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Chagantipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 71.0,
+      "monsoon_draft_ha_m": 0.36,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Vanapamula",
+      "structure_type": "Filter Points",
+      "functioning_wells": 160.0,
+      "monsoon_draft_ha_m": 0.32,
+      "non_monsoon_draft_ha_m": 0.96
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Yelakurru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Gurrala Lanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 67.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Endakuduru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Tadepalle-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Kalavapamula",
+      "structure_type": "Filter Points",
+      "functioning_wells": 305.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.12
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Velivolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 182.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Ondrampadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 9.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NAGAYALANKA",
+      "village": "Nagayalanka-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Velpuru-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 51.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Mamillapalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 93.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Lingavaram-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Zamigolvepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 67.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Billanapalle",
+      "structure_type": "Deep TW",
+      "functioning_wells": 265.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Jabarlapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 51.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.06
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "VUYYURU",
+      "village": "Akunuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 152.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Tekupalle-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Pottipadu-5",
+      "structure_type": "Deep TW",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.36,
+      "non_monsoon_draft_ha_m": 0.84
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Kudaravalli",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Royyuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 309.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Maredumaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 145.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "North Chiruvolulanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 280.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Chitturu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GHANTASALA",
+      "village": "Chilakalapudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 131.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Elamarru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 430.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Merakagudem-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Kakarlamudi-1",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 88.0,
+      "monsoon_draft_ha_m": 0.05,
+      "non_monsoon_draft_ha_m": 0.125
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Kakarlamudi-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 88.0,
+      "monsoon_draft_ha_m": 0.12,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Tippanagunta",
+      "structure_type": "Filter Points",
+      "functioning_wells": 5.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Gurazada",
+      "structure_type": "Filter Points",
+      "functioning_wells": 77.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Buddalapalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KODURU",
+      "village": "Machavaram-8",
+      "structure_type": "Filter Points",
+      "functioning_wells": 11.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "AVANIGADA",
+      "village": "Avanigadda",
+      "structure_type": "Filter Points",
+      "functioning_wells": 285.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.3
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Kuduru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Edupugallu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 348.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Penumatcha",
+      "structure_type": "Filter Points",
+      "functioning_wells": 143.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Gollanapalle",
+      "structure_type": "BWs",
+      "functioning_wells": 217.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Nandamuru-3",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 66.0,
+      "monsoon_draft_ha_m": 0.05,
+      "non_monsoon_draft_ha_m": 0.125
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Nandamuru-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 66.0,
+      "monsoon_draft_ha_m": 0.12,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Nandamuru-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Ramachandrapuram-11",
+      "structure_type": "Filter Points",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "BAPULAPAD",
+      "village": "Veleru",
+      "structure_type": "Deep TW",
+      "functioning_wells": 384.0,
+      "monsoon_draft_ha_m": 0.35,
+      "non_monsoon_draft_ha_m": 0.9
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Gopuvanipalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 128.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Surampalle",
+      "structure_type": "BWs",
+      "functioning_wells": 299.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Mir Imam Palem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Vinnakota",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.048,
+      "non_monsoon_draft_ha_m": 0.144
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Koyyagurapadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 34.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Pamulapadu-4",
+      "structure_type": "Filter Points",
+      "functioning_wells": 66.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Kosuru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 305.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Chagantipadu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 436.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Singarayapalem-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "THOTLAVALLURU",
+      "village": "Garikaparru",
+      "structure_type": "Filter Points",
+      "functioning_wells": 183.0,
+      "monsoon_draft_ha_m": 0.195,
+      "non_monsoon_draft_ha_m": 0.455
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Uruturu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 32.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Konkepudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 14.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Ponukumadu-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NAGAYALANKA",
+      "village": "Chodavaram-13",
+      "structure_type": "Filter Points",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Tarigoppula Khandrika",
+      "structure_type": "Filter Points",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.3,
+      "non_monsoon_draft_ha_m": 0.6
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Bahubalendrunigudem",
+      "structure_type": "BWs",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MACHILIPATNAM",
+      "village": "Pothepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.6,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Kornipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "CHALLAPALLE",
+      "village": "Mangalapuram",
+      "structure_type": "Filter Points",
+      "functioning_wells": 24.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Pedakallepalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 91.0,
+      "monsoon_draft_ha_m": 1.0,
+      "non_monsoon_draft_ha_m": 2.5
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDAPARUPUDI",
+      "village": "Gurivindagunta",
+      "structure_type": "Filter Points",
+      "functioning_wells": 53.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Vedurupavuluru",
+      "structure_type": "DW+PS/DCB",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 0.08,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GANNAVARAM",
+      "village": "Vedurupavuluru",
+      "structure_type": "BWs",
+      "functioning_wells": 73.0,
+      "monsoon_draft_ha_m": 0.324,
+      "non_monsoon_draft_ha_m": 0.648
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDUR (KRISHNA)",
+      "village": "Narikedalapalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.48
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Kasipudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Pedamaddali",
+      "structure_type": "Filter Points",
+      "functioning_wells": 145.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Kuchipudi-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 93.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Raparala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Fathelanka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 109.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Pedaprolu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 27.0,
+      "monsoon_draft_ha_m": 1.0,
+      "non_monsoon_draft_ha_m": 2.1
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "NANDIVADA",
+      "village": "Rudrapaka",
+      "structure_type": "Filter Points",
+      "functioning_wells": 14.0,
+      "monsoon_draft_ha_m": 0.07,
+      "non_monsoon_draft_ha_m": 0.175
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Movva-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 381.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMARRU",
+      "village": "Mallavaram-11",
+      "structure_type": "Filter Points",
+      "functioning_wells": 11.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Seri Velpur",
+      "structure_type": "Filter Points",
+      "functioning_wells": 24.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "UNGUTURU",
+      "village": "Velinutala",
+      "structure_type": "Filter Points",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Dondapadu-3",
+      "structure_type": "Filter Points",
+      "functioning_wells": 26.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Velpuru-2",
+      "structure_type": "Filter Points",
+      "functioning_wells": 205.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "KANKIPADU",
+      "village": "Punadipadu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 201.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDIVADA",
+      "village": "Moturu",
+      "structure_type": "Filter Points",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.54,
+      "non_monsoon_draft_ha_m": 1.29
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOPIDEVI",
+      "village": "Merakanapalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 194.0,
+      "monsoon_draft_ha_m": 0.2,
+      "non_monsoon_draft_ha_m": 0.4
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PAMIDIMUKKALA",
+      "village": "Padikondalapalem",
+      "structure_type": "Filter Points",
+      "functioning_wells": 117.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 0.8
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "GUDLAVALLERU",
+      "village": "Cheruvupalle",
+      "structure_type": "Filter Points",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.4,
+      "non_monsoon_draft_ha_m": 1.2
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "PEDANA",
+      "village": "Penumalli-1",
+      "structure_type": "Filter Points",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.42
+    },
+    {
+      "district": "KRISHNA",
+      "mandal": "MOVVA",
+      "village": "Avurupudi",
+      "structure_type": "Filter Points",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.8,
+      "non_monsoon_draft_ha_m": 1.8
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Venkatapuram-9",
+      "structure_type": "Bore well",
+      "functioning_wells": 140.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Vavilala",
+      "structure_type": "Bore well",
+      "functioning_wells": 284.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Gudem Madhavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 125.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Dechupalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 155.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Nidamanuru",
+      "structure_type": "Filter point",
+      "functioning_wells": 215.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Kokilampadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 328.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Buchavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 28.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Kodavatikallu",
+      "structure_type": "Bore well",
+      "functioning_wells": 118.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Atlapragada",
+      "structure_type": "Bore well",
+      "functioning_wells": 400.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Dabbakupalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 132.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Nandigama-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 208.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Gurrajupalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 112.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Atukuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 103.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Sabjapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 85.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "T.Gannavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 256.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Nemali",
+      "structure_type": "Bore well",
+      "functioning_wells": 166.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Polisettipadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 425.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Alluru-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 123.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Peddavaram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA NORTH",
+      "village": "Vijayawada North Villages",
+      "structure_type": "Bore well",
+      "functioning_wells": 41.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Vellanki",
+      "structure_type": "Bore well",
+      "functioning_wells": 70.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Jaggaiahpet",
+      "structure_type": "Bore well",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Machinenipalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Thotacherla",
+      "structure_type": "Bore well",
+      "functioning_wells": 66.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Kanchela",
+      "structure_type": "Bore well",
+      "functioning_wells": 235.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Kavuluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 69.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Ganapavaram-7",
+      "structure_type": "Bore well",
+      "functioning_wells": 335.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Mundlapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 108.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Pondugula-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 279.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Morusumilli",
+      "structure_type": "Bore well",
+      "functioning_wells": 383.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Gokarajupalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 4.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Velagaleru-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 170.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Chennaraopalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 50.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Annavaram-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 350.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Popuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 9.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Budawada-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 337.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Munukulla",
+      "structure_type": "Bore well",
+      "functioning_wells": 371.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Arlapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 322.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Garikapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 27.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Dasullapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 225.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Cheruvu Madhavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 200.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Nawabpeta",
+      "structure_type": "Bore well",
+      "functioning_wells": 151.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Kakaravai",
+      "structure_type": "Bore well",
+      "functioning_wells": 44.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Sunnampadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 137.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Jonnalagadda",
+      "structure_type": "Bore well",
+      "functioning_wells": 77.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Indugapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 165.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Konatalapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 69.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Tirumalagiri",
+      "structure_type": "Bore well",
+      "functioning_wells": 167.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Dachavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 57.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Kanneveedu",
+      "structure_type": "Bore well",
+      "functioning_wells": 168.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Peda Modugapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 73.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Pokkunuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Chintalapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 430.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Gullapudi",
+      "structure_type": "Bore well",
+      "functioning_wells": 183.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Muchintala @ Bodapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 151.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Vemavaram-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 11.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Perakalapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Vallampatla",
+      "structure_type": "Bore well",
+      "functioning_wells": 592.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Nunna-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 507.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Tunikipadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 263.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Dundiralapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 206.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Raghavapuram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 175.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Vinagadapa",
+      "structure_type": "Bore well",
+      "functioning_wells": 273.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Kanchikacherla",
+      "structure_type": "Bore well",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Rangapuram-8",
+      "structure_type": "Bore well",
+      "functioning_wells": 721.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Chandrupatla",
+      "structure_type": "Bore well",
+      "functioning_wells": 286.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Laxmipuram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 332.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Chilukuru",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 34.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Marepalle-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 446.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Pendyala",
+      "structure_type": "Bore well",
+      "functioning_wells": 27.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Lingagudem",
+      "structure_type": "Bore well",
+      "functioning_wells": 73.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Anumollanka",
+      "structure_type": "Bore well",
+      "functioning_wells": 281.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Guntupalle",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 33.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Penugolanu",
+      "structure_type": "Bore well",
+      "functioning_wells": 422.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Chevitikallu",
+      "structure_type": "Bore well",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Kotturu",
+      "structure_type": "Bore well",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Allurupadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 74.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Kunaparajuparva",
+      "structure_type": "Bore well",
+      "functioning_wells": 317.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Thurlapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 70.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Anjaneyapuram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 90.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Ibrahimpatnam-1",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 136.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Korlamanda-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 753.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Reddigudem-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 563.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Keerthirayanigudem",
+      "structure_type": "Bore well",
+      "functioning_wells": 354.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Shabada",
+      "structure_type": "Bore well",
+      "functioning_wells": 3.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Bobbellapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 50.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Ponnavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Jakkampudi",
+      "structure_type": "Bore well",
+      "functioning_wells": 25.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Magallu",
+      "structure_type": "Bore well",
+      "functioning_wells": 420.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Nandigama-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 238.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Gudimetlapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Chandapuram",
+      "structure_type": "Bore well",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Vellaturu-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 490.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Rajavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 65.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Tholukodu",
+      "structure_type": "Bore well",
+      "functioning_wells": 334.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Narikampadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 46.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Rudravaram-6",
+      "structure_type": "Bore well",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Vamakuntla",
+      "structure_type": "Bore well",
+      "functioning_wells": 363.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Kethanakonda",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 97.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Pathapadu-3",
+      "structure_type": "Bore well",
+      "functioning_wells": 142.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Chittela",
+      "structure_type": "Bore well",
+      "functioning_wells": 134.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Chattannavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Tata Kuntla",
+      "structure_type": "Bore well",
+      "functioning_wells": 622.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Ithavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 102.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Jayanthi",
+      "structure_type": "Bore well",
+      "functioning_wells": 231.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Ambarupeta",
+      "structure_type": "Bore well",
+      "functioning_wells": 47.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Peddapuram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 99.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Punnavalli",
+      "structure_type": "Bore well",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Narasimharaopalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 130.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Cheemalapadu-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 1255.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Konathamatmakuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Chegireddipadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 75.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Kondaparva",
+      "structure_type": "Bore well",
+      "functioning_wells": 647.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Chevuturu",
+      "structure_type": "Bore well",
+      "functioning_wells": 227.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Anigandlapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 835.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Chavatapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 24.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Lingala-4",
+      "structure_type": "Bore well",
+      "functioning_wells": 232.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Chandragudem",
+      "structure_type": "Bore well",
+      "functioning_wells": 729.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Akkapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 357.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Chilakalapudi (Rural)",
+      "structure_type": "Bore well",
+      "functioning_wells": 182.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Brahmabotlapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 32.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Kachavaram",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 32.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Koduru-3",
+      "structure_type": "Bore well",
+      "functioning_wells": 662.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Paritala",
+      "structure_type": "Bore well",
+      "functioning_wells": 110.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Tella Devarapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 429.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Kasarabada",
+      "structure_type": "Bore well",
+      "functioning_wells": 47.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Kondapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Thimmapuram-11",
+      "structure_type": "Bore well",
+      "functioning_wells": 52.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Patha Naguluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 184.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Bodavada-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 25.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Jagannadhapuram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 35.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Subbayagudem",
+      "structure_type": "Bore well",
+      "functioning_wells": 165.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Ravirala",
+      "structure_type": "Bore well",
+      "functioning_wells": 62.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Rajupeta-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 126.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Pulluru-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 1173.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Makkapeta",
+      "structure_type": "Bore well",
+      "functioning_wells": 185.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Konijerla",
+      "structure_type": "Bore well",
+      "functioning_wells": 208.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Chandarlapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 89.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Kollikulla",
+      "structure_type": "Bore well",
+      "functioning_wells": 142.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Narasapuram-9",
+      "structure_type": "Bore well",
+      "functioning_wells": 566.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Anumanchipalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 330.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Velvadam",
+      "structure_type": "Bore well",
+      "functioning_wells": 583.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Pallagiri",
+      "structure_type": "Bore well",
+      "functioning_wells": 74.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "A.Konduru",
+      "structure_type": "Bore well",
+      "functioning_wells": 715.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Kowthavari Agraharam",
+      "structure_type": "Bore well",
+      "functioning_wells": 179.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Kalagara",
+      "structure_type": "Bore well",
+      "functioning_wells": 775.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Maddulaparva",
+      "structure_type": "Bore well",
+      "functioning_wells": 563.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Chillakallu",
+      "structure_type": "Bore well",
+      "functioning_wells": 194.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Pochavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 81.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Gowravaram-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 33.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Mangollu",
+      "structure_type": "Bore well",
+      "functioning_wells": 168.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Gandepalle-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 51.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Vissannapet-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 919.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Haveli Mutyalampadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 35.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Rolupadi",
+      "structure_type": "Bore well",
+      "functioning_wells": 239.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Katrenipalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 14.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Kotikalapudi-1",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 209.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Madhavaram (East)",
+      "structure_type": "Bore well",
+      "functioning_wells": 486.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Ganginenipalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 292.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Thotaravulapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 182.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Kummarakuntla",
+      "structure_type": "Bore well",
+      "functioning_wells": 266.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Nadim Tiruvuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 240.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Erramadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 149.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Torragudipadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 17.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Enikepadu",
+      "structure_type": "Filter point",
+      "functioning_wells": 61.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Vatsavai-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 517.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Ramireddipalle-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 114.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Gudavalli",
+      "structure_type": "Filter point",
+      "functioning_wells": 88.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Mylavaram-3",
+      "structure_type": "Bore well",
+      "functioning_wells": 335.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Sanagapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 89.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Chennavaram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 97.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Vemulanarva",
+      "structure_type": "Bore well",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Nandaluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Naguluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 318.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Rayanapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 7.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Gandrai",
+      "structure_type": "Bore well",
+      "functioning_wells": 429.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Tadepalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Vedurubeedem",
+      "structure_type": "Bore well",
+      "functioning_wells": 199.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Putrela-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 918.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Seri Amaravaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 24.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Chandrala-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 457.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Gollamandala",
+      "structure_type": "Bore well",
+      "functioning_wells": 604.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Kethaveeruni Padu",
+      "structure_type": "Bore well",
+      "functioning_wells": 88.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Adiviravulapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 50.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Patha Tiruvuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 241.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Lingalapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 34.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Gampalagudem-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 286.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Konayapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 234.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Thakkellapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 33.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Kundavari Kandrika",
+      "structure_type": "Bore well",
+      "functioning_wells": 21.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Lingala-5",
+      "structure_type": "Bore well",
+      "functioning_wells": 64.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Kudapa",
+      "structure_type": "Bore well",
+      "functioning_wells": 353.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Madhavaram (West)",
+      "structure_type": "Bore well",
+      "functioning_wells": 184.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Tripuravaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 110.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Vibhareetapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 25.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Kanumuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 598.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Munagacherla",
+      "structure_type": "Bore well",
+      "functioning_wells": 39.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Rudravaram-5",
+      "structure_type": "Bore well",
+      "functioning_wells": 240.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Veerullapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 106.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Dodda Devarapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 94.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Venkatapuram-10",
+      "structure_type": "Bore well",
+      "functioning_wells": 91.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Bhimavarappadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 87.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Kanimerla",
+      "structure_type": "Bore well",
+      "functioning_wells": 68.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Damuluru-1",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Meduru",
+      "structure_type": "Bore well",
+      "functioning_wells": 338.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Eturu-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 134.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Bandipalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Munagapadu-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 268.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Gopinenipalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 80.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Takkellapadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 279.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Kambampadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 326.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Elaprolu",
+      "structure_type": "Bore well",
+      "functioning_wells": 6.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Jayanthipuram",
+      "structure_type": "Bore well",
+      "functioning_wells": 40.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Konakanchi",
+      "structure_type": "Bore well",
+      "functioning_wells": 216.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Gollamudi",
+      "structure_type": "Bore well",
+      "functioning_wells": 165.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Jangalapalle-9",
+      "structure_type": "Bore well",
+      "functioning_wells": 261.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Kambampadu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 273.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Kuntamukkala-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 393.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Somavaram-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 78.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Jammavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 8.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "A KONDURU",
+      "village": "Repudi",
+      "structure_type": "Bore well",
+      "functioning_wells": 680.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Munagala Palle",
+      "structure_type": "Bore well",
+      "functioning_wells": 43.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Telladevarapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 136.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Ramavarapaddu",
+      "structure_type": "Filter point",
+      "functioning_wells": 64.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Gangavalli",
+      "structure_type": "Bore well",
+      "functioning_wells": 36.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Duggiralapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 151.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Polampalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 423.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Koduru-11",
+      "structure_type": "Bore well",
+      "functioning_wells": 545.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Pedavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 204.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Pochampalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 271.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Bhimavaram-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 151.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Ustepalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 10.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Malkapuram-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 136.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Phiryadi Nainavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 13.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Pallampalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 37.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Gottumukkala",
+      "structure_type": "Bore well",
+      "functioning_wells": 259.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Kandulapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 93.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Ambapuram-4",
+      "structure_type": "Bore well",
+      "functioning_wells": 1.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Vairidhari Annavaram",
+      "structure_type": "Bore well",
+      "functioning_wells": 18.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Kunikinapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 79.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Mallela-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 410.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Patempadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 2.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Keesara-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 26.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Narukullapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 206.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Chittela-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 214.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Mustikuntla",
+      "structure_type": "Bore well",
+      "functioning_wells": 399.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "Talluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 79.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VISSANNAPET",
+      "village": "Vemireddipalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 894.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Jupudi",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Shermohammedpet",
+      "structure_type": "Bore well",
+      "functioning_wells": 224.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Vedadri",
+      "structure_type": "Bore well",
+      "functioning_wells": 111.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Gaddamanugu",
+      "structure_type": "Bore well",
+      "functioning_wells": 240.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Latchapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Vemulapalle-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 16.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Veladi",
+      "structure_type": "Bore well",
+      "functioning_wells": 43.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Tummalapalem",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 12.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Gosaveedu",
+      "structure_type": "Bore well",
+      "functioning_wells": 262.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Jujjuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 192.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Gollapudi",
+      "structure_type": "Filter point",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Moguluru-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 90.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Utukuru-3",
+      "structure_type": "Bore well",
+      "functioning_wells": 431.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Mutchinapalle-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 265.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Ummadidevarapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 113.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VEERULLAPADU",
+      "village": "Tatigummi",
+      "structure_type": "Bore well",
+      "functioning_wells": 22.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Ramannapalem-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 321.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Penuganchiprolu-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 646.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "TIRUVURU",
+      "village": "Ganugapadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 1071.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Ganiatukuru",
+      "structure_type": "Bore well",
+      "functioning_wells": 164.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "MYLAVARAM (KRISHNA)",
+      "village": "Mulakalapanta",
+      "structure_type": "Bore well",
+      "functioning_wells": 76.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "VATSAVAI",
+      "village": "China Modugapalle",
+      "structure_type": "Bore well",
+      "functioning_wells": 54.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Mukteswarapuram",
+      "structure_type": "Bore well",
+      "functioning_wells": 35.0,
+      "monsoon_draft_ha_m": 0.0,
+      "non_monsoon_draft_ha_m": 0.0
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Konduru-5",
+      "structure_type": "Bore well",
+      "functioning_wells": 117.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "REDDIGUDEM",
+      "village": "Anneraopeta",
+      "structure_type": "Bore well",
+      "functioning_wells": 562.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "NANDIGAMA",
+      "village": "Damuluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 95.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Peda Komira",
+      "structure_type": "Bore well",
+      "functioning_wells": 399.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "PENUGANCHIPROLU",
+      "village": "Gummadidurru",
+      "structure_type": "Bore well",
+      "functioning_wells": 408.0,
+      "monsoon_draft_ha_m": 0.17,
+      "non_monsoon_draft_ha_m": 0.32
+    },
+    {
+      "district": "NTR",
+      "mandal": "GAMPALAGUDEM",
+      "village": "Kothapalle-15",
+      "structure_type": "Bore well",
+      "functioning_wells": 230.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Pinapaka",
+      "structure_type": "Bore well",
+      "functioning_wells": 29.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Balusupadu",
+      "structure_type": "Bore well",
+      "functioning_wells": 108.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "VIJAYAWADA RURAL",
+      "village": "Prasadampadu",
+      "structure_type": "Filter point",
+      "functioning_wells": 43.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Ramachandrunipeta",
+      "structure_type": "Bore well",
+      "functioning_wells": 191.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "G KONDURU",
+      "village": "Konduru-6",
+      "structure_type": "Bore well",
+      "functioning_wells": 215.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Muppalla-2",
+      "structure_type": "Bore well",
+      "functioning_wells": 136.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    },
+    {
+      "district": "NTR",
+      "mandal": "KANCHIKA CHERLA",
+      "village": "Munnaluru",
+      "structure_type": "Bore well",
+      "functioning_wells": 144.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.19
+    },
+    {
+      "district": "NTR",
+      "mandal": "IBRAHIMPATNAM",
+      "village": "Mulapadu",
+      "structure_type": "Tube wells/filter point",
+      "functioning_wells": 281.0,
+      "monsoon_draft_ha_m": 0.24,
+      "non_monsoon_draft_ha_m": 0.38
+    },
+    {
+      "district": "NTR",
+      "mandal": "JAGGAYYAPETA",
+      "village": "Torraguntapalem",
+      "structure_type": "Bore well",
+      "functioning_wells": 15.0,
+      "monsoon_draft_ha_m": 0.1,
+      "non_monsoon_draft_ha_m": 0.16
+    },
+    {
+      "district": "NTR",
+      "mandal": "CHANDARLAPADU",
+      "village": "Gudimetla-1",
+      "structure_type": "Bore well",
+      "functioning_wells": 234.0,
+      "monsoon_draft_ha_m": 0.14,
+      "non_monsoon_draft_ha_m": 0.26
+    }
+  ]
+}

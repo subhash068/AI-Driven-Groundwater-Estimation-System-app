@@ -1,0 +1,8 @@
+{
+  "mae":0.8890635173,
+  "mape":0.0766080794,
+  "anomaly_precision_isolation_forest":0.5,
+  "anomaly_precision_seasonal_drop_rule":0.0,
+  "target_error_within_5pct":false,
+  "target_anomaly_precision_90pct":false
+}

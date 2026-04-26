@@ -1,0 +1,60 @@
+MAP
+  NAME "groundwater"
+  STATUS ON
+  EXTENT 76 12 85 20
+  UNITS DD
+  SHAPEPATH "/data"
+  IMAGETYPE PNG
+
+  WEB
+    METADATA
+      "wms_title"           "Groundwater WMS"
+      "wms_enable_request"  "*"
+      "wfs_enable_request"  "*"
+      "wfs_title"           "Groundwater WFS"
+      "ows_srs"             "EPSG:4326"
+    END
+  END
+
+  PROJECTION
+    "init=epsg:4326"
+  END
+
+  LAYER
+    NAME "villages"
+    TYPE POLYGON
+    STATUS ON
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "host=localhost dbname=groundwater user=postgres password=postgres port=5432"
+    DATA "geom FROM groundwater.villages USING UNIQUE village_id USING SRID=4326"
+    METADATA
+      "wms_title" "Village Boundaries"
+      "wfs_title" "Village Boundaries"
+    END
+    CLASS
+      STYLE
+        COLOR 180 210 230
+        OUTLINECOLOR 60 80 95
+      END
+    END
+  END
+
+  LAYER
+    NAME "hydrogeology"
+    TYPE POLYGON
+    STATUS ON
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "host=localhost dbname=groundwater user=postgres password=postgres port=5432"
+    DATA "geom FROM (SELECT row_number() OVER () AS gid, v.geom, h.permeability FROM groundwater.villages v JOIN groundwater.hydrogeology h ON h.village_id=v.village_id) AS hydro USING UNIQUE gid USING SRID=4326"
+    METADATA
+      "wms_title" "Hydrogeology Permeability"
+      "wfs_title" "Hydrogeology Permeability"
+    END
+    CLASS
+      STYLE
+        COLOR 200 180 110
+        OUTLINECOLOR 110 90 55
+      END
+    END
+  END
+END
