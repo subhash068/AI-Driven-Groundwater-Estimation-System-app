@@ -3292,3 +3292,23 @@ html, body, #root {
   }
 }
 
+@media (max-width: 1100px) {
+  .dashboard-shell .menu-button {
+    display: inline-flex !important;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .dashboard-shell.sidebar-open .panel {
+    transform: translateX(0) !important;
+  }
+
+  .dashboard-shell.sidebar-closed .panel {
+    transform: translateX(-105%) !important;
+  }
+
+  .dashboard-shell .sidebar-backdrop {
+    display: block;
+  }
+}
+
