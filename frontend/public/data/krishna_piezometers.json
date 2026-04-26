@@ -1,0 +1,4005 @@
+{
+  "generated_from": "PzWaterLevel_2024.xlsx",
+  "district": "KRISHNA",
+  "stationCount": 62,
+  "stations": [
+    {
+      "id": "10207",
+      "district": "KRISHNA",
+      "mandal": "Avanigadda",
+      "village": "Avanigadda",
+      "location": "Girls high school",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 11.0,
+      "mslM": 6.08,
+      "latitude": 16.016888,
+      "longitude": 80.91416100000001,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.49
+        },
+        {
+          "label": "2024-02",
+          "value": 4.95
+        },
+        {
+          "label": "2024-03",
+          "value": 5.12
+        },
+        {
+          "label": "2024-04",
+          "value": 5.26
+        },
+        {
+          "label": "2024-05",
+          "value": 5.21
+        },
+        {
+          "label": "2024-06",
+          "value": 5.27
+        },
+        {
+          "label": "2024-07",
+          "value": 4.69
+        },
+        {
+          "label": "2024-08",
+          "value": 4.55
+        },
+        {
+          "label": "2024-09",
+          "value": 1.91
+        },
+        {
+          "label": "2024-10",
+          "value": 2.44
+        },
+        {
+          "label": "2024-11",
+          "value": 3.22
+        },
+        {
+          "label": "2024-12",
+          "value": 3.84
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.84
+      }
+    },
+    {
+      "id": "10208",
+      "district": "KRISHNA",
+      "mandal": "Gudiwada",
+      "village": "Gudiwada",
+      "location": "ANR college",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 30.5,
+      "mslM": 7.62,
+      "latitude": 16.429844,
+      "longitude": 80.970642,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.32
+        },
+        {
+          "label": "2024-02",
+          "value": 4.64
+        },
+        {
+          "label": "2024-03",
+          "value": 4.81
+        },
+        {
+          "label": "2024-04",
+          "value": 5.06
+        },
+        {
+          "label": "2024-05",
+          "value": 5.27
+        },
+        {
+          "label": "2024-06",
+          "value": 5.53
+        },
+        {
+          "label": "2024-07",
+          "value": 5.9
+        },
+        {
+          "label": "2024-08",
+          "value": 5.96
+        },
+        {
+          "label": "2024-09",
+          "value": 4.21
+        },
+        {
+          "label": "2024-10",
+          "value": 3.6
+        },
+        {
+          "label": "2024-11",
+          "value": 3.4
+        },
+        {
+          "label": "2024-12",
+          "value": 4.06
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 4.06
+      }
+    },
+    {
+      "id": "10209",
+      "district": "KRISHNA",
+      "mandal": "Kankipadu",
+      "village": "Edupugallu",
+      "location": "ZPHS",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 41.0,
+      "mslM": 16.16,
+      "latitude": 16.452317,
+      "longitude": 80.745651,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 15.32
+        },
+        {
+          "label": "2024-02",
+          "value": 15.64
+        },
+        {
+          "label": "2024-03",
+          "value": 16.4
+        },
+        {
+          "label": "2024-04",
+          "value": 16.8
+        },
+        {
+          "label": "2024-05",
+          "value": 16.85
+        },
+        {
+          "label": "2024-06",
+          "value": 16.39
+        },
+        {
+          "label": "2024-07",
+          "value": 16.36
+        },
+        {
+          "label": "2024-08",
+          "value": 15.6
+        },
+        {
+          "label": "2024-09",
+          "value": 14.6
+        },
+        {
+          "label": "2024-10",
+          "value": 14.18
+        },
+        {
+          "label": "2024-11",
+          "value": 14.3
+        },
+        {
+          "label": "2024-12",
+          "value": 14.5
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 14.5
+      }
+    },
+    {
+      "id": "10210",
+      "district": "KRISHNA",
+      "mandal": "Koduru",
+      "village": "Koduru",
+      "location": "Panchayat office",
+      "project": "HP-1",
+      "principalAquifer": "AL",
+      "totalDepthM": 8.0,
+      "mslM": null,
+      "latitude": 16.009083,
+      "longitude": 81.034393,
+      "monthlyReadings2024": [],
+      "latestReading2024": null
+    },
+    {
+      "id": "10211",
+      "district": "KRISHNA",
+      "mandal": "Mopidevi",
+      "village": "Venkatapuram",
+      "location": "Panchayat office",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 8.0,
+      "mslM": 5.2,
+      "latitude": 16.085126,
+      "longitude": 80.952427,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.94
+        },
+        {
+          "label": "2024-02",
+          "value": 1.48
+        },
+        {
+          "label": "2024-03",
+          "value": 1.85
+        },
+        {
+          "label": "2024-04",
+          "value": 2.18
+        },
+        {
+          "label": "2024-05",
+          "value": 2.22
+        },
+        {
+          "label": "2024-06",
+          "value": 2.44
+        },
+        {
+          "label": "2024-07",
+          "value": 0.65
+        },
+        {
+          "label": "2024-08",
+          "value": 0.57
+        },
+        {
+          "label": "2024-09",
+          "value": 0.25
+        },
+        {
+          "label": "2024-10",
+          "value": 0.57
+        },
+        {
+          "label": "2024-11",
+          "value": 0.58
+        },
+        {
+          "label": "2024-12",
+          "value": 0.85
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 0.85
+      }
+    },
+    {
+      "id": "10212",
+      "district": "KRISHNA",
+      "mandal": "Movva",
+      "village": "Kuchipudi",
+      "location": "Kalashetram",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 20.0,
+      "mslM": 8.26,
+      "latitude": 16.257401,
+      "longitude": 80.913051,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 2.95
+        },
+        {
+          "label": "2024-02",
+          "value": 3.56
+        },
+        {
+          "label": "2024-03",
+          "value": 3.91
+        },
+        {
+          "label": "2024-04",
+          "value": 4.25
+        },
+        {
+          "label": "2024-05",
+          "value": 4.37
+        },
+        {
+          "label": "2024-06",
+          "value": 2.9
+        },
+        {
+          "label": "2024-07",
+          "value": 0.0
+        },
+        {
+          "label": "2024-08",
+          "value": 1.53
+        },
+        {
+          "label": "2024-09",
+          "value": 0.98
+        },
+        {
+          "label": "2024-10",
+          "value": 0.58
+        },
+        {
+          "label": "2024-11",
+          "value": 1.25
+        },
+        {
+          "label": "2024-12",
+          "value": 2.39
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.39
+      }
+    },
+    {
+      "id": "10213",
+      "district": "KRISHNA",
+      "mandal": "Nandiwada",
+      "village": "Aripirala",
+      "location": "MPP school",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 92.4,
+      "mslM": 6.44,
+      "latitude": 16.53727,
+      "longitude": 80.98264,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 18.5
+        },
+        {
+          "label": "2024-02",
+          "value": 18.25
+        },
+        {
+          "label": "2024-03",
+          "value": 16.3
+        },
+        {
+          "label": "2024-04",
+          "value": 16.43
+        },
+        {
+          "label": "2024-05",
+          "value": 17.85
+        },
+        {
+          "label": "2024-06",
+          "value": 17.33
+        },
+        {
+          "label": "2024-07",
+          "value": 16.75
+        },
+        {
+          "label": "2024-08",
+          "value": 17.19
+        },
+        {
+          "label": "2024-09",
+          "value": 13.95
+        },
+        {
+          "label": "2024-10",
+          "value": 14.71
+        },
+        {
+          "label": "2024-11",
+          "value": 14.99
+        },
+        {
+          "label": "2024-12",
+          "value": 15.45
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 15.45
+      }
+    },
+    {
+      "id": "10214",
+      "district": "KRISHNA",
+      "mandal": "Pamarru",
+      "village": "Pamarru",
+      "location": "Market yard",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 68.5,
+      "mslM": 8.76,
+      "latitude": 16.322022,
+      "longitude": 80.968181,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 14.92
+        },
+        {
+          "label": "2024-02",
+          "value": 14.14
+        },
+        {
+          "label": "2024-03",
+          "value": 14.28
+        },
+        {
+          "label": "2024-04",
+          "value": 14.89
+        },
+        {
+          "label": "2024-05",
+          "value": 14.64
+        },
+        {
+          "label": "2024-06",
+          "value": 15.27
+        },
+        {
+          "label": "2024-07",
+          "value": 16.71
+        },
+        {
+          "label": "2024-08",
+          "value": 16.19
+        },
+        {
+          "label": "2024-09",
+          "value": 15.29
+        },
+        {
+          "label": "2024-10",
+          "value": 13.96
+        },
+        {
+          "label": "2024-11",
+          "value": 14.83
+        },
+        {
+          "label": "2024-12",
+          "value": 14.23
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 14.23
+      }
+    },
+    {
+      "id": "10215",
+      "district": "KRISHNA",
+      "mandal": "Pamidimukkala",
+      "village": "Kapileswarapuram",
+      "location": "ZPHS",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 10.12,
+      "latitude": 16.325232,
+      "longitude": 80.864463,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 2.34
+        },
+        {
+          "label": "2024-02",
+          "value": 2.9
+        },
+        {
+          "label": "2024-03",
+          "value": 3.23
+        },
+        {
+          "label": "2024-04",
+          "value": 3.73
+        },
+        {
+          "label": "2024-05",
+          "value": 4.01
+        },
+        {
+          "label": "2024-06",
+          "value": 4.29
+        },
+        {
+          "label": "2024-07",
+          "value": 4.51
+        },
+        {
+          "label": "2024-08",
+          "value": 4.5
+        },
+        {
+          "label": "2024-09",
+          "value": 1.85
+        },
+        {
+          "label": "2024-10",
+          "value": 1.0
+        },
+        {
+          "label": "2024-11",
+          "value": 1.78
+        },
+        {
+          "label": "2024-12",
+          "value": 2.19
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.19
+      }
+    },
+    {
+      "id": "10216",
+      "district": "KRISHNA",
+      "mandal": "Penamaluru",
+      "village": "Vanukuru",
+      "location": "Panchayat office",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 64.2,
+      "mslM": 15.87,
+      "latitude": 16.440787,
+      "longitude": 80.738339,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 15.09
+        },
+        {
+          "label": "2024-02",
+          "value": 15.64
+        },
+        {
+          "label": "2024-03",
+          "value": 16.52
+        },
+        {
+          "label": "2024-04",
+          "value": 15.87
+        },
+        {
+          "label": "2024-05",
+          "value": 15.92
+        },
+        {
+          "label": "2024-06",
+          "value": 15.04
+        },
+        {
+          "label": "2024-07",
+          "value": 15.31
+        },
+        {
+          "label": "2024-08",
+          "value": 15.67
+        },
+        {
+          "label": "2024-09",
+          "value": 14.04
+        },
+        {
+          "label": "2024-10",
+          "value": 13.2
+        },
+        {
+          "label": "2024-11",
+          "value": 13.27
+        },
+        {
+          "label": "2024-12",
+          "value": 14.06
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 14.06
+      }
+    },
+    {
+      "id": "10217",
+      "district": "KRISHNA",
+      "mandal": "Unguturu",
+      "village": "Nandamuru",
+      "location": "33/11 KV sub station",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 41.78,
+      "mslM": 10.69,
+      "latitude": 16.445253,
+      "longitude": 80.862201,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 7.74
+        },
+        {
+          "label": "2024-02",
+          "value": 7.63
+        },
+        {
+          "label": "2024-03",
+          "value": 8.42
+        },
+        {
+          "label": "2024-04",
+          "value": 8.77
+        },
+        {
+          "label": "2024-05",
+          "value": 9.0
+        },
+        {
+          "label": "2024-06",
+          "value": 9.38
+        },
+        {
+          "label": "2024-07",
+          "value": 10.07
+        },
+        {
+          "label": "2024-08",
+          "value": 9.27
+        },
+        {
+          "label": "2024-09",
+          "value": 8.67
+        },
+        {
+          "label": "2024-10",
+          "value": 6.27
+        },
+        {
+          "label": "2024-11",
+          "value": 6.55
+        },
+        {
+          "label": "2024-12",
+          "value": 6.67
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 6.67
+      }
+    },
+    {
+      "id": "10218",
+      "district": "KRISHNA",
+      "mandal": "Vuyyuru",
+      "village": "Gandigunta-1",
+      "location": "HM station",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 58.3,
+      "mslM": 10.79,
+      "latitude": 16.381389,
+      "longitude": 80.853133,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 12.0
+        },
+        {
+          "label": "2024-02",
+          "value": 11.64
+        },
+        {
+          "label": "2024-03",
+          "value": 11.46
+        },
+        {
+          "label": "2024-04",
+          "value": 12.67
+        },
+        {
+          "label": "2024-05",
+          "value": 11.04
+        },
+        {
+          "label": "2024-06",
+          "value": 14.74
+        },
+        {
+          "label": "2024-07",
+          "value": 15.01
+        },
+        {
+          "label": "2024-08",
+          "value": 17.74
+        },
+        {
+          "label": "2024-09",
+          "value": 14.81
+        },
+        {
+          "label": "2024-10",
+          "value": 12.36
+        },
+        {
+          "label": "2024-11",
+          "value": 12.86
+        },
+        {
+          "label": "2024-12",
+          "value": 10.83
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 10.83
+      }
+    },
+    {
+      "id": "10219",
+      "district": "KRISHNA",
+      "mandal": "Vuyyuru",
+      "village": "Gandigunta-2",
+      "location": "HM station",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 131.3,
+      "mslM": 10.9,
+      "latitude": 16.381359,
+      "longitude": 80.853253,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 11.87
+        },
+        {
+          "label": "2024-02",
+          "value": 11.65
+        },
+        {
+          "label": "2024-03",
+          "value": 11.87
+        },
+        {
+          "label": "2024-04",
+          "value": 12.59
+        },
+        {
+          "label": "2024-05",
+          "value": 11.53
+        },
+        {
+          "label": "2024-06",
+          "value": 14.13
+        },
+        {
+          "label": "2024-07",
+          "value": 15.01
+        },
+        {
+          "label": "2024-08",
+          "value": 16.44
+        },
+        {
+          "label": "2024-09",
+          "value": 14.43
+        },
+        {
+          "label": "2024-10",
+          "value": 12.53
+        },
+        {
+          "label": "2024-11",
+          "value": 12.79
+        },
+        {
+          "label": "2024-12",
+          "value": 11.25
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 11.25
+      }
+    },
+    {
+      "id": "10220",
+      "district": "KRISHNA",
+      "mandal": "Vuyyuru",
+      "village": "Gandigunta-3",
+      "location": "HM station",
+      "project": "HP-1",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 170.4,
+      "mslM": 10.68,
+      "latitude": 16.381334,
+      "longitude": 80.853343,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 12.16
+        },
+        {
+          "label": "2024-02",
+          "value": 11.74
+        },
+        {
+          "label": "2024-03",
+          "value": 11.88
+        },
+        {
+          "label": "2024-04",
+          "value": 12.69
+        },
+        {
+          "label": "2024-05",
+          "value": 11.42
+        },
+        {
+          "label": "2024-06",
+          "value": 14.76
+        },
+        {
+          "label": "2024-07",
+          "value": 15.29
+        },
+        {
+          "label": "2024-08",
+          "value": 17.72
+        },
+        {
+          "label": "2024-09",
+          "value": 14.89
+        },
+        {
+          "label": "2024-10",
+          "value": 12.84
+        },
+        {
+          "label": "2024-11",
+          "value": 13.22
+        },
+        {
+          "label": "2024-12",
+          "value": 11.34
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 11.34
+      }
+    },
+    {
+      "id": "20139",
+      "district": "KRISHNA",
+      "mandal": "Unguturu",
+      "village": "Unguturu",
+      "location": "33/11 KV sub station",
+      "project": "nan",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 26.0,
+      "mslM": 9.46,
+      "latitude": 16.51357,
+      "longitude": 80.887151,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 6.32
+        },
+        {
+          "label": "2024-02",
+          "value": 6.45
+        },
+        {
+          "label": "2024-03",
+          "value": 6.49
+        },
+        {
+          "label": "2024-04",
+          "value": 6.66
+        },
+        {
+          "label": "2024-05",
+          "value": 6.72
+        },
+        {
+          "label": "2024-06",
+          "value": 6.74
+        },
+        {
+          "label": "2024-07",
+          "value": 5.82
+        },
+        {
+          "label": "2024-08",
+          "value": 6.5
+        },
+        {
+          "label": "2024-09",
+          "value": 5.2
+        },
+        {
+          "label": "2024-10",
+          "value": 6.3
+        },
+        {
+          "label": "2024-11",
+          "value": 6.27
+        },
+        {
+          "label": "2024-12",
+          "value": 6.6
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 6.6
+      }
+    },
+    {
+      "id": "20185",
+      "district": "KRISHNA",
+      "mandal": "Bapulapadu",
+      "village": "Ramannagudem",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 21.3,
+      "mslM": 6.43,
+      "latitude": 16.585291,
+      "longitude": 81.0033,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 6.57
+        },
+        {
+          "label": "2024-02",
+          "value": 6.71
+        },
+        {
+          "label": "2024-03",
+          "value": 9.47
+        },
+        {
+          "label": "2024-04",
+          "value": 9.29
+        },
+        {
+          "label": "2024-05",
+          "value": 9.47
+        },
+        {
+          "label": "2024-06",
+          "value": 9.07
+        },
+        {
+          "label": "2024-07",
+          "value": 8.62
+        },
+        {
+          "label": "2024-08",
+          "value": 8.27
+        },
+        {
+          "label": "2024-09",
+          "value": 6.77
+        },
+        {
+          "label": "2024-10",
+          "value": 5.37
+        },
+        {
+          "label": "2024-11",
+          "value": 5.88
+        },
+        {
+          "label": "2024-12",
+          "value": 5.97
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 5.97
+      }
+    },
+    {
+      "id": "20186",
+      "district": "KRISHNA",
+      "mandal": "Bapulapadu",
+      "village": "Singannagudem",
+      "location": "MPP school",
+      "project": "HP-2",
+      "principalAquifer": "Sandstone",
+      "totalDepthM": 63.0,
+      "mslM": 40.5,
+      "latitude": 16.65876,
+      "longitude": 80.900445,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 11.32
+        },
+        {
+          "label": "2024-02",
+          "value": 12.63
+        },
+        {
+          "label": "2024-03",
+          "value": 16.04
+        },
+        {
+          "label": "2024-04",
+          "value": 17.97
+        },
+        {
+          "label": "2024-05",
+          "value": 18.32
+        },
+        {
+          "label": "2024-06",
+          "value": 17.21
+        },
+        {
+          "label": "2024-07",
+          "value": 9.74
+        },
+        {
+          "label": "2024-08",
+          "value": 10.34
+        },
+        {
+          "label": "2024-09",
+          "value": 3.13
+        },
+        {
+          "label": "2024-10",
+          "value": 1.97
+        },
+        {
+          "label": "2024-11",
+          "value": 3.29
+        },
+        {
+          "label": "2024-12",
+          "value": 5.45
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 5.45
+      }
+    },
+    {
+      "id": "20187",
+      "district": "KRISHNA",
+      "mandal": "Bapulapadu",
+      "village": "Veeravalli",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Sandstone",
+      "totalDepthM": 50.0,
+      "mslM": 18.76,
+      "latitude": 16.611373,
+      "longitude": 80.912501,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 6.81
+        },
+        {
+          "label": "2024-02",
+          "value": 8.89
+        },
+        {
+          "label": "2024-03",
+          "value": 12.64
+        },
+        {
+          "label": "2024-04",
+          "value": 15.81
+        },
+        {
+          "label": "2024-05",
+          "value": 15.85
+        },
+        {
+          "label": "2024-06",
+          "value": 14.77
+        },
+        {
+          "label": "2024-07",
+          "value": 12.69
+        },
+        {
+          "label": "2024-08",
+          "value": 12.73
+        },
+        {
+          "label": "2024-09",
+          "value": 4.12
+        },
+        {
+          "label": "2024-10",
+          "value": 3.0
+        },
+        {
+          "label": "2024-11",
+          "value": 4.02
+        },
+        {
+          "label": "2024-12",
+          "value": 4.69
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 4.69
+      }
+    },
+    {
+      "id": "20188",
+      "district": "KRISHNA",
+      "mandal": "Challapalli",
+      "village": "Challapalli",
+      "location": "33/11 KV sub station",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 6.23,
+      "latitude": 16.119386,
+      "longitude": 80.927193,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 2.25
+        },
+        {
+          "label": "2024-02",
+          "value": 2.81
+        },
+        {
+          "label": "2024-03",
+          "value": 3.17
+        },
+        {
+          "label": "2024-04",
+          "value": 3.72
+        },
+        {
+          "label": "2024-05",
+          "value": 3.58
+        },
+        {
+          "label": "2024-06",
+          "value": 4.22
+        },
+        {
+          "label": "2024-07",
+          "value": 2.84
+        },
+        {
+          "label": "2024-08",
+          "value": 2.59
+        },
+        {
+          "label": "2024-09",
+          "value": 1.91
+        },
+        {
+          "label": "2024-10",
+          "value": 1.64
+        },
+        {
+          "label": "2024-11",
+          "value": 1.83
+        },
+        {
+          "label": "2024-12",
+          "value": 2.29
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.29
+      }
+    },
+    {
+      "id": "20189",
+      "district": "KRISHNA",
+      "mandal": "Gannavaram",
+      "village": "Surampalli",
+      "location": "Small scale industry",
+      "project": "HP-2",
+      "principalAquifer": "Khondalite",
+      "totalDepthM": 40.0,
+      "mslM": 34.67,
+      "latitude": 16.599879,
+      "longitude": 80.713168,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.47
+        },
+        {
+          "label": "2024-02",
+          "value": 4.94
+        },
+        {
+          "label": "2024-03",
+          "value": 6.17
+        },
+        {
+          "label": "2024-04",
+          "value": 7.38
+        },
+        {
+          "label": "2024-05",
+          "value": 7.57
+        },
+        {
+          "label": "2024-06",
+          "value": 7.67
+        },
+        {
+          "label": "2024-07",
+          "value": 4.15
+        },
+        {
+          "label": "2024-08",
+          "value": 3.5
+        },
+        {
+          "label": "2024-09",
+          "value": 1.31
+        },
+        {
+          "label": "2024-10",
+          "value": 1.5
+        },
+        {
+          "label": "2024-11",
+          "value": 1.98
+        },
+        {
+          "label": "2024-12",
+          "value": 2.82
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.82
+      }
+    },
+    {
+      "id": "20190",
+      "district": "KRISHNA",
+      "mandal": "Gannavaram",
+      "village": "Veerapanenigudem",
+      "location": "Panchayat office",
+      "project": "HP-2",
+      "principalAquifer": "Khondalite",
+      "totalDepthM": 54.0,
+      "mslM": 36.78,
+      "latitude": 16.60134,
+      "longitude": 80.825192,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 10.53
+        },
+        {
+          "label": "2024-02",
+          "value": 10.93
+        },
+        {
+          "label": "2024-03",
+          "value": 15.64
+        },
+        {
+          "label": "2024-04",
+          "value": 17.03
+        },
+        {
+          "label": "2024-05",
+          "value": 15.82
+        },
+        {
+          "label": "2024-06",
+          "value": 14.62
+        },
+        {
+          "label": "2024-07",
+          "value": 12.44
+        },
+        {
+          "label": "2024-08",
+          "value": 13.77
+        },
+        {
+          "label": "2024-09",
+          "value": 4.75
+        },
+        {
+          "label": "2024-10",
+          "value": 4.63
+        },
+        {
+          "label": "2024-11",
+          "value": 4.64
+        },
+        {
+          "label": "2024-12",
+          "value": 6.33
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 6.33
+      }
+    },
+    {
+      "id": "20191",
+      "district": "KRISHNA",
+      "mandal": "Ghantasala",
+      "village": "Ghantasala",
+      "location": "33/11 KV sub station",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 5.77,
+      "latitude": 16.177085,
+      "longitude": 80.936338,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 11.0
+        },
+        {
+          "label": "2024-02",
+          "value": 10.89
+        },
+        {
+          "label": "2024-03",
+          "value": 11.43
+        },
+        {
+          "label": "2024-04",
+          "value": 11.7
+        },
+        {
+          "label": "2024-05",
+          "value": 11.54
+        },
+        {
+          "label": "2024-06",
+          "value": 10.85
+        },
+        {
+          "label": "2024-07",
+          "value": 12.41
+        },
+        {
+          "label": "2024-08",
+          "value": 12.04
+        },
+        {
+          "label": "2024-09",
+          "value": 11.47
+        },
+        {
+          "label": "2024-10",
+          "value": 9.77
+        },
+        {
+          "label": "2024-11",
+          "value": 10.45
+        },
+        {
+          "label": "2024-12",
+          "value": 10.58
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 10.58
+      }
+    },
+    {
+      "id": "20192",
+      "district": "KRISHNA",
+      "mandal": "Gudiwada",
+      "village": "Billapadu",
+      "location": "33/11 KV sub station",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 20.0,
+      "mslM": 6.41,
+      "latitude": 16.409931,
+      "longitude": 81.002887,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 2.41
+        },
+        {
+          "label": "2024-02",
+          "value": 1.73
+        },
+        {
+          "label": "2024-03",
+          "value": 4.01
+        },
+        {
+          "label": "2024-04",
+          "value": 4.27
+        },
+        {
+          "label": "2024-05",
+          "value": 4.41
+        },
+        {
+          "label": "2024-06",
+          "value": 4.49
+        },
+        {
+          "label": "2024-07",
+          "value": 4.12
+        },
+        {
+          "label": "2024-08",
+          "value": 3.96
+        },
+        {
+          "label": "2024-09",
+          "value": 2.59
+        },
+        {
+          "label": "2024-10",
+          "value": 1.97
+        },
+        {
+          "label": "2024-11",
+          "value": 2.03
+        },
+        {
+          "label": "2024-12",
+          "value": 2.51
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.51
+      }
+    },
+    {
+      "id": "20193",
+      "district": "KRISHNA",
+      "mandal": "Guduru",
+      "village": "Guduru",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 5.44,
+      "latitude": 16.216423,
+      "longitude": 81.086716,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 1.32
+        },
+        {
+          "label": "2024-02",
+          "value": 1.61
+        },
+        {
+          "label": "2024-03",
+          "value": 1.8
+        },
+        {
+          "label": "2024-04",
+          "value": 2.06
+        },
+        {
+          "label": "2024-05",
+          "value": 1.99
+        },
+        {
+          "label": "2024-06",
+          "value": 2.06
+        },
+        {
+          "label": "2024-07",
+          "value": 1.07
+        },
+        {
+          "label": "2024-08",
+          "value": 1.17
+        },
+        {
+          "label": "2024-09",
+          "value": 2.17
+        },
+        {
+          "label": "2024-10",
+          "value": 0.73
+        },
+        {
+          "label": "2024-11",
+          "value": 1.01
+        },
+        {
+          "label": "2024-12",
+          "value": 1.25
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 1.25
+      }
+    },
+    {
+      "id": "20194",
+      "district": "KRISHNA",
+      "mandal": "Kruthivennu",
+      "village": "Kruthivennu",
+      "location": "33/11 KV substation",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 3.23,
+      "latitude": 16.368127,
+      "longitude": 81.373636,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.9
+        },
+        {
+          "label": "2024-02",
+          "value": 1.1
+        },
+        {
+          "label": "2024-03",
+          "value": 1.26
+        },
+        {
+          "label": "2024-04",
+          "value": 1.32
+        },
+        {
+          "label": "2024-05",
+          "value": 1.36
+        },
+        {
+          "label": "2024-06",
+          "value": 1.19
+        },
+        {
+          "label": "2024-07",
+          "value": 0.8
+        },
+        {
+          "label": "2024-08",
+          "value": 0.99
+        },
+        {
+          "label": "2024-09",
+          "value": 0.7
+        },
+        {
+          "label": "2024-10",
+          "value": 0.56
+        },
+        {
+          "label": "2024-11",
+          "value": 0.9
+        },
+        {
+          "label": "2024-12",
+          "value": 1.14
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 1.14
+      }
+    },
+    {
+      "id": "20195",
+      "district": "KRISHNA",
+      "mandal": "Machilipatnam",
+      "village": "Machilipatnam",
+      "location": "33/11 KV substation",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 3.29,
+      "latitude": 16.201464,
+      "longitude": 81.136436,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.15
+        },
+        {
+          "label": "2024-02",
+          "value": 0.55
+        },
+        {
+          "label": "2024-03",
+          "value": 0.97
+        },
+        {
+          "label": "2024-04",
+          "value": 1.36
+        },
+        {
+          "label": "2024-05",
+          "value": 0.59
+        },
+        {
+          "label": "2024-06",
+          "value": 0.48
+        },
+        {
+          "label": "2024-07",
+          "value": 0.0
+        },
+        {
+          "label": "2024-08",
+          "value": 0.15
+        },
+        {
+          "label": "2024-09",
+          "value": 0.0
+        },
+        {
+          "label": "2024-10",
+          "value": 0.0
+        },
+        {
+          "label": "2024-11",
+          "value": 0.22
+        },
+        {
+          "label": "2024-12",
+          "value": 0.32
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 0.32
+      }
+    },
+    {
+      "id": "20196",
+      "district": "KRISHNA",
+      "mandal": "Movva",
+      "village": "Nidumolu",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 26.0,
+      "mslM": 6.56,
+      "latitude": 16.252585,
+      "longitude": 81.02643,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 1.9
+        },
+        {
+          "label": "2024-02",
+          "value": 2.32
+        },
+        {
+          "label": "2024-03",
+          "value": 2.56
+        },
+        {
+          "label": "2024-04",
+          "value": 2.9
+        },
+        {
+          "label": "2024-05",
+          "value": 3.07
+        },
+        {
+          "label": "2024-06",
+          "value": 2.88
+        },
+        {
+          "label": "2024-07",
+          "value": 1.46
+        },
+        {
+          "label": "2024-08",
+          "value": 1.53
+        },
+        {
+          "label": "2024-09",
+          "value": 1.43
+        },
+        {
+          "label": "2024-10",
+          "value": 1.01
+        },
+        {
+          "label": "2024-11",
+          "value": 1.3
+        },
+        {
+          "label": "2024-12",
+          "value": 1.56
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 1.56
+      }
+    },
+    {
+      "id": "20197",
+      "district": "KRISHNA",
+      "mandal": "Nagayalanka",
+      "village": "Nagayalanka",
+      "location": "33/11 KV substation",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 3.86,
+      "latitude": 15.955911,
+      "longitude": 80.919953,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.78
+        },
+        {
+          "label": "2024-02",
+          "value": 1.04
+        },
+        {
+          "label": "2024-03",
+          "value": 1.45
+        },
+        {
+          "label": "2024-04",
+          "value": 1.61
+        },
+        {
+          "label": "2024-05",
+          "value": 1.53
+        },
+        {
+          "label": "2024-06",
+          "value": 1.99
+        },
+        {
+          "label": "2024-07",
+          "value": 0.86
+        },
+        {
+          "label": "2024-08",
+          "value": 0.46
+        },
+        {
+          "label": "2024-09",
+          "value": 0.1
+        },
+        {
+          "label": "2024-10",
+          "value": 0.13
+        },
+        {
+          "label": "2024-11",
+          "value": 0.23
+        },
+        {
+          "label": "2024-12",
+          "value": 0.69
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 0.69
+      }
+    },
+    {
+      "id": "20198",
+      "district": "KRISHNA",
+      "mandal": "Pedaparupudi",
+      "village": "Ventrapragada",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 9.29,
+      "latitude": 16.438823,
+      "longitude": 80.910859,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 5.64
+        },
+        {
+          "label": "2024-02",
+          "value": 6.04
+        },
+        {
+          "label": "2024-03",
+          "value": 6.35
+        },
+        {
+          "label": "2024-04",
+          "value": 6.44
+        },
+        {
+          "label": "2024-05",
+          "value": 6.84
+        },
+        {
+          "label": "2024-06",
+          "value": 7.38
+        },
+        {
+          "label": "2024-07",
+          "value": 7.54
+        },
+        {
+          "label": "2024-08",
+          "value": 6.38
+        },
+        {
+          "label": "2024-09",
+          "value": 5.06
+        },
+        {
+          "label": "2024-10",
+          "value": 3.94
+        },
+        {
+          "label": "2024-11",
+          "value": 3.56
+        },
+        {
+          "label": "2024-12",
+          "value": 4.74
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 4.74
+      }
+    },
+    {
+      "id": "20199",
+      "district": "KRISHNA",
+      "mandal": "Pedaparupudi",
+      "village": "Yelamarru",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 28.0,
+      "mslM": 9.84,
+      "latitude": 16.370611,
+      "longitude": 80.929317,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 12.44
+        },
+        {
+          "label": "2024-02",
+          "value": 12.01
+        },
+        {
+          "label": "2024-03",
+          "value": 12.71
+        },
+        {
+          "label": "2024-04",
+          "value": 12.91
+        },
+        {
+          "label": "2024-05",
+          "value": 12.09
+        },
+        {
+          "label": "2024-06",
+          "value": 12.78
+        },
+        {
+          "label": "2024-07",
+          "value": 14.7
+        },
+        {
+          "label": "2024-08",
+          "value": 14.24
+        },
+        {
+          "label": "2024-09",
+          "value": 13.19
+        },
+        {
+          "label": "2024-10",
+          "value": 13.02
+        },
+        {
+          "label": "2024-11",
+          "value": 12.64
+        },
+        {
+          "label": "2024-12",
+          "value": 12.94
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 12.94
+      }
+    },
+    {
+      "id": "20200",
+      "district": "KRISHNA",
+      "mandal": "Penamaluru",
+      "village": "Kanuru",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 31.0,
+      "mslM": 18.61,
+      "latitude": 16.504116,
+      "longitude": 80.692363,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 22.47
+        },
+        {
+          "label": "2024-02",
+          "value": 22.03
+        },
+        {
+          "label": "2024-03",
+          "value": 22.8
+        },
+        {
+          "label": "2024-04",
+          "value": 23.08
+        },
+        {
+          "label": "2024-05",
+          "value": 22.9
+        },
+        {
+          "label": "2024-06",
+          "value": 23.31
+        },
+        {
+          "label": "2024-07",
+          "value": 21.55
+        },
+        {
+          "label": "2024-08",
+          "value": 21.44
+        },
+        {
+          "label": "2024-09",
+          "value": 20.35
+        },
+        {
+          "label": "2024-10",
+          "value": 20.13
+        },
+        {
+          "label": "2024-11",
+          "value": 20.46
+        },
+        {
+          "label": "2024-12",
+          "value": 22.57
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 22.57
+      }
+    },
+    {
+      "id": "20201",
+      "district": "KRISHNA",
+      "mandal": "Thotlavalluru",
+      "village": "Thotlavalluru",
+      "location": "33/11 KV substation",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 25.0,
+      "mslM": 12.54,
+      "latitude": 16.345758,
+      "longitude": 80.787798,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 6.3
+        },
+        {
+          "label": "2024-02",
+          "value": 6.42
+        },
+        {
+          "label": "2024-03",
+          "value": 7.33
+        },
+        {
+          "label": "2024-04",
+          "value": 7.82
+        },
+        {
+          "label": "2024-05",
+          "value": 7.95
+        },
+        {
+          "label": "2024-06",
+          "value": 8.24
+        },
+        {
+          "label": "2024-07",
+          "value": 8.49
+        },
+        {
+          "label": "2024-08",
+          "value": 7.13
+        },
+        {
+          "label": "2024-09",
+          "value": 4.1
+        },
+        {
+          "label": "2024-10",
+          "value": 4.16
+        },
+        {
+          "label": "2024-11",
+          "value": 4.44
+        },
+        {
+          "label": "2024-12",
+          "value": 5.36
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 5.36
+      }
+    },
+    {
+      "id": "20202",
+      "district": "KRISHNA",
+      "mandal": "Unguturu",
+      "village": "Telaprolu",
+      "location": "ZPHS",
+      "project": "HP-2",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 40.0,
+      "mslM": 13.52,
+      "latitude": 16.577662,
+      "longitude": 80.893283,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 7.54
+        },
+        {
+          "label": "2024-02",
+          "value": 7.75
+        },
+        {
+          "label": "2024-03",
+          "value": 9.16
+        },
+        {
+          "label": "2024-04",
+          "value": 9.42
+        },
+        {
+          "label": "2024-05",
+          "value": 10.66
+        },
+        {
+          "label": "2024-06",
+          "value": 10.45
+        },
+        {
+          "label": "2024-07",
+          "value": 9.63
+        },
+        {
+          "label": "2024-08",
+          "value": 6.47
+        },
+        {
+          "label": "2024-09",
+          "value": 5.96
+        },
+        {
+          "label": "2024-10",
+          "value": 4.95
+        },
+        {
+          "label": "2024-11",
+          "value": 4.46
+        },
+        {
+          "label": "2024-12",
+          "value": 6.69
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 6.69
+      }
+    },
+    {
+      "id": "20203",
+      "district": "KRISHNA",
+      "mandal": "Unguturu",
+      "village": "Unguturu",
+      "location": "nan",
+      "project": "nan",
+      "principalAquifer": "nan",
+      "totalDepthM": null,
+      "mslM": null,
+      "latitude": 16.51357,
+      "longitude": 80.887151,
+      "monthlyReadings2024": [],
+      "latestReading2024": null
+    },
+    {
+      "id": "30147",
+      "district": "KRISHNA",
+      "mandal": "Nagayalanka",
+      "village": "Ganapeswaram",
+      "location": "MPP School",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 43.0,
+      "mslM": 4.0,
+      "latitude": 15.891237,
+      "longitude": 80.946625,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 10.76
+        },
+        {
+          "label": "2024-02",
+          "value": 10.22
+        },
+        {
+          "label": "2024-03",
+          "value": 10.67
+        },
+        {
+          "label": "2024-04",
+          "value": 10.6
+        },
+        {
+          "label": "2024-05",
+          "value": 10.62
+        },
+        {
+          "label": "2024-06",
+          "value": 9.5
+        },
+        {
+          "label": "2024-07",
+          "value": 10.74
+        },
+        {
+          "label": "2024-08",
+          "value": 10.66
+        },
+        {
+          "label": "2024-09",
+          "value": 10.52
+        },
+        {
+          "label": "2024-10",
+          "value": 10.75
+        },
+        {
+          "label": "2024-11",
+          "value": 10.74
+        },
+        {
+          "label": "2024-12",
+          "value": 10.82
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 10.82
+      }
+    },
+    {
+      "id": "30148",
+      "district": "KRISHNA",
+      "mandal": "Bapulapadu",
+      "village": "Madicherla",
+      "location": "33/11 KV Sub station",
+      "project": "NHP",
+      "principalAquifer": "Sandstone",
+      "totalDepthM": 125.0,
+      "mslM": 44.0,
+      "latitude": 16.732005,
+      "longitude": 80.989794,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 52.99
+        },
+        {
+          "label": "2024-02",
+          "value": 52.9
+        },
+        {
+          "label": "2024-03",
+          "value": 52.86
+        },
+        {
+          "label": "2024-04",
+          "value": 53.02
+        },
+        {
+          "label": "2024-05",
+          "value": 52.9
+        },
+        {
+          "label": "2024-06",
+          "value": 52.91
+        },
+        {
+          "label": "2024-07",
+          "value": 52.92
+        },
+        {
+          "label": "2024-08",
+          "value": 52.9
+        },
+        {
+          "label": "2024-09",
+          "value": 52.87
+        },
+        {
+          "label": "2024-10",
+          "value": 52.78
+        },
+        {
+          "label": "2024-11",
+          "value": 52.92
+        },
+        {
+          "label": "2024-12",
+          "value": 52.88
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 52.88
+      }
+    },
+    {
+      "id": "30156",
+      "district": "KRISHNA",
+      "mandal": "Gannavaram",
+      "village": "Veduru pavuluru",
+      "location": "nan",
+      "project": "nan",
+      "principalAquifer": "nan",
+      "totalDepthM": null,
+      "mslM": null,
+      "latitude": 16.556046,
+      "longitude": 80.73408,
+      "monthlyReadings2024": [],
+      "latestReading2024": null
+    },
+    {
+      "id": "30156",
+      "district": "KRISHNA",
+      "mandal": "Gannavaram",
+      "village": "Veduru pavuluru",
+      "location": "MPP School",
+      "project": "NHP",
+      "principalAquifer": "Khondalite",
+      "totalDepthM": 30.3,
+      "mslM": 22.0,
+      "latitude": 16.556046,
+      "longitude": 80.73408,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.47
+        },
+        {
+          "label": "2024-02",
+          "value": 5.02
+        },
+        {
+          "label": "2024-03",
+          "value": 5.68
+        },
+        {
+          "label": "2024-04",
+          "value": 6.18
+        },
+        {
+          "label": "2024-05",
+          "value": 8.37
+        },
+        {
+          "label": "2024-06",
+          "value": 7.93
+        },
+        {
+          "label": "2024-07",
+          "value": 5.97
+        },
+        {
+          "label": "2024-08",
+          "value": 4.89
+        },
+        {
+          "label": "2024-09",
+          "value": 1.16
+        },
+        {
+          "label": "2024-10",
+          "value": 1.16
+        },
+        {
+          "label": "2024-11",
+          "value": 1.5
+        },
+        {
+          "label": "2024-12",
+          "value": 2.78
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.78
+      }
+    },
+    {
+      "id": "30162",
+      "district": "KRISHNA",
+      "mandal": "Koduru",
+      "village": "Pittallanka-I",
+      "location": "Village water tank premises",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 12.0,
+      "mslM": 14.0,
+      "latitude": 16.072699,
+      "longitude": 81.01279,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 2.53
+        },
+        {
+          "label": "2024-02",
+          "value": 3.66
+        },
+        {
+          "label": "2024-03",
+          "value": 4.11
+        },
+        {
+          "label": "2024-04",
+          "value": 4.31
+        },
+        {
+          "label": "2024-05",
+          "value": 3.78
+        },
+        {
+          "label": "2024-06",
+          "value": 4.28
+        },
+        {
+          "label": "2024-07",
+          "value": 2.51
+        },
+        {
+          "label": "2024-08",
+          "value": 2.01
+        },
+        {
+          "label": "2024-09",
+          "value": 1.74
+        },
+        {
+          "label": "2024-10",
+          "value": 2.41
+        },
+        {
+          "label": "2024-11",
+          "value": 2.13
+        },
+        {
+          "label": "2024-12",
+          "value": 3.3
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.3
+      }
+    },
+    {
+      "id": "30163",
+      "district": "KRISHNA",
+      "mandal": "Koduru",
+      "village": "Pittallanka-II",
+      "location": "Village water tank premises",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 40.0,
+      "mslM": 14.0,
+      "latitude": 16.072668,
+      "longitude": 81.012793,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 15.74
+        },
+        {
+          "label": "2024-02",
+          "value": 17.11
+        },
+        {
+          "label": "2024-03",
+          "value": 18.05
+        },
+        {
+          "label": "2024-04",
+          "value": 18.12
+        },
+        {
+          "label": "2024-05",
+          "value": 18.45
+        },
+        {
+          "label": "2024-06",
+          "value": 17.86
+        },
+        {
+          "label": "2024-07",
+          "value": 17.0
+        },
+        {
+          "label": "2024-08",
+          "value": 16.96
+        },
+        {
+          "label": "2024-09",
+          "value": 13.36
+        },
+        {
+          "label": "2024-10",
+          "value": 14.67
+        },
+        {
+          "label": "2024-11",
+          "value": 17.19
+        },
+        {
+          "label": "2024-12",
+          "value": 17.54
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 17.54
+      }
+    },
+    {
+      "id": "30383",
+      "district": "KRISHNA",
+      "mandal": "Bantumilli",
+      "village": "Bantumilli",
+      "location": "33/11 KV Sub station",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 23.0,
+      "mslM": 7.0,
+      "latitude": 16.373896,
+      "longitude": 81.267212,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.63
+        },
+        {
+          "label": "2024-02",
+          "value": 0.94
+        },
+        {
+          "label": "2024-03",
+          "value": 1.16
+        },
+        {
+          "label": "2024-04",
+          "value": 1.35
+        },
+        {
+          "label": "2024-05",
+          "value": 1.49
+        },
+        {
+          "label": "2024-06",
+          "value": 1.12
+        },
+        {
+          "label": "2024-07",
+          "value": 0.0
+        },
+        {
+          "label": "2024-08",
+          "value": 0.2
+        },
+        {
+          "label": "2024-09",
+          "value": 0.0
+        },
+        {
+          "label": "2024-10",
+          "value": 0.0
+        },
+        {
+          "label": "2024-11",
+          "value": 0.4
+        },
+        {
+          "label": "2024-12",
+          "value": 0.45
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 0.45
+      }
+    },
+    {
+      "id": "30385",
+      "district": "KRISHNA",
+      "mandal": "Mopidevi",
+      "village": "Bobbaralanka",
+      "location": "MPP School",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 18.0,
+      "mslM": 22.0,
+      "latitude": 16.075435,
+      "longitude": 80.89907,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 7.03
+        },
+        {
+          "label": "2024-02",
+          "value": 7.43
+        },
+        {
+          "label": "2024-03",
+          "value": 7.62
+        },
+        {
+          "label": "2024-04",
+          "value": 7.79
+        },
+        {
+          "label": "2024-05",
+          "value": 7.34
+        },
+        {
+          "label": "2024-06",
+          "value": 7.45
+        },
+        {
+          "label": "2024-07",
+          "value": 7.05
+        },
+        {
+          "label": "2024-08",
+          "value": 6.47
+        },
+        {
+          "label": "2024-09",
+          "value": 4.98
+        },
+        {
+          "label": "2024-10",
+          "value": 5.24
+        },
+        {
+          "label": "2024-11",
+          "value": 6.38
+        },
+        {
+          "label": "2024-12",
+          "value": 6.4
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 6.4
+      }
+    },
+    {
+      "id": "30386",
+      "district": "KRISHNA",
+      "mandal": "Machilipatnam",
+      "village": "Mangenapudi Beach",
+      "location": "33/11 KV Sub station",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 24.0,
+      "mslM": 12.0,
+      "latitude": 16.252882,
+      "longitude": 81.224645,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.78
+        },
+        {
+          "label": "2024-02",
+          "value": 1.56
+        },
+        {
+          "label": "2024-03",
+          "value": 1.44
+        },
+        {
+          "label": "2024-04",
+          "value": 1.09
+        },
+        {
+          "label": "2024-05",
+          "value": 1.69
+        },
+        {
+          "label": "2024-06",
+          "value": 1.65
+        },
+        {
+          "label": "2024-07",
+          "value": 0.46
+        },
+        {
+          "label": "2024-08",
+          "value": 0.52
+        },
+        {
+          "label": "2024-09",
+          "value": 0.47
+        },
+        {
+          "label": "2024-10",
+          "value": 0.24
+        },
+        {
+          "label": "2024-11",
+          "value": 0.44
+        },
+        {
+          "label": "2024-12",
+          "value": 1.1
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 1.1
+      }
+    },
+    {
+      "id": "30387",
+      "district": "KRISHNA",
+      "mandal": "Guduru",
+      "village": "Mukkollu",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 40.0,
+      "mslM": 13.0,
+      "latitude": 16.277477,
+      "longitude": 81.064189,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 3.64
+        },
+        {
+          "label": "2024-02",
+          "value": 3.7
+        },
+        {
+          "label": "2024-03",
+          "value": 3.95
+        },
+        {
+          "label": "2024-04",
+          "value": 4.17
+        },
+        {
+          "label": "2024-05",
+          "value": 4.26
+        },
+        {
+          "label": "2024-06",
+          "value": 4.29
+        },
+        {
+          "label": "2024-07",
+          "value": 4.15
+        },
+        {
+          "label": "2024-08",
+          "value": 4.01
+        },
+        {
+          "label": "2024-09",
+          "value": 3.8
+        },
+        {
+          "label": "2024-10",
+          "value": 3.85
+        },
+        {
+          "label": "2024-11",
+          "value": 3.7
+        },
+        {
+          "label": "2024-12",
+          "value": 3.72
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.72
+      }
+    },
+    {
+      "id": "30388",
+      "district": "KRISHNA",
+      "mandal": "Pedana",
+      "village": "Penumalli",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 30.0,
+      "mslM": 9.0,
+      "latitude": 16.317896,
+      "longitude": 81.166544,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 12.2
+        },
+        {
+          "label": "2024-02",
+          "value": 11.34
+        },
+        {
+          "label": "2024-03",
+          "value": 12.62
+        },
+        {
+          "label": "2024-04",
+          "value": 10.7
+        },
+        {
+          "label": "2024-05",
+          "value": 10.9
+        },
+        {
+          "label": "2024-06",
+          "value": 10.08
+        },
+        {
+          "label": "2024-07",
+          "value": 10.78
+        },
+        {
+          "label": "2024-08",
+          "value": 10.8
+        },
+        {
+          "label": "2024-09",
+          "value": 10.7
+        },
+        {
+          "label": "2024-10",
+          "value": 10.6
+        },
+        {
+          "label": "2024-11",
+          "value": 10.56
+        },
+        {
+          "label": "2024-12",
+          "value": 10.6
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 10.6
+      }
+    },
+    {
+      "id": "30389",
+      "district": "KRISHNA",
+      "mandal": "Avanigadda",
+      "village": "Ramachandra puram",
+      "location": "MPP School",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 15.0,
+      "mslM": 16.0,
+      "latitude": 16.029093,
+      "longitude": 80.949666,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.25
+        },
+        {
+          "label": "2024-02",
+          "value": 4.95
+        },
+        {
+          "label": "2024-03",
+          "value": 4.96
+        },
+        {
+          "label": "2024-04",
+          "value": 5.28
+        },
+        {
+          "label": "2024-05",
+          "value": 5.18
+        },
+        {
+          "label": "2024-06",
+          "value": 5.38
+        },
+        {
+          "label": "2024-07",
+          "value": 4.76
+        },
+        {
+          "label": "2024-08",
+          "value": 4.55
+        },
+        {
+          "label": "2024-09",
+          "value": 1.74
+        },
+        {
+          "label": "2024-10",
+          "value": 1.74
+        },
+        {
+          "label": "2024-11",
+          "value": 2.46
+        },
+        {
+          "label": "2024-12",
+          "value": 3.21
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.21
+      }
+    },
+    {
+      "id": "30395",
+      "district": "KRISHNA",
+      "mandal": "Koduru",
+      "village": "Koduru",
+      "location": "Panchayat office",
+      "project": "nan",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 8.0,
+      "mslM": 3.97,
+      "latitude": 16.009083,
+      "longitude": 81.034393,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 0.87
+        },
+        {
+          "label": "2024-02",
+          "value": 1.02
+        },
+        {
+          "label": "2024-03",
+          "value": 1.37
+        },
+        {
+          "label": "2024-04",
+          "value": 1.51
+        },
+        {
+          "label": "2024-05",
+          "value": 1.78
+        },
+        {
+          "label": "2024-06",
+          "value": 1.79
+        },
+        {
+          "label": "2024-07",
+          "value": 1.05
+        },
+        {
+          "label": "2024-08",
+          "value": 1.15
+        },
+        {
+          "label": "2024-09",
+          "value": 0.23
+        },
+        {
+          "label": "2024-10",
+          "value": 0.25
+        },
+        {
+          "label": "2024-11",
+          "value": 0.43
+        },
+        {
+          "label": "2024-12",
+          "value": 0.73
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 0.73
+      }
+    },
+    {
+      "id": "30403",
+      "district": "KRISHNA",
+      "mandal": "Pedaparupudi",
+      "village": "Dosapadu-I",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 30.0,
+      "mslM": 18.0,
+      "latitude": 16.466575,
+      "longitude": 80.946278,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 8.81
+        },
+        {
+          "label": "2024-02",
+          "value": 9.19
+        },
+        {
+          "label": "2024-03",
+          "value": 9.54
+        },
+        {
+          "label": "2024-04",
+          "value": 10.05
+        },
+        {
+          "label": "2024-05",
+          "value": 10.11
+        },
+        {
+          "label": "2024-06",
+          "value": 10.52
+        },
+        {
+          "label": "2024-07",
+          "value": 11.18
+        },
+        {
+          "label": "2024-08",
+          "value": 11.14
+        },
+        {
+          "label": "2024-09",
+          "value": 9.43
+        },
+        {
+          "label": "2024-10",
+          "value": 8.81
+        },
+        {
+          "label": "2024-11",
+          "value": 8.83
+        },
+        {
+          "label": "2024-12",
+          "value": 9.3
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 9.3
+      }
+    },
+    {
+      "id": "30404",
+      "district": "KRISHNA",
+      "mandal": "Pedaparupudi",
+      "village": "Dosapadu-II",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 70.0,
+      "mslM": 18.0,
+      "latitude": 16.466518,
+      "longitude": 80.946262,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 8.47
+        },
+        {
+          "label": "2024-02",
+          "value": 8.94
+        },
+        {
+          "label": "2024-03",
+          "value": 8.76
+        },
+        {
+          "label": "2024-04",
+          "value": 9.3
+        },
+        {
+          "label": "2024-05",
+          "value": 9.28
+        },
+        {
+          "label": "2024-06",
+          "value": 9.74
+        },
+        {
+          "label": "2024-07",
+          "value": 9.62
+        },
+        {
+          "label": "2024-08",
+          "value": 10.52
+        },
+        {
+          "label": "2024-09",
+          "value": 8.97
+        },
+        {
+          "label": "2024-10",
+          "value": 8.62
+        },
+        {
+          "label": "2024-11",
+          "value": 8.02
+        },
+        {
+          "label": "2024-12",
+          "value": 7.95
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 7.95
+      }
+    },
+    {
+      "id": "30405",
+      "district": "KRISHNA",
+      "mandal": "Pamidimukkala",
+      "village": "Meduru-I",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 30.0,
+      "mslM": 18.0,
+      "latitude": 16.277225,
+      "longitude": 80.848444,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 3.91
+        },
+        {
+          "label": "2024-02",
+          "value": 4.39
+        },
+        {
+          "label": "2024-03",
+          "value": 4.71
+        },
+        {
+          "label": "2024-04",
+          "value": 5.13
+        },
+        {
+          "label": "2024-05",
+          "value": 4.84
+        },
+        {
+          "label": "2024-06",
+          "value": 5.19
+        },
+        {
+          "label": "2024-07",
+          "value": 4.32
+        },
+        {
+          "label": "2024-08",
+          "value": 2.0
+        },
+        {
+          "label": "2024-09",
+          "value": 1.63
+        },
+        {
+          "label": "2024-10",
+          "value": 1.48
+        },
+        {
+          "label": "2024-11",
+          "value": 2.4
+        },
+        {
+          "label": "2024-12",
+          "value": 3.91
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.91
+      }
+    },
+    {
+      "id": "30406",
+      "district": "KRISHNA",
+      "mandal": "Pamidimukkala",
+      "village": "Meduru-II",
+      "location": "ZPHS",
+      "project": "NHP",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 70.0,
+      "mslM": 18.0,
+      "latitude": 16.277192,
+      "longitude": 80.848424,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 7.85
+        },
+        {
+          "label": "2024-02",
+          "value": 8.11
+        },
+        {
+          "label": "2024-03",
+          "value": 8.53
+        },
+        {
+          "label": "2024-04",
+          "value": 9.04
+        },
+        {
+          "label": "2024-05",
+          "value": 8.49
+        },
+        {
+          "label": "2024-06",
+          "value": 10.06
+        },
+        {
+          "label": "2024-07",
+          "value": 9.31
+        },
+        {
+          "label": "2024-08",
+          "value": 7.85
+        },
+        {
+          "label": "2024-09",
+          "value": 6.29
+        },
+        {
+          "label": "2024-10",
+          "value": 5.56
+        },
+        {
+          "label": "2024-11",
+          "value": 6.21
+        },
+        {
+          "label": "2024-12",
+          "value": 7.19
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 7.19
+      }
+    },
+    {
+      "id": "50020",
+      "district": "KRISHNA",
+      "mandal": "Challapalli",
+      "village": "Nadakuduru",
+      "location": "Panchayat office",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 15.6,
+      "mslM": 8.52,
+      "latitude": 16.124328,
+      "longitude": 80.886808,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.67
+        },
+        {
+          "label": "2024-02",
+          "value": 5.16
+        },
+        {
+          "label": "2024-03",
+          "value": 5.73
+        },
+        {
+          "label": "2024-04",
+          "value": 5.77
+        },
+        {
+          "label": "2024-05",
+          "value": 5.8
+        },
+        {
+          "label": "2024-06",
+          "value": 6.15
+        },
+        {
+          "label": "2024-07",
+          "value": 5.25
+        },
+        {
+          "label": "2024-08",
+          "value": 2.1
+        },
+        {
+          "label": "2024-09",
+          "value": 1.76
+        },
+        {
+          "label": "2024-10",
+          "value": 1.47
+        },
+        {
+          "label": "2024-11",
+          "value": 2.04
+        },
+        {
+          "label": "2024-12",
+          "value": 3.35
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 3.35
+      }
+    },
+    {
+      "id": "50021",
+      "district": "KRISHNA",
+      "mandal": "Challapalli",
+      "village": "NadakuduruStallin",
+      "location": "Former's Land",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 14.7,
+      "mslM": 7.36,
+      "latitude": 16.12761,
+      "longitude": 80.879193,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 5.22
+        },
+        {
+          "label": "2024-02",
+          "value": 5.34
+        },
+        {
+          "label": "2024-03",
+          "value": 5.69
+        },
+        {
+          "label": "2024-04",
+          "value": 5.63
+        },
+        {
+          "label": "2024-05",
+          "value": 5.29
+        },
+        {
+          "label": "2024-06",
+          "value": 5.49
+        },
+        {
+          "label": "2024-07",
+          "value": 4.92
+        },
+        {
+          "label": "2024-08",
+          "value": 3.91
+        },
+        {
+          "label": "2024-09",
+          "value": 1.04
+        },
+        {
+          "label": "2024-10",
+          "value": 3.57
+        },
+        {
+          "label": "2024-11",
+          "value": 4.12
+        },
+        {
+          "label": "2024-12",
+          "value": 4.65
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 4.65
+      }
+    },
+    {
+      "id": "50022",
+      "district": "KRISHNA",
+      "mandal": "Challapalli",
+      "village": "Yarlagadda",
+      "location": "Venugopalaswamy Temple",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 16.1,
+      "mslM": 8.11,
+      "latitude": 16.137042,
+      "longitude": 80.892994,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 4.15
+        },
+        {
+          "label": "2024-02",
+          "value": 4.33
+        },
+        {
+          "label": "2024-03",
+          "value": 4.99
+        },
+        {
+          "label": "2024-04",
+          "value": 5.21
+        },
+        {
+          "label": "2024-05",
+          "value": 5.04
+        },
+        {
+          "label": "2024-06",
+          "value": 5.37
+        },
+        {
+          "label": "2024-07",
+          "value": 2.61
+        },
+        {
+          "label": "2024-08",
+          "value": 1.55
+        },
+        {
+          "label": "2024-09",
+          "value": 1.45
+        },
+        {
+          "label": "2024-10",
+          "value": 1.54
+        },
+        {
+          "label": "2024-11",
+          "value": 1.62
+        },
+        {
+          "label": "2024-12",
+          "value": 2.79
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 2.79
+      }
+    },
+    {
+      "id": "50023",
+      "district": "KRISHNA",
+      "mandal": "Ghantasala",
+      "village": "Srikakulam",
+      "location": "Irrigation Iguest House",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 82.0,
+      "mslM": 9.5,
+      "latitude": 16.193561,
+      "longitude": 80.846376,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 9.16
+        },
+        {
+          "label": "2024-02",
+          "value": 9.66
+        },
+        {
+          "label": "2024-03",
+          "value": 9.58
+        },
+        {
+          "label": "2024-04",
+          "value": 9.61
+        },
+        {
+          "label": "2024-05",
+          "value": 9.45
+        },
+        {
+          "label": "2024-06",
+          "value": 10.23
+        },
+        {
+          "label": "2024-07",
+          "value": 8.78
+        },
+        {
+          "label": "2024-08",
+          "value": 8.8
+        },
+        {
+          "label": "2024-09",
+          "value": 7.71
+        },
+        {
+          "label": "2024-10",
+          "value": 7.22
+        },
+        {
+          "label": "2024-11",
+          "value": 7.4
+        },
+        {
+          "label": "2024-12",
+          "value": 8.18
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 8.18
+      }
+    },
+    {
+      "id": "50024",
+      "district": "KRISHNA",
+      "mandal": "Gudlavalleru",
+      "village": "Kowtavaram",
+      "location": "33/11 KV sub station",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 154.0,
+      "mslM": 5.66,
+      "latitude": 16.338386,
+      "longitude": 81.068656,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 15.36
+        },
+        {
+          "label": "2024-02",
+          "value": 15.76
+        },
+        {
+          "label": "2024-03",
+          "value": 15.7
+        },
+        {
+          "label": "2024-04",
+          "value": 16.86
+        },
+        {
+          "label": "2024-05",
+          "value": 16.58
+        },
+        {
+          "label": "2024-06",
+          "value": 15.86
+        },
+        {
+          "label": "2024-07",
+          "value": 16.64
+        },
+        {
+          "label": "2024-08",
+          "value": 16.77
+        },
+        {
+          "label": "2024-09",
+          "value": 15.69
+        },
+        {
+          "label": "2024-10",
+          "value": 15.42
+        },
+        {
+          "label": "2024-11",
+          "value": 15.29
+        },
+        {
+          "label": "2024-12",
+          "value": 15.42
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 15.42
+      }
+    },
+    {
+      "id": "50025",
+      "district": "KRISHNA",
+      "mandal": "Kankipadu",
+      "village": "Kankipadu",
+      "location": "33/11 KV sub station",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 48.6,
+      "mslM": 14.73,
+      "latitude": 16.43966,
+      "longitude": 80.769336,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 15.08
+        },
+        {
+          "label": "2024-02",
+          "value": 15.35
+        },
+        {
+          "label": "2024-03",
+          "value": 15.99
+        },
+        {
+          "label": "2024-04",
+          "value": 15.88
+        },
+        {
+          "label": "2024-05",
+          "value": 15.65
+        },
+        {
+          "label": "2024-06",
+          "value": 15.68
+        },
+        {
+          "label": "2024-07",
+          "value": 16.16
+        },
+        {
+          "label": "2024-08",
+          "value": 15.95
+        },
+        {
+          "label": "2024-09",
+          "value": 14.9
+        },
+        {
+          "label": "2024-10",
+          "value": 14.51
+        },
+        {
+          "label": "2024-11",
+          "value": 14.02
+        },
+        {
+          "label": "2024-12",
+          "value": 14.16
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 14.16
+      }
+    },
+    {
+      "id": "50026",
+      "district": "KRISHNA",
+      "mandal": "Pamarru",
+      "village": "Pamarru-1",
+      "location": "Market yard",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 143.08,
+      "mslM": 8.72,
+      "latitude": 16.322153,
+      "longitude": 80.96769,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 14.46
+        },
+        {
+          "label": "2024-02",
+          "value": 13.73
+        },
+        {
+          "label": "2024-03",
+          "value": 13.87
+        },
+        {
+          "label": "2024-04",
+          "value": 14.47
+        },
+        {
+          "label": "2024-05",
+          "value": 14.2
+        },
+        {
+          "label": "2024-06",
+          "value": 17.35
+        },
+        {
+          "label": "2024-07",
+          "value": 16.25
+        },
+        {
+          "label": "2024-08",
+          "value": 15.77
+        },
+        {
+          "label": "2024-09",
+          "value": 14.85
+        },
+        {
+          "label": "2024-10",
+          "value": 14.24
+        },
+        {
+          "label": "2024-11",
+          "value": 14.36
+        },
+        {
+          "label": "2024-12",
+          "value": 13.89
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 13.89
+      }
+    },
+    {
+      "id": "50027",
+      "district": "KRISHNA",
+      "mandal": "Pamarru",
+      "village": "Pamarru-2",
+      "location": "Market yard",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 200.2,
+      "mslM": 8.96,
+      "latitude": 16.322063,
+      "longitude": 80.967981,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 13.8
+        },
+        {
+          "label": "2024-02",
+          "value": 13.29
+        },
+        {
+          "label": "2024-03",
+          "value": 13.65
+        },
+        {
+          "label": "2024-04",
+          "value": 14.16
+        },
+        {
+          "label": "2024-05",
+          "value": 12.85
+        },
+        {
+          "label": "2024-06",
+          "value": 14.24
+        },
+        {
+          "label": "2024-07",
+          "value": 15.57
+        },
+        {
+          "label": "2024-08",
+          "value": 15.05
+        },
+        {
+          "label": "2024-09",
+          "value": 15.93
+        },
+        {
+          "label": "2024-10",
+          "value": 12.98
+        },
+        {
+          "label": "2024-11",
+          "value": 13.24
+        },
+        {
+          "label": "2024-12",
+          "value": 13.37
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 13.37
+      }
+    },
+    {
+      "id": "50028",
+      "district": "KRISHNA",
+      "mandal": "Pamarru",
+      "village": "Pamarru-3",
+      "location": "Market yard",
+      "project": "OTHERS",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 198.1,
+      "mslM": 8.78,
+      "latitude": 16.322035,
+      "longitude": 80.968092,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 17.03
+        },
+        {
+          "label": "2024-02",
+          "value": 16.56
+        },
+        {
+          "label": "2024-03",
+          "value": 16.7
+        },
+        {
+          "label": "2024-04",
+          "value": 17.16
+        },
+        {
+          "label": "2024-05",
+          "value": 17.13
+        },
+        {
+          "label": "2024-06",
+          "value": 14.89
+        },
+        {
+          "label": "2024-07",
+          "value": 18.79
+        },
+        {
+          "label": "2024-08",
+          "value": 18.44
+        },
+        {
+          "label": "2024-09",
+          "value": 17.63
+        },
+        {
+          "label": "2024-10",
+          "value": 16.92
+        },
+        {
+          "label": "2024-11",
+          "value": 16.95
+        },
+        {
+          "label": "2024-12",
+          "value": 16.83
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 16.83
+      }
+    },
+    {
+      "id": "KRI1",
+      "district": "KRISHNA",
+      "mandal": "Bantumilli",
+      "village": "Munjuluru",
+      "location": "ZPHS",
+      "project": "nan",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 141.7,
+      "mslM": 4.41,
+      "latitude": 16.309598,
+      "longitude": 81.212399,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 24.29
+        },
+        {
+          "label": "2024-02",
+          "value": 26.42
+        },
+        {
+          "label": "2024-03",
+          "value": 27.0
+        },
+        {
+          "label": "2024-04",
+          "value": 28.3
+        },
+        {
+          "label": "2024-05",
+          "value": 28.62
+        },
+        {
+          "label": "2024-06",
+          "value": 27.59
+        },
+        {
+          "label": "2024-07",
+          "value": 25.44
+        },
+        {
+          "label": "2024-08",
+          "value": 25.82
+        },
+        {
+          "label": "2024-09",
+          "value": 24.34
+        },
+        {
+          "label": "2024-10",
+          "value": 23.41
+        },
+        {
+          "label": "2024-11",
+          "value": 24.44
+        },
+        {
+          "label": "2024-12",
+          "value": 25.37
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 25.37
+      }
+    },
+    {
+      "id": "KRI2",
+      "district": "KRISHNA",
+      "mandal": "Pedana",
+      "village": "Pedana",
+      "location": "33/11 KV sub station",
+      "project": "nan",
+      "principalAquifer": "Alluvium",
+      "totalDepthM": 141.0,
+      "mslM": 4.16,
+      "latitude": 16.26246,
+      "longitude": 81.159156,
+      "monthlyReadings2024": [
+        {
+          "label": "2024-01",
+          "value": 18.16
+        },
+        {
+          "label": "2024-02",
+          "value": 19.0
+        },
+        {
+          "label": "2024-03",
+          "value": 19.7
+        },
+        {
+          "label": "2024-04",
+          "value": 20.45
+        },
+        {
+          "label": "2024-05",
+          "value": 20.66
+        },
+        {
+          "label": "2024-06",
+          "value": 20.06
+        },
+        {
+          "label": "2024-07",
+          "value": 18.74
+        },
+        {
+          "label": "2024-08",
+          "value": 19.16
+        },
+        {
+          "label": "2024-09",
+          "value": 18.3
+        },
+        {
+          "label": "2024-10",
+          "value": 18.2
+        },
+        {
+          "label": "2024-11",
+          "value": 18.8
+        },
+        {
+          "label": "2024-12",
+          "value": 18.67
+        }
+      ],
+      "latestReading2024": {
+        "label": "2024-12",
+        "value": 18.67
+      }
+    }
+  ]
+}

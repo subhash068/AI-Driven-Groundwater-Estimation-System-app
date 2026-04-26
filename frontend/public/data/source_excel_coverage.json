@@ -1,0 +1,24 @@
+{
+  "generated_from": [
+    "Pumping Data.xlsx",
+    "PzWaterLevel_2024.xlsx"
+  ],
+  "districts": [
+    "KRISHNA",
+    "NTR"
+  ],
+  "pumping": {
+    "record_count": 713,
+    "district_counts": {
+      "KRISHNA": 426,
+      "NTR": 287
+    }
+  },
+  "piezometer": {
+    "station_count": 138,
+    "district_counts": {
+      "KRISHNA": 67,
+      "NTR": 71
+    }
+  }
+}

@@ -5,7 +5,11 @@ __pycache__/
 .pytest_cache/
 pytest-cache-files-*/
 data/raw/*
-data/
+data/_staging/*
+
+
+
+!public/data
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep

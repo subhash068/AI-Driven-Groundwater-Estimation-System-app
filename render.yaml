@@ -1,52 +1,13 @@
 services:
-  - type: keyvalue
-    name: groundwater-redis
-    plan: free
-    ipAllowList: []
-
-  - type: web
-    name: groundwater-backend
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    plan: free
-    healthCheckPath: /health
-    autoDeployTrigger: commit
-    envVars:
-      - key: DB_DSN
-        fromDatabase:
-          name: groundwater-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: groundwater-redis
-          property: connectionString
-      - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "120"
-      - key: CORS_ALLOW_ORIGINS
-        value: "https://groundwater-frontend.onrender.com"
-      - key: CORS_ALLOW_ORIGIN_REGEX
-        value: "^https?://(.*\\.)?onrender\\.com$"
-
   - type: web
     name: groundwater-frontend
     runtime: static
     plan: free
-    autoDeployTrigger: commit
-    buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: frontend/dist
-    routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://groundwater-backend.onrender.com/api/*
-      - type: rewrite
-        source: /*
-        destination: /index.html
-
-databases:
-  - name: groundwater-db
-    databaseName: groundwater
-    user: postgres
-    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_LOCAL_DATA_ONLY
+        value: "true"
+      - key: VITE_ENABLE_LIVE_API
+        value: "false"

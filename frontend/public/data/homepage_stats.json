@@ -1,0 +1,72 @@
+{
+  "villages": 950,
+  "avg_trend_slope": 0.0116,
+  "high_risk_count": 0,
+  "anomaly_count": 0,
+  "model": {
+    "r2": 0.9457680026371788,
+    "rmse": 0.6014178923576877,
+    "mae": 0.1349761528007397
+  },
+  "snapshot": {
+    "sample_village": "Ganapeswaram",
+    "actual_last_month": 10.82,
+    "predicted_gwl": 10.82
+  },
+  "source_excel": {
+    "generated_from": [
+      "Pumping Data.xlsx",
+      "PzWaterLevel_2024.xlsx"
+    ],
+    "districts": [
+      "KRISHNA",
+      "NTR"
+    ],
+    "pumping": {
+      "record_count": 713,
+      "district_counts": {
+        "KRISHNA": 426,
+        "NTR": 287
+      }
+    },
+    "piezometer": {
+      "station_count": 138,
+      "district_counts": {
+        "KRISHNA": 67,
+        "NTR": 71
+      }
+    }
+  },
+  "district_aggregation": {
+    "districts": [
+      {
+        "district": "KRISHNA",
+        "villages": 879,
+        "avg_groundwater_level": 7.093,
+        "avg_trend_slope": 0.0237,
+        "high_risk_count": 0,
+        "trend_arrow": "\u2193"
+      },
+      {
+        "district": "NTR",
+        "villages": 71,
+        "avg_groundwater_level": 4.434,
+        "avg_trend_slope": 0.0054,
+        "high_risk_count": 0,
+        "trend_arrow": "\u2193"
+      }
+    ],
+    "comparison_insight": "Krishna shows faster groundwater depletion compared to NTR."
+  },
+  "meta": {
+    "risk_threshold": 60.0,
+    "rows_total": 950,
+    "rows_in_scope": 950,
+    "generated_at": "2026-04-26T14:01:33.575223+00:00",
+    "source_dataset": [
+      "output\\final_dataset.csv",
+      "frontend\\public\\data\\final_dataset_ntr.json"
+    ],
+    "source_metrics": "model\\artifacts\\metrics.json"
+  }
+}
