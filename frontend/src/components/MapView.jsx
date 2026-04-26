@@ -46,48 +46,86 @@ function isPointGeometry(feature) {
   return String(feature?.geometry?.type || "").toLowerCase() === "point";
 }
 
-function villagePointColor(feature) {
-  const monthly = feature?.properties?.monthly_depths || [];
-  const depth = Number(monthly?.[0] ?? feature?.properties?.depth ?? feature?.properties?.actual_last_month ?? 0);
-  const [r, g, b, a] = healthColor(depth);
-  return {
-    fillColor: `rgb(${r}, ${g}, ${b})`,
-    fillOpacity: Math.max(0.72, a / 255)
-  };
+function normalizeRiskLevel(value, fallbackDepth = null) {
+  const text = String(value || "").trim().toLowerCase();
+  if (["critical", "severe", "high"].includes(text)) return "critical";
+  if (["warning", "medium", "moderate"].includes(text)) return "warning";
+  if (["safe", "low", "good"].includes(text)) return "safe";
+  if (!Number.isFinite(Number(fallbackDepth))) return "warning";
+  if (Number(fallbackDepth) >= 30) return "critical";
+  if (Number(fallbackDepth) >= 20) return "warning";
+  return "safe";
+}
+
+function villageRiskColor(feature) {
+  const props = feature?.properties || {};
+  const depth = Number(
+    props.groundwater_estimate ??
+    props.predicted_groundwater_level ??
+    props.estimated_groundwater_depth ??
+    props.actual_last_month ??
+    props.depth ??
+    0
+  );
+  const normalized = normalizeRiskLevel(props.risk_level, depth);
+  if (normalized === "critical") return "#ef4444";
+  if (normalized === "warning") return "#f59e0b";
+  if (normalized === "safe") return "#22c55e";
+  const [r, g, b] = healthColor(depth);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function villagePointToLayer(feature, latlng) {
   const props = feature?.properties || {};
-  const monthly = props.monthly_depths || [];
-  const depth = Number(monthly?.[0] ?? props.depth ?? props.actual_last_month ?? 0);
-  const base = healthColor(depth);
-  const color = `rgb(${base[0]}, ${base[1]}, ${base[2]})`;
+  const color = villageRiskColor(feature);
   return L.circleMarker(latlng, {
     radius: 5.2,
     color: "#f8fafc",
     weight: 1.3,
     fillColor: color,
-    fillOpacity: Math.max(0.78, base[3] / 255)
+    fillOpacity: 0.9
   });
 }
 
-function villageTooltipHtml(feature) {
+function villageInfoHtml(feature) {
   const props = feature?.properties || {};
-  const monthly = props.monthly_depths || [];
-  const gwl = Number(monthly?.[0] ?? props.depth ?? props.actual_last_month ?? NaN);
-  const pumping = Number(props.pumping_functioning_wells ?? props.pumping_rate ?? props.pumping_estimated_draft_ha_m ?? NaN);
+  const gwl = Number(
+    props.groundwater_estimate ??
+    props.predicted_groundwater_level ??
+    props.estimated_groundwater_depth ??
+    props.actual_last_month ??
+    props.depth ??
+    NaN
+  );
+  const confidence = Number(props.confidence ?? props.confidence_score ?? 0);
+  const risk = String(props.risk_level || "Unknown");
+  const alert = String(props.alert_status || "").trim();
+  const recommendation = Array.isArray(props.recommended_actions) && props.recommended_actions.length
+    ? props.recommended_actions[0]
+    : props.recommendation || "";
+  const forecast = Array.isArray(props.forecast_3_month) ? props.forecast_3_month : [];
+  const nextForecast = forecast.length ? forecast[0] : null;
   const district = String(props.district || "Unknown");
   const mandal = String(props.mandal || "Unknown");
   const village = String(props.village_name || props.village || "Unknown");
   return `
-    <div style="min-width: 180px">
+    <div style="min-width: 220px">
       <strong>Village:</strong> ${village}<br/>
+      <strong>Village ID:</strong> ${props.village_id ?? "NA"}<br/>
       <strong>District:</strong> ${district}<br/>
       <strong>Mandal:</strong> ${mandal}<br/>
-      <strong>GWL:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
-      <strong>Pumping:</strong> ${Number.isFinite(pumping) ? pumping.toFixed(2) : "NA"}
+      <strong>Groundwater estimate:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
+      <strong>Risk level:</strong> ${risk}<br/>
+      <strong>Confidence:</strong> ${Number.isFinite(confidence) ? `${confidence.toFixed(0)}%` : "NA"}<br/>
+      ${alert ? `<strong>Alert:</strong> ${alert}<br/>` : ""}
+      ${nextForecast ? `<strong>Next forecast:</strong> ${Number.isFinite(Number(nextForecast.predicted_groundwater_depth)) ? `${Number(nextForecast.predicted_groundwater_depth).toFixed(2)} m` : "NA"}<br/>` : ""}
+      ${recommendation ? `<strong>Recommendation:</strong> ${recommendation}` : ""}
     </div>
   `;
+}
+
+function villageTooltipHtml(feature) {
+  return villageInfoHtml(feature);
 }
 
 async function readGeoJsonIfValid(path) {
@@ -562,34 +600,49 @@ export function MapView({
   }, [filteredGeojson, is3D]);
 
   const groundwaterStyle = (feature) => {
-    const monthly = feature?.properties?.monthly_depths || [];
-    const depth = Number(monthly[monthIndex] ?? feature?.properties?.depth ?? 0);
-    const [r, g, b, a] = healthColor(depth);
+    const props = feature?.properties || {};
+    const depth = Number(
+      props.groundwater_estimate ??
+      props.predicted_groundwater_level ??
+      props.estimated_groundwater_depth ??
+      props.monthly_depths?.[monthIndex] ??
+      props.actual_last_month ??
+      props.depth ??
+      0
+    );
+    const color = villageRiskColor(feature);
     return {
-      color: "rgba(50, 50, 50, 0.45)",
-      weight: 1,
-      fillColor: `rgb(${r}, ${g}, ${b})`,
-      fillOpacity: a / 255
+      color: "rgba(15, 23, 42, 0.55)",
+      weight: 1.2,
+      fillColor: color,
+      fillOpacity: Number.isFinite(depth) ? 0.76 : 0.4
     };
   };
 
   const neutralVillageStyle = () => ({
-    color: "rgba(50, 50, 50, 0.45)",
+    color: "rgba(50, 50, 50, 0.35)",
     weight: 1,
     fillColor: "#2b3440",
     fillOpacity: 0.15
   });
 
   const selectedVillageStyle = (feature) => {
-    const monthly = feature?.properties?.monthly_depths || [];
-    const depth = Number(monthly[monthIndex] ?? feature?.properties?.depth ?? 0);
-    const [r, g, b, a] = healthColor(depth);
+    const depth = Number(
+      feature?.properties?.groundwater_estimate ??
+      feature?.properties?.predicted_groundwater_level ??
+      feature?.properties?.estimated_groundwater_depth ??
+      feature?.properties?.monthly_depths?.[monthIndex] ??
+      feature?.properties?.actual_last_month ??
+      feature?.properties?.depth ??
+      0
+    );
+    const color = villageRiskColor(feature);
     return {
       color: "#000000",
       weight: 2.8,
       opacity: 1,
-      fillColor: `rgb(${r}, ${g}, ${b})`,
-      fillOpacity: Math.max(0.18, a / 255)
+      fillColor: color,
+      fillOpacity: Number.isFinite(depth) ? 0.86 : 0.18
     };
   };
 
@@ -946,12 +999,21 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             eventHandlers={villageEvents}
             pointToLayer={(feature, latlng) => (isPointGeometry(feature) ? villagePointToLayer(feature, latlng) : undefined)}
             onEachFeature={(feature, layer) => {
-              if (isPointGeometry(feature) && layer?.bindTooltip) {
-                layer.bindTooltip(villageTooltipHtml(feature), {
+              const popupHtml = villageInfoHtml(feature);
+              if (layer?.bindTooltip) {
+                layer.bindTooltip(popupHtml, {
                   sticky: true,
                   direction: "top",
                   opacity: 0.96,
                   className: "village-tooltip"
+                });
+              }
+              if (layer?.bindPopup) {
+                layer.bindPopup(popupHtml, {
+                  className: "village-popup",
+                  closeButton: true,
+                  autoPan: true,
+                  maxWidth: 320
                 });
               }
             }}

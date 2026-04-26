@@ -865,15 +865,15 @@ export function MapLegend({
         <>
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#22C55E' }}></div>
-            <span>High Groundwater</span>
+            <span>Safe groundwater</span>
           </div>
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#FACC15' }}></div>
-            <span>Medium Groundwater</span>
+            <span>Warning groundwater</span>
           </div>
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#EF4444' }}></div>
-            <span>Low Groundwater</span>
+            <span>Critical groundwater</span>
           </div>
         </>
       ) : (

@@ -118,8 +118,6 @@ async def village_forecast(
         return VillageForecastResponse(**cached)
 
     payload = await fetch_village_forecast_lstm(db, village_id)
-    if not payload["forecast_3_month"]:
-        raise HTTPException(status_code=404, detail=f"No forecast found for village {village_id}")
     await cache_set_json(cache_key, payload, ttl_seconds=900)
     return VillageForecastResponse(**payload)
 

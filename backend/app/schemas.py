@@ -7,6 +7,10 @@ class VillageStatusResponse(BaseModel):
     forecast_3_month: list[dict]
     anomaly_flags: list[str]
     confidence_score: float | None = None
+    risk_level: str | None = None
+    alert_status: str | None = None
+    trend_direction: str | None = None
+    recommended_actions: list[str] = Field(default_factory=list)
 
 
 class RechargeRecommendationResponse(BaseModel):
@@ -62,7 +66,14 @@ class VillageEstimateUpsert(BaseModel):
 class VillageForecastResponse(BaseModel):
     village_id: int
     model_name: str
+    village_name: str | None = None
+    confidence_score: float | None = None
+    risk_level: str | None = None
+    alert_status: str | None = None
+    trend_direction: str | None = None
+    observed_series: list[dict] = Field(default_factory=list)
     forecast_3_month: list[dict]
+    recommended_actions: list[str] = Field(default_factory=list)
 
 
 class AnomalyAlert(BaseModel):
@@ -70,6 +81,8 @@ class AnomalyAlert(BaseModel):
     anomaly_type: str
     anomaly_score: float | None = None
     detected_at: str
+    alert_level: str | None = None
+    recommendation: str | None = None
 
 
 class AnomalyAlertResponse(BaseModel):

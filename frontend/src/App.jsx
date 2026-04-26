@@ -32,6 +32,7 @@ const ANOMALY_TYPE_OPTIONS = ["Severe drop", "Moderate drop", "Normal", "Rise"];
 const Home = lazy(() => import("./pages/Home").then(module => ({ default: module.Home })));
 const Sidebar = lazy(() => import("./components/Sidebar").then(module => ({ default: module.Sidebar })));
 const MapView = lazy(() => import("./components/MapView").then(module => ({ default: module.MapView })));
+const VillageActionPanel = lazy(() => import("./components/VillageActionPanel").then(module => ({ default: module.VillageActionPanel })));
 
 const LoadingSpinner = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#050b14', color: '#00e5ff' }}>
@@ -194,6 +195,45 @@ function simulateFromFeature(feature, simulationInputs) {
   };
 }
 
+function mergeVillageMapData(baseGeojson, mapData) {
+  if (!baseGeojson?.features?.length) return baseGeojson || mapData || null;
+  if (!mapData?.features?.length) return baseGeojson;
+
+  const mapFeaturesById = new Map();
+  const mapFeaturesByKey = new Map();
+  mapData.features.forEach((feature) => {
+    const props = feature?.properties || {};
+    const villageId = Number(props.village_id);
+    const key = buildLocationKey(props.district, props.mandal, props.village_name);
+    if (Number.isFinite(villageId)) mapFeaturesById.set(villageId, feature);
+    if (key) mapFeaturesByKey.set(key, feature);
+  });
+
+  return {
+    ...baseGeojson,
+    features: baseGeojson.features.map((feature) => {
+      const props = feature?.properties || {};
+      const villageId = Number(props.village_id);
+      const key = buildLocationKey(props.district, props.mandal, props.village_name);
+      const match = (Number.isFinite(villageId) && mapFeaturesById.get(villageId))
+        || (key && mapFeaturesByKey.get(key))
+        || null;
+      if (!match) return feature;
+      return {
+        ...feature,
+        properties: {
+          ...props,
+          ...(match.properties || {}),
+          village_id: props.village_id ?? match.properties?.village_id,
+          village_name: props.village_name ?? match.properties?.village_name,
+          district: props.district ?? match.properties?.district,
+          mandal: props.mandal ?? match.properties?.mandal
+        }
+      };
+    })
+  };
+}
+
 export default function App({ navigate, pathname }) {
   const [isFullDashboardOpen, setIsFullDashboardOpen] = useState(false);
   const [highRiskOnly, setHighRiskOnly] = useState(false);
@@ -237,6 +277,7 @@ export default function App({ navigate, pathname }) {
   const [anomalies, setAnomalies] = useState(null);
   const [rechargeZones, setRechargeZones] = useState(null);
   const [aquiferLayer, setAquiferLayer] = useState(null);
+  const [dashboardMapData, setDashboardMapData] = useState(null);
   const [showAnomalies, setShowAnomalies] = useState(false);
   const [showRecharge, setShowRecharge] = useState(false);
   const [apiStatus, setApiStatus] = useState(() => getApiStatusSummary());
@@ -271,6 +312,25 @@ export default function App({ navigate, pathname }) {
       api.getRechargeRecommendations().then(setRechargeZones).catch(console.error);
     }
   }, [aiPredictionEnabled, showAnomalies, showRecharge, anomalies, rechargeZones]);
+
+  useEffect(() => {
+    if (pathname !== "/dashboard") return;
+    let active = true;
+    (async () => {
+      try {
+        const payload = await api.getMapData();
+        if (!active) return;
+        setDashboardMapData(payload);
+      } catch (err) {
+        if (!active) return;
+        console.warn("Map data unavailable:", err);
+        setDashboardMapData(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -313,18 +373,22 @@ export default function App({ navigate, pathname }) {
   };
 
   const dashboardGeojson = useMemo(() => {
-    if (!filteredGeojson) return null;
-    if (!highRiskOnly) return filteredGeojson;
+    const merged = mergeVillageMapData(filteredGeojson, dashboardMapData);
+    if (!merged) return null;
+    if (!highRiskOnly) return merged;
 
-    const features = (filteredGeojson.features || []).filter(
-      (feature) => String(feature?.properties?.risk_level || "").toLowerCase() === "high"
+    const features = (merged.features || []).filter(
+      (feature) => {
+        const risk = String(feature?.properties?.risk_level || "").toLowerCase();
+        return risk === "critical" || risk === "high";
+      }
     );
 
     return {
-      ...filteredGeojson,
+      ...merged,
       features
     };
-  }, [filteredGeojson, highRiskOnly]);
+  }, [filteredGeojson, dashboardMapData, highRiskOnly]);
 
   const dashboardStats = useMemo(() => {
     if (!dashboardGeojson) return { safe: 0, warning: 0, critical: 0, total: 0 };
@@ -948,13 +1012,19 @@ export default function App({ navigate, pathname }) {
                 {isInsightsOpen ? ">" : "<"}
               </button>
               {isInsightsOpen && (
-                <VillageInsightsPanel
-                  selectedFeature={selectedFeature}
-                  monthIndex={monthIndex}
-                  aiPredictionEnabled={aiPredictionEnabled}
-                  aquiferAnalytics={aquiferAnalytics}
-                  datasetAnalytics={datasetAnalytics}
-                />
+                <>
+                  <VillageInsightsPanel
+                    selectedFeature={selectedFeature}
+                    monthIndex={monthIndex}
+                    aiPredictionEnabled={aiPredictionEnabled}
+                    aquiferAnalytics={aquiferAnalytics}
+                    datasetAnalytics={datasetAnalytics}
+                  />
+                  <VillageActionPanel
+                    selectedFeature={selectedFeature}
+                    aiPredictionEnabled={aiPredictionEnabled}
+                  />
+                </>
               )}
             </div>
           </div>

@@ -103,6 +103,293 @@ async function fetchJsonFromPublic(path) {
   }
 }
 
+const publicJsonCache = new Map();
+
+async function fetchJsonCached(path) {
+  if (publicJsonCache.has(path)) {
+    return publicJsonCache.get(path);
+  }
+  const promise = fetchJsonFromPublic(path);
+  publicJsonCache.set(path, promise);
+  return promise;
+}
+
+function normalizeRiskLevel(value, fallbackDepth = null) {
+  const text = String(value || "").trim().toLowerCase();
+  if (["critical", "severe", "high"].includes(text)) return "critical";
+  if (["warning", "medium", "moderate"].includes(text)) return "warning";
+  if (["safe", "low", "good"].includes(text)) return "safe";
+  if (!Number.isFinite(Number(fallbackDepth))) return "warning";
+  if (Number(fallbackDepth) >= 30) return "critical";
+  if (Number(fallbackDepth) >= 20) return "warning";
+  return "safe";
+}
+
+function titleCaseRisk(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^\w/, (match) => match.toUpperCase());
+}
+
+function buildAlertStatus(riskLevel, anomalyFlag = false, anomalyScore = null) {
+  const normalized = normalizeRiskLevel(riskLevel);
+  if (anomalyFlag && normalized !== "critical") {
+    if (Number.isFinite(Number(anomalyScore)) && Number(anomalyScore) >= 0.75) {
+      return "critical";
+    }
+    return "warning";
+  }
+  return normalized;
+}
+
+function forecastFromAnchor(anchor, target = null, months = 3) {
+  if (!Number.isFinite(Number(anchor)) && !Number.isFinite(Number(target))) {
+    return [];
+  }
+  const base = Number.isFinite(Number(anchor)) ? Number(anchor) : Number(target);
+  const next = Number.isFinite(Number(target)) ? Number(target) : base;
+  const step = months > 0 ? (next - base) / months : 0;
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const results = [];
+  for (let index = 1; index <= months; index += 1) {
+    const stamp = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + index, 1));
+    const depth = Number((base + step * index).toFixed(3));
+    results.push({
+      forecast_date: stamp.toISOString().slice(0, 10),
+      predicted_groundwater_depth: depth,
+      predicted_lower: Number((depth - 0.4).toFixed(3)),
+      predicted_upper: Number((depth + 0.4).toFixed(3))
+    });
+  }
+  return results;
+}
+
+function observedSeriesFromFeature(feature, limit = 6) {
+  const props = feature?.properties || {};
+  const values = Array.isArray(props.monthly_depths_full) && props.monthly_depths_full.length
+    ? props.monthly_depths_full
+    : Array.isArray(props.monthly_depths) && props.monthly_depths.length
+      ? props.monthly_depths
+      : [];
+  const labels = Array.isArray(props.monthly_depths_full_dates) && props.monthly_depths_full_dates.length
+    ? props.monthly_depths_full_dates
+    : Array.isArray(props.monthly_depths_dates) && props.monthly_depths_dates.length
+      ? props.monthly_depths_dates
+      : [];
+  const series = values
+    .map((value, index) => {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return null;
+      return {
+        label: String(labels[index] || `Month ${index + 1}`),
+        groundwater_depth: Number(numeric.toFixed(3)),
+        kind: "observed"
+      };
+    })
+    .filter(Boolean);
+  return limit > 0 ? series.slice(-limit) : series;
+}
+
+function computeTrendDirection(series) {
+  const values = (Array.isArray(series) ? series : [])
+    .map((point) => Number(point?.groundwater_depth ?? point?.predicted_groundwater_depth ?? point?.value))
+    .filter((value) => Number.isFinite(value));
+  if (values.length < 2) return "Stable";
+  const delta = values[values.length - 1] - values[0];
+  if (delta > 0.5) return "Rising";
+  if (delta < -0.5) return "Falling";
+  return "Stable";
+}
+
+function recommendationTextForStatus(status, anomalyFlag = false) {
+  const normalized = String(status || "warning").toLowerCase();
+  if (normalized === "critical") {
+    return [
+      "Urgent advisory: reduce pumping immediately.",
+      "Adopt drip irrigation and schedule extraction by shift.",
+      "Build recharge pits, farm ponds, or desilt existing tanks."
+    ];
+  }
+  if (normalized === "warning") {
+    return [
+      "Monitor pumping closely over the next 90 days.",
+      "Prioritize recharge pits and water-saving irrigation.",
+      "Avoid new high-capacity borewells until levels stabilize."
+    ];
+  }
+  return [
+    "Continue monthly monitoring.",
+    "Protect existing recharge structures.",
+    "Use efficient irrigation to preserve the current balance."
+  ];
+}
+
+async function findLocalVillageFeature(villageId) {
+  const numericVillageId = Number(villageId);
+  const [mapData, villageData, finalData] = await Promise.all([
+    fetchJsonCached("/data/map_data_predictions.geojson"),
+    fetchJsonCached("/data/villages.geojson"),
+    fetchJsonCached("/data/final_dataset.json")
+  ]);
+  const finalDatasetNtr = await fetchJsonCached("/data/final_dataset_ntr.json");
+
+  const searchCollections = [
+    Array.isArray(mapData?.features) ? mapData.features : [],
+    Array.isArray(villageData?.features) ? villageData.features : []
+  ];
+  for (const collection of searchCollections) {
+    const match = collection.find((feature) => Number(feature?.properties?.village_id) === numericVillageId);
+    if (match) return match;
+  }
+
+  const fallbackRow = Array.isArray(finalData)
+    ? finalData.find((row) => Number(row?.Village_ID) === numericVillageId)
+    : null;
+  const fallbackRowNtr = Array.isArray(finalDatasetNtr)
+    ? finalDatasetNtr.find((row) => Number(row?.Village_ID) === numericVillageId)
+    : null;
+  const row = fallbackRow || fallbackRowNtr;
+  if (!row) return null;
+
+  return {
+    type: "Feature",
+    geometry: null,
+    properties: {
+      village_id: row.Village_ID,
+      village_name: row.Village_Name,
+      district: row.District,
+      mandal: row.Mandal,
+      actual_last_month: row.actual_last_month ?? row.GW_Level,
+      long_term_avg: row.long_term_avg,
+      monthly_depths: row.monthly_depths,
+      monthly_depths_dates: row.monthly_depths_dates,
+      monthly_depths_full: row.monthly_depths_full,
+      monthly_depths_full_dates: row.monthly_depths_full_dates,
+      predicted_groundwater_level: row.GW_Level,
+      risk_level: row.risk_level,
+      confidence: row.confidence_score
+    }
+  };
+}
+
+async function buildVillageForecastFallback(villageId) {
+  const feature = await findLocalVillageFeature(villageId);
+  if (!feature) return null;
+  const props = feature.properties || {};
+  const observedSeries = observedSeriesFromFeature(feature, 6);
+  const currentDepth = Number(
+    props.actual_last_month ??
+    props.depth ??
+    props.predicted_groundwater_level ??
+    props.GW_Level
+  );
+  const forecastAnchor = Number.isFinite(Number(props.forecast_3m))
+    ? Number(props.forecast_3m)
+    : Number.isFinite(Number(props.predicted_groundwater_level))
+      ? Number(props.predicted_groundwater_level)
+      : currentDepth;
+  const forecast_3_month = Array.isArray(props.forecast_3_month) && props.forecast_3_month.length
+    ? props.forecast_3_month
+    : forecastFromAnchor(currentDepth, forecastAnchor, 3);
+  const riskLevel = titleCaseRisk(normalizeRiskLevel(props.risk_level, currentDepth));
+  const alertStatus = buildAlertStatus(riskLevel, Boolean(props.anomaly_flag));
+  return {
+    village_id: Number(props.village_id),
+    village_name: props.village_name || "Unknown",
+    district: props.district || "",
+    mandal: props.mandal || "",
+    model_name: "krishna-fallback-model",
+    confidence_score: Number.isFinite(Number(props.confidence_score ?? props.confidence))
+      ? Number(props.confidence_score ?? props.confidence)
+      : 0,
+    risk_level: riskLevel,
+    alert_status: alertStatus,
+    trend_direction: computeTrendDirection(observedSeries),
+    observed_series: observedSeries,
+    forecast_3_month,
+    recommended_actions: recommendationTextForStatus(alertStatus, Boolean(props.anomaly_flag)),
+  };
+}
+
+async function buildVillageStatusFallback(villageId) {
+  const forecast = await buildVillageForecastFallback(villageId);
+  if (!forecast) return null;
+  return {
+    village_id: forecast.village_id,
+    current_depth: forecast.observed_series.length
+      ? forecast.observed_series[forecast.observed_series.length - 1].groundwater_depth
+      : null,
+    forecast_3_month: forecast.forecast_3_month,
+    anomaly_flags: [
+      `Risk level: ${forecast.risk_level}`,
+      ...(forecast.alert_status === "critical" ? ["Urgent advisory required"] : []),
+    ],
+    confidence_score: forecast.confidence_score,
+    risk_level: forecast.risk_level,
+    alert_status: forecast.alert_status,
+    trend_direction: forecast.trend_direction,
+    recommended_actions: forecast.recommended_actions,
+    observed_series: forecast.observed_series
+  };
+}
+
+async function buildRechargeFallback() {
+  const mapData = await fetchJsonCached("/data/map_data_predictions.geojson");
+  const features = Array.isArray(mapData?.features) ? mapData.features : [];
+  return {
+    type: "FeatureCollection",
+    features: features
+      .map((feature) => {
+        const props = feature?.properties || {};
+        const score = Number(props.recharge_index ?? props.infiltration_score ?? 0);
+        const riskLevel = titleCaseRisk(normalizeRiskLevel(props.risk_level, props.predicted_groundwater_level));
+        return {
+          type: "Feature",
+          geometry: feature.geometry,
+          properties: {
+            village_id: props.village_id,
+            village_name: props.village_name,
+            district: props.district,
+            mandal: props.mandal,
+            score: Number.isFinite(score) ? Number(score.toFixed(4)) : 0,
+            groundwater_depth: Number(props.predicted_groundwater_level ?? props.depth ?? 0),
+            risk_level: riskLevel,
+            confidence_score: Number(props.confidence ?? 0),
+            reason: "Recharge candidate from permeability and stress indicators",
+            recommendation: "Prefer recharge pits, farm ponds, and staggered pumping."
+          }
+        };
+      })
+      .sort((a, b) => (b.properties.score || 0) - (a.properties.score || 0))
+      .slice(0, 300)
+  };
+}
+
+async function buildAnomalyFallback(outputFormat = "json", limit = 500) {
+  const anomalies = await fetchJsonCached("/data/anomalies_krishna.json");
+  const features = Array.isArray(anomalies?.features) ? anomalies.features.slice(0, limit) : [];
+  if (outputFormat === "geojson") {
+    return { type: "FeatureCollection", features };
+  }
+  return features
+    .map((feature) => {
+      const props = feature?.properties || {};
+      return {
+        village_id: Number(props.village_id),
+        anomaly_type: String(props.anomaly_type || props.type || props.severity || "Unknown"),
+        anomaly_score: Number.isFinite(Number(props.anomaly_score ?? props.deviation_m))
+          ? Number(props.anomaly_score ?? props.deviation_m)
+          : null,
+        detected_at: String(props.detected_at || new Date().toISOString()),
+        alert_level: buildAlertStatus("warning", true, Number(props.anomaly_score ?? props.deviation_m)),
+        recommendation: "Inspect the village immediately and compare with pumping and sensor records."
+      };
+    })
+    .filter((row) => Number.isFinite(Number(row.village_id)));
+}
+
 const fetchSafe = async (url, defaultValue = null, options = {}) => {
   const { auth = false, init = {}, breakerKey = null, live = true } = options;
   if (!live) {
@@ -152,32 +439,67 @@ const fetchSafe = async (url, defaultValue = null, options = {}) => {
 };
 
 export const api = {
-  getRechargeRecommendations: () => 
-    fetchSafe(`${API_BASE}/recharge-recommendations`, { 
-      type: "FeatureCollection", 
-      features: [
-        { type: "Feature", geometry: { type: "Point", coordinates: [80.64, 16.50] }, properties: { score: 0.85, reason: "High permeability alluvium" } },
-        { type: "Feature", geometry: { type: "Point", coordinates: [79.98, 15.60] }, properties: { score: 0.72, reason: "Draft-to-recharge deficit" } }
-      ] 
-    }, { breakerKey: "rechargeRecommendations", live: LIVE_API_ENABLED }),
-  
-  getVillageStatus: (villageId) => 
-    fetchSafe(`${API_BASE}/get-village-status/${villageId}`, { 
-      current_depth: 12.5, 
-      forecast_3_month: [], 
-      anomaly_flags: ["Historical Deviation"],
-      confidence_score: 0.88
-    }, { breakerKey: "villageStatus", live: LIVE_API_ENABLED }),
-  
-  getVillageForecast: (villageId) => 
-    fetchSafe(`${API_BASE}/village/${villageId}/forecast`, { 
-      forecast_3_month: [
-        { forecast_date: "2024-05-01", predicted_groundwater_depth: 13.2 },
-        { forecast_date: "2024-06-01", predicted_groundwater_depth: 14.5 },
-        { forecast_date: "2024-07-01", predicted_groundwater_depth: 15.8 }
-      ] 
-    }, { auth: true, breakerKey: "villageForecast", live: LIVE_API_ENABLED }),
-  
+  getMapData: async () => {
+    const remote = await fetchSafe(
+      `${API_BASE}/map-data`,
+      null,
+      { breakerKey: "mapData", live: LIVE_API_ENABLED }
+    );
+    if (remote && Array.isArray(remote.features)) return remote;
+    const local = await fetchJsonCached("/data/map_data_predictions.geojson");
+    return local || { type: "FeatureCollection", features: [] };
+  },
+
+  getRechargeRecommendations: async () => {
+    const remote = await fetchSafe(
+      `${API_BASE}/recharge-recommendations`,
+      null,
+      { breakerKey: "rechargeRecommendations", live: LIVE_API_ENABLED }
+    );
+    if (remote && Array.isArray(remote.features)) return remote;
+    return (await buildRechargeFallback()) || { type: "FeatureCollection", features: [] };
+  },
+
+  getVillageStatus: async (villageId) => {
+    const remote = await fetchSafe(
+      `${API_BASE}/get-village-status/${villageId}`,
+      null,
+      { breakerKey: "villageStatus", live: LIVE_API_ENABLED }
+    );
+    if (remote && Number.isFinite(Number(remote.village_id))) return remote;
+    return (await buildVillageStatusFallback(villageId)) || {
+      village_id: Number(villageId),
+      current_depth: null,
+      forecast_3_month: [],
+      anomaly_flags: [],
+      confidence_score: 0,
+      risk_level: "Warning",
+      alert_status: "warning",
+      trend_direction: "Stable",
+      recommended_actions: []
+    };
+  },
+
+  getVillageForecast: async (villageId) => {
+    const remote = await fetchSafe(
+      `${API_BASE}/village/${villageId}/forecast`,
+      null,
+      { auth: true, breakerKey: "villageForecast", live: LIVE_API_ENABLED }
+    );
+    if (remote && Number.isFinite(Number(remote.village_id))) return remote;
+    return (await buildVillageForecastFallback(villageId)) || {
+      village_id: Number(villageId),
+      model_name: "krishna-fallback-model",
+      observed_series: [],
+      forecast_3_month: [],
+      confidence_score: 0,
+      risk_level: "Warning",
+      alert_status: "warning",
+      trend_direction: "Stable",
+      recommended_actions: []
+    };
+  },
+
   getAnomalies: async (outputFormat = "geojson") => {
     const remote = await fetchSafe(
       `${API_BASE}/alerts/anomalies?output_format=${outputFormat}`,
@@ -185,14 +507,9 @@ export const api = {
       { auth: false, breakerKey: "anomalies", live: LIVE_API_ENABLED }
     );
     if (remote) return remote;
-    if (outputFormat === "geojson") {
-      const local = await fetchJsonFromPublic("/data/anomalies_krishna.json");
-      if (local) return local;
-      return { type: "FeatureCollection", features: [] };
-    }
-    return { alerts: [] };
+    return await buildAnomalyFallback(outputFormat, 500);
   },
-  
+
   locateVillage: (lat, lon) => 
     fetchSafe(`${API_BASE}/village/locate?lat=${lat}&lon=${lon}`, null),
   
