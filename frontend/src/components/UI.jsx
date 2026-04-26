@@ -379,6 +379,10 @@ function DraggableInsightsShellLegacy({ children }) {
   const [panelWidth, setPanelWidth] = useState(380);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= 1100;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined" || hasInitialPosition.current) return;
@@ -389,6 +393,14 @@ function DraggableInsightsShellLegacy({ children }) {
       y: Math.max(Math.min(96, window.innerHeight - 180), 16)
     });
     setPanelWidth(initialWidth);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const updateViewportMode = () => setIsCompactViewport(window.innerWidth <= 1100);
+    updateViewportMode();
+    window.addEventListener("resize", updateViewportMode);
+    return () => window.removeEventListener("resize", updateViewportMode);
   }, []);
 
   useEffect(() => {
@@ -442,7 +454,7 @@ function DraggableInsightsShellLegacy({ children }) {
   }, [isDragging, isResizing, position.x]);
 
   const beginDrag = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isResizing) return;
+    if (typeof window === "undefined" || event.button !== 0 || isResizing || isCompactViewport) return;
     const panel = panelRef.current;
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
@@ -455,7 +467,7 @@ function DraggableInsightsShellLegacy({ children }) {
   };
 
   const beginResize = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isDragging) return;
+    if (typeof window === "undefined" || event.button !== 0 || isDragging || isCompactViewport) return;
     const panel = panelRef.current;
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
@@ -482,8 +494,19 @@ function DraggableInsightsShellLegacy({ children }) {
   return (
     <aside
       ref={panelRef}
-      className="insights-panel"
-      style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${panelWidth}px` }}
+      className={`insights-panel ${isCompactViewport ? "insights-panel-fluid" : ""}`}
+      style={
+        isCompactViewport
+          ? {
+              position: "relative",
+              left: "auto",
+              top: "auto",
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto"
+            }
+          : { left: `${position.x}px`, top: `${position.y}px`, width: `${panelWidth}px` }
+      }
     >
 
 
@@ -501,6 +524,10 @@ function DraggableInsightsShell({ children }) {
   const [panelWidth, setPanelWidth] = useState(380);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= 1100;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined" || hasInitialPosition.current) return;
@@ -511,6 +538,14 @@ function DraggableInsightsShell({ children }) {
       y: Math.max(Math.min(96, window.innerHeight - 180), 16)
     });
     setPanelWidth(initialWidth);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const updateViewportMode = () => setIsCompactViewport(window.innerWidth <= 1100);
+    updateViewportMode();
+    window.addEventListener("resize", updateViewportMode);
+    return () => window.removeEventListener("resize", updateViewportMode);
   }, []);
 
   useEffect(() => {
@@ -564,7 +599,7 @@ function DraggableInsightsShell({ children }) {
   }, [isDragging, isResizing, position.x]);
 
   const beginDrag = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isResizing) return;
+    if (typeof window === "undefined" || event.button !== 0 || isResizing || isCompactViewport) return;
     const panel = panelRef.current;
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
@@ -577,7 +612,7 @@ function DraggableInsightsShell({ children }) {
   };
 
   const beginResize = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isDragging) return;
+    if (typeof window === "undefined" || event.button !== 0 || isDragging || isCompactViewport) return;
     const panel = panelRef.current;
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
@@ -604,8 +639,19 @@ function DraggableInsightsShell({ children }) {
   return (
     <aside
       ref={panelRef}
-      className="insights-panel"
-      style={{ left: `${position.x}px`, top: `${position.y}px`, width: `${panelWidth}px` }}
+      className={`insights-panel ${isCompactViewport ? "insights-panel-fluid" : ""}`}
+      style={
+        isCompactViewport
+          ? {
+              position: "relative",
+              left: "auto",
+              top: "auto",
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto"
+            }
+          : { left: `${position.x}px`, top: `${position.y}px`, width: `${panelWidth}px` }
+      }
     >
 
 

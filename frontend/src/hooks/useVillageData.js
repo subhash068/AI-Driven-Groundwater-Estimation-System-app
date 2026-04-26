@@ -106,34 +106,30 @@ async function loadVillageGeojson(selectedDistrict = "") {
   const districtSlug = districtToSlug(selectedDistrict);
   const selectedDistrictNorm = normalizeLocationName(selectedDistrict);
   let unifiedResult = null;
-  const preferredCandidates = districtSlug
-    ? [
-        `/data/village_boundaries_${districtSlug}.geojson`,
-        `/data/villages_${districtSlug}.geojson`
-      ]
-    : VILLAGE_DATASET_CANDIDATES;
+  if (districtSlug) {
+    const preferredCandidates = [
+      `/data/village_boundaries_${districtSlug}.geojson`,
+      `/data/villages_${districtSlug}.geojson`
+    ];
 
-  for (const path of preferredCandidates) {
-    const geojson = await fetchJsonIfValid(path);
-    if (!geojson || !Array.isArray(geojson.features)) continue;
-    if (isLikelyPlaceholderDataset(geojson)) {
-      continue;
+    for (const path of preferredCandidates) {
+      const geojson = await fetchJsonIfValid(path);
+      if (!geojson || !Array.isArray(geojson.features)) continue;
+      if (isLikelyPlaceholderDataset(geojson)) {
+        continue;
+      }
+      unifiedResult = { geojson: normalizeVillageGeojson(geojson), sourcePath: path };
+      break;
     }
-    unifiedResult = { geojson: normalizeVillageGeojson(geojson), sourcePath: path };
-    break;
-  }
 
-  if (districtSlug && unifiedResult) {
-    const allMatchSelectedDistrict = (unifiedResult.geojson?.features || []).every(
-      (feature) => normalizeLocationName(feature?.properties?.district || "") === selectedDistrictNorm
-    );
-    if (allMatchSelectedDistrict || String(unifiedResult.sourcePath || "").includes(`_${districtSlug}`)) {
-      return unifiedResult;
+    if (unifiedResult) {
+      const allMatchSelectedDistrict = (unifiedResult.geojson?.features || []).every(
+        (feature) => normalizeLocationName(feature?.properties?.district || "") === selectedDistrictNorm
+      );
+      if (allMatchSelectedDistrict || String(unifiedResult.sourcePath || "").includes(`_${districtSlug}`)) {
+        return unifiedResult;
+      }
     }
-  }
-
-  if (!districtSlug && unifiedResult) {
-    return unifiedResult;
   }
 
   const merged = [];

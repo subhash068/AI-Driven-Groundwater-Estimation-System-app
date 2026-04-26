@@ -3154,3 +3154,141 @@ html, body, #root {
   }
 }
 
+@media (max-width: 900px) {
+  .dashboard-shell .dashboard-top-bar-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-shell .topbar-title-main,
+  .dashboard-shell .topbar-center-controls,
+  .dashboard-shell .topbar-time-main,
+  .dashboard-shell .topbar-actions,
+  .dashboard-shell .topbar-stats-main,
+  .dashboard-shell .topbar-stats {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-shell .topbar-center-controls,
+  .dashboard-shell .topbar-actions,
+  .dashboard-shell .topbar-stats {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-shell .topbar-actions {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .dashboard-shell .topbar-stats {
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .dashboard-shell .geo-main {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .dashboard-shell .map-wrap {
+    min-height: 360px;
+  }
+
+  .dashboard-shell .insights-dock {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dashboard-shell .insights-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: auto !important;
+    top: auto !important;
+    position: relative !important;
+    margin-top: 12px;
+  }
+
+  .dashboard-shell .insights-panel-fluid {
+    padding-bottom: 12px;
+  }
+
+  .dashboard-shell .insights-toggle {
+    position: static;
+    width: 36px;
+    height: 36px;
+    margin-top: 10px;
+  }
+
+  .dashboard-shell .full-dashboard-sheet {
+    margin: 0 8px 8px;
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .dashboard-shell .full-dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-shell .full-dashboard-header p {
+    line-height: 1.45;
+  }
+
+  .dashboard-shell .dashboard-close-button {
+    width: 100%;
+  }
+
+  .dashboard-shell .full-dashboard-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-shell .full-dashboard-profile {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-shell .profile-summary-banner {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-shell .meaning-card-grid,
+  .dashboard-shell .full-dashboard-grid,
+  .dashboard-shell .insight-metric-grid,
+  .dashboard-shell .insight-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-shell .insight-chart-card {
+    min-width: 0;
+  }
+
+  .dashboard-shell .aquifer-pie-panel {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .dashboard-shell .aquifer-pie-legend {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-shell .full-dashboard-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-shell .topbar-stats div {
+    align-items: flex-start;
+  }
+
+  .dashboard-shell .topbar-stats small {
+    white-space: normal;
+  }
+
+  .dashboard-shell .topbar-time label {
+    white-space: normal;
+  }
+}
+
