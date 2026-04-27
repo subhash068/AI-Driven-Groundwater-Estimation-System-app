@@ -24,6 +24,8 @@ export function Sidebar({
   setShowLulc,
   showGroundwaterLevels,
   setShowGroundwaterLevels,
+  showConfidenceIntervals,
+  setShowConfidenceIntervals,
   showPiezometers,
   setShowPiezometers,
   showWells,
@@ -163,6 +165,14 @@ export function Sidebar({
                 onChange={() => setShowGroundwaterLevels(!showGroundwaterLevels)}
               />
               Groundwater Levels
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showConfidenceIntervals}
+                onChange={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
+              />
+              GNN Uncertainty
             </label>
             <label className="toggle">
               <input

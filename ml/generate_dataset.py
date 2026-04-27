@@ -1010,6 +1010,17 @@ def extract_piezometer_features(villages: gpd.GeoDataFrame, pz_xlsx: Path) -> pd
             None if pd.isna(group[col].mean(skipna=True)) else round(float(group[col].mean(skipna=True)), 4)
             for col in date_cols
         ]
+        
+        # Calculate temporal lags for ST-GNN
+        finite_idx = [i for i, v in enumerate(full_values) if v is not None]
+        last_idx = finite_idx[-1] if finite_idx else -1
+        
+        gw_lag_1 = full_values[last_idx - 1] if last_idx >= 1 else None
+        gw_lag_2 = full_values[last_idx - 2] if last_idx >= 2 else None
+        gw_lag_3 = full_values[last_idx - 3] if last_idx >= 3 else None
+        gw_lag_6 = full_values[last_idx - 6] if last_idx >= 6 else None
+        gw_lag_12 = full_values[last_idx - 12] if last_idx >= 12 else None
+
         long_term_avg = compute_long_term_avg(full_values)
         trend_slope = compute_trend_slope(full_values)
         seasonal_variation = compute_seasonal_variation(full_values, full_dates)
@@ -1022,6 +1033,11 @@ def extract_piezometer_features(villages: gpd.GeoDataFrame, pz_xlsx: Path) -> pd
                 "obs_total_depth_m": None if pd.isna(group["obs_total_depth_m"].mean(skipna=True)) else round(float(group["obs_total_depth_m"].mean(skipna=True)), 4),
                 "actual_last_month": last_finite(full_values),
                 "target_last_month": last_finite(full_values),
+                "gw_lag_1": gw_lag_1,
+                "gw_lag_2": gw_lag_2,
+                "gw_lag_3": gw_lag_3,
+                "gw_lag_6": gw_lag_6,
+                "gw_lag_12": gw_lag_12,
                 "long_term_avg": long_term_avg,
                 "trend_slope": trend_slope,
                 "seasonal_variation": seasonal_variation,
@@ -1136,7 +1152,7 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
     for col in numeric_fill_zero:
         if col in final.columns:
             final[col] = safe_numeric(final[col]).fillna(0.0)
-    for col in ["long_term_avg", "trend_slope", "seasonal_variation"]:
+    for col in ["long_term_avg", "trend_slope", "seasonal_variation", "gw_lag_1", "gw_lag_2", "gw_lag_3", "gw_lag_6", "gw_lag_12"]:
         if col in final.columns:
             final[col] = pd.to_numeric(final[col], errors="coerce")
 
@@ -1237,6 +1253,11 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
             "obs_total_depth_m",
             "actual_last_month",
             "target_last_month",
+            "gw_lag_1",
+            "gw_lag_2",
+            "gw_lag_3",
+            "gw_lag_6",
+            "gw_lag_12",
             "long_term_avg",
             "trend_slope",
             "seasonal_variation",

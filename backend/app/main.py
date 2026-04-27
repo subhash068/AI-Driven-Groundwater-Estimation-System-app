@@ -41,6 +41,8 @@ from .services import (
     locate_village_by_point,
     upsert_village_estimate,
 )
+from .ml.st_gnn_service import gnn_service
+
 
 
 app = FastAPI(title="Groundwater Insight API", version="1.1.0")
@@ -319,3 +321,14 @@ async def predict(
         }
     payload["mode"] = "batch"
     return payload
+
+@app.get("/api/predictions/st-gnn/village/{village_id}", response_model=dict)
+async def st_gnn_predict(
+    village_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    # Use the mock ST-GNN service to get a prediction with uncertainty and forecasts
+    prediction_data = gnn_service.predict_for_village(village_id, features=[])
+    
+    return prediction_data
+

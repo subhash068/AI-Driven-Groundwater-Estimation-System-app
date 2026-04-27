@@ -250,6 +250,7 @@ export default function App({ navigate, pathname }) {
   const [showGroundwaterLevels, setShowGroundwaterLevels] = useState(true);
   const [showPiezometers, setShowPiezometers] = useState(false);
   const [showWells, setShowWells] = useState(false);
+  const [showConfidenceIntervals, setShowConfidenceIntervals] = useState(false);
   const [showDistrictBoundaries, setShowDistrictBoundaries] = useState(false);
   const [showMandalBoundaries, setShowMandalBoundaries] = useState(false);
   const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(ANOMALY_TYPE_OPTIONS);
@@ -587,9 +588,14 @@ export default function App({ navigate, pathname }) {
         const forecastPromise = aiPredictionEnabled
           ? api.getVillageForecast(villageId)
           : Promise.resolve(null);
-        const [status, forecast] = await Promise.all([
+        const stGnnPromise = aiPredictionEnabled
+          ? api.getStGnnPrediction(villageId)
+          : Promise.resolve(null);
+          
+        const [status, forecast, stGnnPrediction] = await Promise.all([
           api.getVillageStatus(villageId),
-          forecastPromise
+          forecastPromise,
+          stGnnPromise
         ]);
         if (!active) return;
 
@@ -611,8 +617,9 @@ export default function App({ navigate, pathname }) {
               properties: {
               ...(prev?.properties || {}),
               ...status,
-                lstm_forecast: forecast?.forecast_3_month || [],
-                forecast_yearly: forecast?.forecast_yearly || []
+              lstm_forecast: forecast?.forecast_3_month || [],
+              forecast_yearly: forecast?.forecast_yearly || [],
+              st_gnn_prediction: stGnnPrediction || null
             }
           };
         }
@@ -621,8 +628,9 @@ export default function App({ navigate, pathname }) {
           properties: {
             ...(feature.properties || {}),
             ...status,
-              lstm_forecast: forecast?.forecast_3_month || [],
-              forecast_yearly: forecast?.forecast_yearly || []
+            lstm_forecast: forecast?.forecast_3_month || [],
+            forecast_yearly: forecast?.forecast_yearly || [],
+            st_gnn_prediction: stGnnPrediction || null
           }
         };
       });
@@ -912,6 +920,8 @@ export default function App({ navigate, pathname }) {
           setShowLulc={setShowLulc}
           showGroundwaterLevels={showGroundwaterLevels}
           setShowGroundwaterLevels={setShowGroundwaterLevels}
+          showConfidenceIntervals={showConfidenceIntervals}
+          setShowConfidenceIntervals={setShowConfidenceIntervals}
           showPiezometers={showPiezometers}
           setShowPiezometers={setShowPiezometers}
           showWells={showWells}
@@ -982,6 +992,7 @@ export default function App({ navigate, pathname }) {
                 filters={filters}
                 showLulc={showLulc}
                 showGroundwaterLevels={showGroundwaterLevels}
+                showConfidenceIntervals={showConfidenceIntervals}
                 showPiezometers={showPiezometers}
                 showWells={showWells}
                 selectedAnomalyTypes={selectedAnomalyTypes}

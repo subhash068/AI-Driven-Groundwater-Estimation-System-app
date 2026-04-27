@@ -452,9 +452,9 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
 
           {futureForecastEnabled && visibleForecastSeries.length > 0 && (
             <div className="forecast-table">
-              {visibleForecastSeries.map((item) => (
-                <div key={`${item.forecast_date}-${item.groundwater_depth}`} className="forecast-table-row">
-                  <span>{formatMonthLabel(item.forecast_date)}</span>
+              {visibleForecastSeries.map((item, idx) => (
+                <div key={`${item.label}-${item.groundwater_depth}-${idx}`} className="forecast-table-row">
+                  <span>{item.label}</span>
                   <strong>{formatDepth(item.groundwater_depth)}</strong>
                 </div>
               ))}

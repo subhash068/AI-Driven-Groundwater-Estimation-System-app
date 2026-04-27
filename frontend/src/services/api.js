@@ -718,6 +718,15 @@ export const api = {
     return (await buildVillageForecastFallback(villageId)) || null;
   },
 
+  getStGnnPrediction: async (villageId) => {
+    const remote = await fetchSafe(
+      `${API_BASE}/predictions/st-gnn/village/${villageId}`,
+      null,
+      { breakerKey: "stGnnPredict", live: LIVE_API_ENABLED }
+    );
+    return remote;
+  },
+
   getMapData: async () => {
     const remote = await fetchSafe(
       `${API_BASE}/map-data`,

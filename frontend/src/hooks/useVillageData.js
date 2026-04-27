@@ -122,8 +122,7 @@ function isLikelyPlaceholderDataset(geojson) {
   return villageName === "sample village";
 }
 
-async function loadVillageGeojson(selectedDistrict = "") {
-  const selectedDistrictNorm = normalizeLocationName(selectedDistrict);
+async function loadVillageGeojson() {
   const mergedByKey = new Map();
   const mergedSources = [];
 
@@ -137,9 +136,6 @@ async function loadVillageGeojson(selectedDistrict = "") {
     normalized.features.forEach((feature) => {
       const key = featureLocationKey(feature);
       if (!key) return;
-      if (selectedDistrictNorm && normalizeLocationName(feature?.properties?.district || "") !== selectedDistrictNorm) {
-        return;
-      }
       const existing = mergedByKey.get(key);
       if (!existing || featureCompletenessScore(feature) > featureCompletenessScore(existing)) {
         mergedByKey.set(key, feature);
@@ -173,7 +169,7 @@ export function useVillageData(filters) {
       try {
         setLoading(true);
         const [villageGeojsonResult, sidebarJson] = await Promise.all([
-          loadVillageGeojson(district),
+          loadVillageGeojson(),
           fetchJsonIfValid("/data/excel_locations.json")
         ]);
 
@@ -197,7 +193,7 @@ export function useVillageData(filters) {
         setLoading(false);
       }
     })();
-  }, [district]);
+  }, []);
 
   const filteredGeojson = useMemo(() => {
     if (!villages) return null;

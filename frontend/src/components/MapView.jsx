@@ -385,6 +385,7 @@ export function MapView({
   filters,
   showLulc,
   showGroundwaterLevels,
+  showConfidenceIntervals,
   showPiezometers,
   showWells,
   selectedAnomalyTypes,
@@ -404,7 +405,6 @@ export function MapView({
   const [hoveredDistrictName, setHoveredDistrictName] = useState(null);
   const [aquiferGeojson, setAquiferGeojson] = useState(null);
   const [piezometerStations, setPiezometerStations] = useState([]);
-  const [wellPoints, setWellPoints] = useState([]);
   const hoverFrameRef = useRef(null);
   const pendingHoverRef = useRef(null);
   const activeDistrictRef = useRef(null);
@@ -595,48 +595,12 @@ export function MapView({
     };
   }, [selectedDistrict, selectedDistrictNorm]);
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const districtSlug = districtToSlug(selectedDistrict);
-        const candidatePaths = districtSlug === "krishna"
-          ? ["/data/wells_krishna.json"]
-          : districtSlug === "ntr"
-            ? ["/data/wells_ntr.json", "/data/wells_krishna.json"]
-            : ["/data/wells_krishna.json"];
 
-        let features = [];
-        for (const path of candidatePaths) {
-          const response = await fetch(path, { headers: { Accept: "application/json" } });
-          if (!response.ok) continue;
-          const payload = await response.json();
-          const candidateFeatures = Array.isArray(payload?.features) ? payload.features : [];
-          if (candidateFeatures.length > 0) {
-            features = candidateFeatures;
-            break;
-          }
-        }
-        if (!active) return;
-        setWellPoints(
-          features.filter((feature) =>
-            Number.isFinite(Number(feature?.geometry?.coordinates?.[0])) &&
-            Number.isFinite(Number(feature?.geometry?.coordinates?.[1])) &&
-            (!selectedDistrictNorm || normalizeDistrictName(feature?.properties?.district) === selectedDistrictNorm)
-          )
-        );
-      } catch {
-        if (active) setWellPoints([]);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [selectedDistrict, selectedDistrictNorm]);
 
   const extrusionGeojson = useMemo(() => {
     if (!filteredGeojson || !is3D) return null;
     const features = filteredGeojson.features
+      .filter((f) => !isPointGeometry(f))
       .map((f) => {
         const weathered = Number(f.properties?.weathered_rock || 0);
         const fractured = Number(f.properties?.fractured_rock || 0);
@@ -878,6 +842,7 @@ export function MapView({
   const lulc3DGeojson = useMemo(() => {
     if (!is3D || !lulcGeojson?.features?.length) return null;
     const features = lulcGeojson.features
+      .filter((feature) => !isPointGeometry(feature))
       .map((feature) => {
         const category = feature?.properties?.__lulcCategory || "unclassified";
         const offsetByClass = {
@@ -941,7 +906,7 @@ export function MapView({
     return `
       <div style="min-width: 180px">
         <strong>Station:</strong> ${props.id || "NA"}<br/>
-        <strong>Village:</strong> ${props.village || "NA"}<br/>
+        <strong>Village:</strong> ${props.village || props.village_name || "NA"}<br/>
         <strong>Latest GWL:</strong> ${Number.isFinite(latestValue) ? `${latestValue.toFixed(2)} m` : "NA"}<br/>
         <strong>Observation depth:</strong> ${Number.isFinite(totalDepth) ? `${totalDepth.toFixed(2)} m` : "NA"}<br/>
         <strong>Observations:</strong> ${observationCount ?? "NA"}<br/>
@@ -950,81 +915,59 @@ export function MapView({
     `;
   };
 
-  const wellTooltipHtml = (feature) => {
-    const props = feature?.properties || {};
-    const wellCount = Number(props.well_count);
-    const workingPct = Number(props.working_pct);
-    const boreDepth = Number(props.avg_bore_depth_m);
-    const pumpCapacity = Number(props.avg_pump_capacity_hp);
-    return `
-      <div style="min-width: 190px">
-        <strong>Village:</strong> ${props.village || "NA"}<br/>
-        <strong>Well type:</strong> ${props.dominant_well_type || "NA"}<br/>
-        <strong>Bore depth:</strong> ${Number.isFinite(boreDepth) ? `${boreDepth.toFixed(2)} m` : "NA"}<br/>
-        <strong>Pump capacity:</strong> ${Number.isFinite(pumpCapacity) ? `${pumpCapacity.toFixed(2)} HP` : "NA"}<br/>
-        <strong>Irrigation type:</strong> ${props.dominant_irrigation || "NA"}<br/>
-        <strong>Wells:</strong> ${Number.isFinite(wellCount) ? wellCount : "NA"}<br/>
-        <strong>Working:</strong> ${Number.isFinite(workingPct) ? `${workingPct.toFixed(2)}%` : "NA"}
-      </div>
-    `;
-  };
-
-  const villageWellStatsByKey = useMemo(() => {
-    const out = new Map();
-    const features = Array.isArray(filteredGeojson?.features) ? filteredGeojson.features : [];
-    features.forEach((feature) => {
+  const wellsGeojson = useMemo(() => {
+    if (!showWells || !filteredGeojson?.features?.length) return null;
+    const features = filteredGeojson.features.map((feature) => {
       const props = feature?.properties || {};
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
-      if (!key || out.has(key)) return;
-      out.set(key, props);
-    });
-    return out;
-  }, [filteredGeojson]);
+      
+      const villageId = Number(props.village_id);
+      const datasetRow = (key && datasetRowsByLocation?.get(key)) || (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+      
+      const effectiveProps = { ...props, ...(datasetRow || {}) };
+      
+      let lat = Number(effectiveProps.centroid_lat);
+      let lon = Number(effectiveProps.centroid_lon);
+      
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+         if (feature.geometry?.type === "Point") {
+            lon = feature.geometry.coordinates[0];
+            lat = feature.geometry.coordinates[1];
+         } else if (feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon") {
+            const bounds = L.geoJSON(feature).getBounds();
+            const center = bounds.getCenter();
+            lat = center.lat;
+            lon = center.lng;
+         }
+      }
 
-  const wellsGeojson = useMemo(() => {
-    if (!showWells || !wellPoints.length) return null;
-    const features = wellPoints.map((feature) => {
-      const props = feature?.properties || {};
-      const lookupKey = buildLocationKey(
-        props.district,
-        props.mandal,
-        normalizeVillageLabel(props.village)
-      );
-      const villageProps = lookupKey ? villageWellStatsByKey.get(lookupKey) : null;
-      if (!villageProps) return feature;
-      const villageWellsTotal = Number(villageProps.wells_total);
-      const villageFunctioning = Number(villageProps.pumping_functioning_wells);
-      const inferredWorkingPct =
-        Number.isFinite(villageWellsTotal) && villageWellsTotal > 0 && Number.isFinite(villageFunctioning)
-          ? (villageFunctioning / villageWellsTotal) * 100
-          : null;
+      const wellsTotal = Number(effectiveProps.wells_total);
+      const functioning = Number(effectiveProps.pumping_functioning_wells);
+      
+      let wells = Number.isFinite(wellsTotal) && wellsTotal > 0 
+        ? wellsTotal 
+        : (Number.isFinite(functioning) ? functioning : 0);
+        
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || wells <= 0) return null;
+
       return {
-        ...feature,
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [lon, lat] },
         properties: {
-          ...props,
-          village: villageProps.village_name || props.village,
-          district: villageProps.district || props.district,
-          mandal: villageProps.mandal || props.mandal,
-          well_count: Number.isFinite(villageWellsTotal) ? villageWellsTotal : props.well_count,
-          working_count: Number.isFinite(villageFunctioning) ? villageFunctioning : props.working_count,
-          working_pct: Number.isFinite(inferredWorkingPct) ? inferredWorkingPct : props.working_pct,
-          avg_bore_depth_m: Number.isFinite(Number(villageProps.avg_bore_depth_m))
-            ? Number(villageProps.avg_bore_depth_m)
-            : props.avg_bore_depth_m,
-          dominant_irrigation: villageProps.dominant_irrigation || props.dominant_irrigation,
-          dominant_well_type: villageProps.dominant_well_type || props.dominant_well_type,
+          ...effectiveProps,
+          _estimated_wells: wells,
+          _village_label: effectiveProps.village_name || effectiveProps.village || "Unknown",
+          _district_label: effectiveProps.district || "Unknown"
         }
       };
-    });
-    return {
-      type: "FeatureCollection",
-      features
-    };
-  }, [showWells, wellPoints, villageWellStatsByKey]);
+    }).filter(Boolean);
+    
+    return { type: "FeatureCollection", features };
+  }, [showWells, filteredGeojson, datasetRowsByLocation, datasetRowsById]);
 
   const districtNote = useMemo(() => {
     if (selectedDistrictNorm === "NTR") {
-      return "NTR: Point-based representation";
+      return "NTR: point-based village layer only";
     }
     return null;
   }, [selectedDistrictNorm]);
@@ -1089,6 +1032,11 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             style={(feature) => {
               if (isSelectedVillageFeature(feature)) {
                 return selectedVillageStyle(feature);
+              }
+              if (showConfidenceIntervals) {
+                 const confidence = Number(feature?.properties?.st_gnn_prediction?.confidence_interval?.[1] || 0) - Number(feature?.properties?.st_gnn_prediction?.confidence_interval?.[0] || 0);
+                 const opacity = Number.isFinite(confidence) && confidence > 0 ? clamp(0.2 + (confidence / 5), 0.2, 0.9) : 0.1;
+                 return { ...groundwaterStyle(feature), fillColor: '#94a3b8', fillOpacity: opacity, color: '#facc15', weight: opacity > 0.5 ? 2 : 1 };
               }
               return showGroundwaterLevels ? groundwaterStyle(feature) : neutralVillageStyle(feature);
             }}
@@ -1186,6 +1134,17 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
                 fillColor: color,
                 fillOpacity: is3D ? 0.12 : 0.22
               };
+            }}
+            pointToLayer={(feature, latlng) => {
+              const category = feature?.properties?.__lulcCategory || "unclassified";
+              const color = LULC_COLORS[category] || LULC_COLORS.unclassified;
+              return L.circleMarker(latlng, {
+                radius: 5.2,
+                color: "#1e293b",
+                weight: 1,
+                fillColor: color,
+                fillOpacity: is3D ? 0.12 : 0.6
+              });
             }}
             onEachFeature={(feature, layer) => {
               const category = feature?.properties?.__lulcCategory || "unclassified";
@@ -1322,18 +1281,32 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             data={wellsGeojson}
             pointToLayer={(feature, latlng) => {
               const props = feature?.properties || {};
-              const wellCount = Number(props.well_count);
-              const radius = clamp(3.5 + Math.min(Number.isFinite(wellCount) ? wellCount : 0, 900) / 320, 3.5, 6.2);
+              const wells = Number(props._estimated_wells);
+              const radius = Math.sqrt(wells) * 2;
+              const fillColor = wells > 20 ? "red" : wells > 10 ? "orange" : "green";
               return L.circleMarker(latlng, {
-                radius,
-                color: "#f8fafc",
-                weight: 1.1,
-                fillColor: wellTypeColor(props.dominant_well_type),
-                fillOpacity: 0.82
+                radius: clamp(radius, 4, 16),
+                color: "#333",
+                weight: 1,
+                fillColor: fillColor,
+                fillOpacity: 0.7
               });
             }}
             onEachFeature={(feature, layer) => {
-              layer.bindTooltip(wellTooltipHtml(feature), {
+              const props = feature?.properties || {};
+              const wells = Number(props._estimated_wells);
+              const tooltipHtml = `
+                <div style="min-width: 220px; font-family: sans-serif;">
+                  <strong>Village:</strong> ${props._village_label}<br/>
+                  <strong>District:</strong> ${props._district_label}<br/>
+                  <strong>Estimated Wells:</strong> ${wells}<br/>
+                  <br/>
+                  <span style="font-size: 0.85em; opacity: 0.85; display: block; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 6px; margin-top: 6px;">
+                    <em>Estimated wells density based on village-level data. Not exact well locations.</em>
+                  </span>
+                </div>
+              `;
+              layer.bindTooltip(tooltipHtml, {
                 sticky: true,
                 direction: "top",
                 opacity: 0.96,

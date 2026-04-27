@@ -175,11 +175,7 @@ function logDuplicateCompositeKeys(records) {
     seen.add(key);
   });
 
-  if (duplicates.length) {
-    console.warn("Duplicate composite keys:", duplicates);
-  } else {
-    console.info("No duplicate composite keys");
-  }
+  // Removed console logging to prevent console spam
 
   return {
     duplicateCount: duplicates.length,
@@ -211,9 +207,7 @@ function logCrossDistrictCollisions(records) {
     }
   });
 
-  if (collisions.length) {
-    console.info("Cross-district same-name detected:", collisions);
-  }
+  // Removed console logging to prevent console spam
 
   return {
     collisionCount: collisions.length,

@@ -1841,6 +1841,38 @@ function VillageInsightsPanelContentImpl({
         <small>Recharge Suggestion</small>
         <p>{rechargeSuggestion}</p>
       </div>
+      
+      {props.st_gnn_prediction && (
+        <div className="insight-trend" style={{ marginTop: '16px' }}>
+          <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
+            <small>ST-GNN Advanced Prediction</small>
+            <span>Spatio-Temporal Graph Neural Network</span>
+          </div>
+          <div className="insight-comparison-grid">
+            <div className="comparison-card predicted">
+              <small>Prediction</small>
+              <strong>{formatDepth(props.st_gnn_prediction.prediction)}</strong>
+            </div>
+            <div className="comparison-card meta">
+              <small>95% Confidence Interval</small>
+              <strong>[{formatDepth(props.st_gnn_prediction.confidence_interval?.[0])}, {formatDepth(props.st_gnn_prediction.confidence_interval?.[1])}]</strong>
+            </div>
+          </div>
+          
+          <div className="insight-section-heading" style={{ marginTop: '12px', marginBottom: '8px' }}>
+            <small>Short-term Forecasting (Days)</small>
+          </div>
+          <div className="insight-metric-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            {props.st_gnn_prediction.forecasts?.map((f) => (
+               <div key={f.horizon}>
+                 <small>+{f.horizon} Days</small>
+                 <strong>{formatDepth(f.value)}</strong>
+               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {aquiferAnalytics && (
         <div className="insight-aquifer">
           <small>Aquifer Analytics</small>

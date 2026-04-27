@@ -70,12 +70,10 @@ export function MapPreview({ villages, stats }) {
         .map((feature) => String(feature?.properties?.district || "").trim().toUpperCase())
         .filter(Boolean)
     ));
-    const merged = fromStats.length ? fromStats : fromVillages;
-    return merged.length ? merged : ["KRISHNA"];
+    const combined = Array.from(new Set([...fromStats, ...fromVillages])).sort();
+    return combined;
   }, [stats?.district_aggregation?.districts, villages?.features]);
-  const firstDistrict = districtCandidates.find((name) => name === "KRISHNA")
-    || districtCandidates[0]
-    || "KRISHNA";
+  const firstDistrict = districtCandidates[0] || "";
   const [selectedDistrict, setSelectedDistrict] = useState(firstDistrict);
   const [layers, setLayers] = useState({
     groundwater: true,
@@ -84,6 +82,10 @@ export function MapPreview({ villages, stats }) {
   });
 
   useEffect(() => {
+    if (!districtCandidates.length) {
+      setSelectedDistrict("");
+      return;
+    }
     if (!districtCandidates.includes(selectedDistrict)) {
       setSelectedDistrict(districtCandidates[0]);
     }

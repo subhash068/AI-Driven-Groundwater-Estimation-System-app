@@ -23,3 +23,6 @@ openpyxl>=3.1.2
 pykrige==1.7.2
 gstools==1.7.0
 rasterio==1.4.3
+torch==2.10.0
+torch_geometric==2.6.0
+networkx==3.4.2
