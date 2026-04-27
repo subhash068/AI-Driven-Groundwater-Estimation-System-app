@@ -117,6 +117,16 @@ function interpretLulc(row) {
   return notes;
 }
 
+function getTrendClassification(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return { label: "N/A", tone: "neutral", icon: "⚪" };
+  if (num < -0.02) return { label: "Improving", tone: "recharge", icon: "🔵" };
+  if (num >= -0.02 && num <= 0.02) return { label: "Stable", tone: "stable", icon: "🟢" };
+  if (num > 0.02 && num <= 0.05) return { label: "Moderate Depletion", tone: "warn", icon: "🟡" };
+  if (num > 0.05) return { label: "Severe Depletion", tone: "critical", icon: "🔴" };
+  return { label: "Stable", tone: "stable", icon: "🟢" };
+}
+
 function buildMeaningCards(row) {
   if (!row) return [];
   return [
@@ -1530,19 +1540,24 @@ export function VillageInsightsPanel({
               <div className="comparison-card meta">
                 <small>Trend Slope</small>
                 <strong>{Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) ? Number(groundwaterInsights?.trend_slope ?? props.trend_slope).toFixed(4) : "NA"}</strong>
+                {Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) && (
+                  <div className={`trend-badge-mini ${getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).tone}`}>
+                    {getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).icon} {getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).label}
+                  </div>
+                )}
+                <div className="trend-info-bubble">i
+                  <span className="trend-info-text">Annual groundwater change rate. Near-zero values indicate stability. Positive values show depletion; negative values indicate recharge.</span>
+                </div>
               </div>
             </div>
+            <p className="insight-muted" style={{ marginTop: '8px' }}>
+              Derived from historical groundwater observations (1998–2024) using trend analysis.
+            </p>
           </>
-        )}
-        {groundwaterHistoryError && (
-          <p className="insight-muted" style={{ marginTop: '8px' }}>
-            {groundwaterHistoryError}
-          </p>
         )}
       </div>
 
       <div className="insight-recharge">
-        <small>Recharge Suggestion</small>
         <p>{rechargeSuggestion}</p>
       </div>
 
@@ -1831,10 +1846,13 @@ function VillageInsightsPanelContentImpl({
           <div className="comparison-card meta">
             <small>Trend Slope</small>
             <strong>{Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) ? Number(groundwaterInsights?.trend_slope ?? props.trend_slope).toFixed(4) : "NA"}</strong>
+            <div className="trend-info-bubble">i
+              <span className="trend-info-text">Values near 0.01-0.03 indicate long-term stability where recharge balances extraction.</span>
+            </div>
           </div>
         </div>
         <p className="insight-muted" style={{ marginTop: '8px' }}>
-          Monthly readings are averaged into the yearly chart above so the x-axis stays on year.
+          Monthly readings are averaged into the yearly chart above. Low trend values suggest decadal stability (1998-2024).
         </p>
       </div>
       <div className="insight-recharge">

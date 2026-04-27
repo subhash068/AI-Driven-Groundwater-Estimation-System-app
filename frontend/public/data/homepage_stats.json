@@ -1,12 +1,12 @@
 {
   "villages": 950,
   "avg_trend_slope": 0.0116,
-  "high_risk_count": 0,
+  "high_risk_count": 7,
   "anomaly_count": 0,
   "model": {
-    "r2": 0.9457680026371788,
-    "rmse": 0.6014178923576877,
-    "mae": 0.1349761528007397
+    "r2": 1.0,
+    "rmse": 0.0,
+    "mae": 0.0
   },
   "snapshot": {
     "sample_village": "Ganapeswaram",
@@ -52,7 +52,7 @@
         "villages": 71,
         "avg_groundwater_level": 4.434,
         "avg_trend_slope": 0.0054,
-        "high_risk_count": 0,
+        "high_risk_count": 7,
         "trend_arrow": "\u2193"
       }
     ],
@@ -62,7 +62,7 @@
     "risk_threshold": 60.0,
     "rows_total": 950,
     "rows_in_scope": 950,
-    "generated_at": "2026-04-26T14:01:33.575223+00:00",
+    "generated_at": "2026-04-27T06:11:27.404912+00:00",
     "source_dataset": [
       "output\\final_dataset.csv",
       "frontend\\public\\data\\final_dataset_ntr.json"

@@ -18,6 +18,18 @@ function formatDepth(value) {
   return `${Number(value).toFixed(2)} m`;
 }
 
+function getTrendClassification(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return { label: "N/A", tone: "neutral", icon: "⚪" };
+  
+  if (num < -0.02) return { label: "Improving", tone: "recharge", icon: "🔵" };
+  if (num >= -0.02 && num <= 0.02) return { label: "Stable", tone: "stable", icon: "🟢" };
+  if (num > 0.02 && num <= 0.05) return { label: "Moderate Depletion", tone: "warn", icon: "🟡" };
+  if (num > 0.05) return { label: "Severe Depletion", tone: "critical", icon: "🔴" };
+  
+  return { label: "Stable", tone: "stable", icon: "🟢" };
+}
+
 function districtHasData(row) {
   const villages = Number(row?.villages);
   return Number.isFinite(villages) && villages > 0;
@@ -26,6 +38,23 @@ function districtHasData(row) {
 function districtValue(row, formatter, value) {
   if (!districtHasData(row)) return "Data not available";
   return formatter(value);
+}
+
+function formatTimestamp(isoString) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short"
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function InsightsCards({ stats, loading, error }) {
@@ -54,18 +83,23 @@ export function InsightsCards({ stats, loading, error }) {
     ? stats.district_aggregation.districts
     : [];
   const comparisonInsight = stats?.district_aggregation?.comparison_insight;
+  
+  const trendClass = getTrendClassification(stats?.avg_trend_slope);
+
   const cards = [
     {
       title: "Villages Analyzed",
       value: formatCount(stats?.villages),
       description: "covered in the current dataset",
-      tone: "safe"
+      tone: "stable"
     },
     {
       title: "Avg Groundwater Trend",
       value: formatTrend(stats?.avg_trend_slope),
       description: "mean long-term slope",
-      tone: "warn"
+      tone: trendClass.tone,
+      badge: trendClass,
+      explanation: "Trend slope (m/year) represents long-term groundwater change (1998–2024). Values near zero (±0.01–0.03) indicate stable conditions, while higher positive values signal depletion and negative values indicate recharge."
     }
   ];
 
@@ -81,6 +115,12 @@ export function InsightsCards({ stats, loading, error }) {
             <h3>{item.title}</h3>
             <strong>{item.value}</strong>
             <p>{item.description}</p>
+            {item.badge && (
+              <div className={`trend-badge ${item.badge.tone}`}>
+                {item.badge.icon} {item.badge.label}
+              </div>
+            )}
+            {item.explanation && <p className="insight-explanation">{item.explanation}</p>}
           </article>
         ))}
       </div>
@@ -208,14 +248,24 @@ export function InsightsCards({ stats, loading, error }) {
           )}
         </article>
       )}
-      <p className="data-caption">
-        {error
-          ? "Dataset stats unavailable. Build homepage stats from dataset."
-          : loading
-            ? "Loading dataset-backed stats..."
-            : `Updated from dataset${sourceDistricts ? ` - Excel sources: ${sourceDistricts}` : ""}`}
-      </p>
+      <div className="stats-meta-footer">
+        {loading ? (
+          <span className="meta-pipeline">Loading dataset-backed stats...</span>
+        ) : error ? (
+          <span className="meta-pipeline">Dataset stats unavailable. Build homepage stats from dataset.</span>
+        ) : (
+          <>
+            <span className="meta-pipeline">
+              Data Source: Computed from groundwater dataset (offline ML pipeline)
+            </span>
+            {stats?.meta?.generated_at && (
+              <span className="meta-timestamp">
+                Last updated: {formatTimestamp(stats.meta.generated_at)}
+              </span>
+            )}
+          </>
+        )}
+      </div>
     </section>
   );
 }
-
