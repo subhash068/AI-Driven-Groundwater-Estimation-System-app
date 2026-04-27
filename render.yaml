@@ -8,6 +8,8 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_LOCAL_DATA_ONLY
-        value: "true"
-      - key: VITE_ENABLE_LIVE_API
         value: "false"
+      - key: VITE_ENABLE_LIVE_API
+        value: "true"
+      - key: VITE_API_BASE_URL
+        value: "https://your-backend.onrender.com"

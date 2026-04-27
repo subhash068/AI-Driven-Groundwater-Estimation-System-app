@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { normalizeLocationName } from '../utils/mapUtils';
+import { buildLocationKey, normalizeLocationName } from '../utils/mapUtils';
 import { INDIAN_STATES } from '../constants/data';
 
 const DEFAULT_STATE = "Andhra Pradesh";
@@ -7,10 +7,6 @@ const EXCLUDED_DISTRICTS = new Set([
   "guntur",
   "west godavari"
 ]);
-const VILLAGE_DATASET_CANDIDATES = [
-  "/data/village_boundaries.geojson",
-  "/data/villages.geojson"
-];
 
 const DISTRICT_VILLAGE_DATASET_CANDIDATES = [
   "/data/village_boundaries.geojson",
@@ -18,6 +14,33 @@ const DISTRICT_VILLAGE_DATASET_CANDIDATES = [
   "/data/village_boundaries_ntr.geojson",
   "/data/villages_ntr.geojson"
 ];
+
+function featureLocationKey(feature) {
+  const props = feature?.properties || {};
+  return buildLocationKey(props.district, props.mandal, props.village_name);
+}
+
+function featureCompletenessScore(feature) {
+  const props = feature?.properties || {};
+  let score = feature?.geometry ? 1 : 0;
+  for (const value of Object.values(props)) {
+    if (Array.isArray(value)) {
+      if (value.length > 0) score += 1;
+      continue;
+    }
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string") {
+      if (value.trim()) score += 1;
+      continue;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      score += 1;
+      continue;
+    }
+    if (typeof value === "boolean") score += 1;
+  }
+  return score;
+}
 
 function normalizeFeatureProperties(feature, index) {
   const p = feature?.properties || {};
@@ -43,7 +66,8 @@ function normalizeFeatureProperties(feature, index) {
       village_name: String(villageName).trim(),
       district: String(district).trim(),
       mandal: String(mandal).trim(),
-      state: String(state).trim()
+      state: String(state).trim(),
+      location_key: buildLocationKey(district, mandal, villageName)
     }
   };
 }
@@ -69,10 +93,6 @@ function optionLabel(district, mandal, villageName = null) {
     parts.push(String(villageName || "").trim());
   }
   return parts.filter(Boolean).join(" / ");
-}
-
-function districtToSlug(value) {
-  return String(value || "").trim().toLowerCase().replace(/\s+/g, "_");
 }
 
 async function fetchJsonIfValid(path) {
@@ -103,77 +123,40 @@ function isLikelyPlaceholderDataset(geojson) {
 }
 
 async function loadVillageGeojson(selectedDistrict = "") {
-  const districtSlug = districtToSlug(selectedDistrict);
   const selectedDistrictNorm = normalizeLocationName(selectedDistrict);
-  let unifiedResult = null;
-  if (districtSlug) {
-    const preferredCandidates = [
-      `/data/village_boundaries_${districtSlug}.geojson`,
-      `/data/villages_${districtSlug}.geojson`
-    ];
-
-    for (const path of preferredCandidates) {
-      const geojson = await fetchJsonIfValid(path);
-      if (!geojson || !Array.isArray(geojson.features)) continue;
-      if (isLikelyPlaceholderDataset(geojson)) {
-        continue;
-      }
-      unifiedResult = { geojson: normalizeVillageGeojson(geojson), sourcePath: path };
-      break;
-    }
-
-    if (unifiedResult) {
-      const allMatchSelectedDistrict = (unifiedResult.geojson?.features || []).every(
-        (feature) => normalizeLocationName(feature?.properties?.district || "") === selectedDistrictNorm
-      );
-      if (allMatchSelectedDistrict || String(unifiedResult.sourcePath || "").includes(`_${districtSlug}`)) {
-        return unifiedResult;
-      }
-    }
-  }
-
-  const merged = [];
+  const mergedByKey = new Map();
   const mergedSources = [];
+
   for (const path of DISTRICT_VILLAGE_DATASET_CANDIDATES) {
     const geojson = await fetchJsonIfValid(path);
     if (!geojson || !Array.isArray(geojson.features)) continue;
+    if (isLikelyPlaceholderDataset(geojson)) continue;
     const normalized = normalizeVillageGeojson(geojson);
     if (!Array.isArray(normalized.features) || !normalized.features.length) continue;
-    merged.push(...normalized.features);
     mergedSources.push(path);
+    normalized.features.forEach((feature) => {
+      const key = featureLocationKey(feature);
+      if (!key) return;
+      if (selectedDistrictNorm && normalizeLocationName(feature?.properties?.district || "") !== selectedDistrictNorm) {
+        return;
+      }
+      const existing = mergedByKey.get(key);
+      if (!existing || featureCompletenessScore(feature) > featureCompletenessScore(existing)) {
+        mergedByKey.set(key, feature);
+      }
+    });
   }
-  if (merged.length) {
-    const unifiedFeatures = unifiedResult?.geojson?.features || [];
-    const seenKeys = new Set(
-      unifiedFeatures.map((f) => [
-        normalizeLocationName(f?.properties?.district || ""),
-        normalizeLocationName(f?.properties?.mandal || ""),
-        normalizeLocationName(f?.properties?.village_name || "")
-      ].join("|"))
-    );
-    const extraFeatures = merged.filter((f) => {
-      const key = [
-        normalizeLocationName(f?.properties?.district || ""),
-        normalizeLocationName(f?.properties?.mandal || ""),
-        normalizeLocationName(f?.properties?.village_name || "")
-      ].join("|");
-      return !seenKeys.has(key);
-    });
-    const combinedFeatures = [...unifiedFeatures, ...extraFeatures].filter((feature) => {
-      if (!selectedDistrictNorm) return true;
-      return normalizeLocationName(feature?.properties?.district || "") === selectedDistrictNorm;
-    });
-
+  if (mergedByKey.size) {
     return {
       geojson: normalizeVillageGeojson({
         type: "FeatureCollection",
-        features: combinedFeatures
+        features: Array.from(mergedByKey.values())
       }),
-      sourcePath: [unifiedResult?.sourcePath, mergedSources.join(", ")].filter(Boolean).join(", ")
+      sourcePath: mergedSources.join(", ")
     };
   }
 
-  return unifiedResult;
+  return null;
 }
 
 export function useVillageData(filters) {

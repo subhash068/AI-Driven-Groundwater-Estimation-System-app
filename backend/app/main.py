@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -31,6 +32,7 @@ from .services import (
     fetch_farmer_advisories,
     fetch_map_data,
     fetch_predict,
+    fetch_predict_live,
     fetch_recharge_recommendations,
     fetch_recharge_zones,
     fetch_village_forecast_lstm,
@@ -278,8 +280,31 @@ async def map_data(
 @app.get("/predict", response_model=dict)
 async def predict(
     village_id: int = Query(..., ge=1),
+    mode: str = Query(default="batch", pattern="^(batch|stored|live)$"),
+    as_of: date | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    if mode == "live":
+        live_payload = await fetch_predict_live(db, village_id=village_id, as_of_date=as_of)
+        if live_payload:
+            return live_payload
+        fallback = await fetch_predict(db, village_id=village_id)
+        if fallback:
+            fallback["mode"] = "batch_fallback"
+            fallback["note"] = "Live mode unavailable, returned stored prediction."
+            return fallback
+        return {
+            "village_id": village_id,
+            "predicted_groundwater_level": None,
+            "confidence_score": 0.0,
+            "risk_level": "Unavailable",
+            "draft_index": 0.0,
+            "forecast_3_month": [],
+            "forecast_yearly": [],
+            "mode": "live",
+            "note": f"No live prediction available for village {village_id}",
+        }
+
     payload = await fetch_predict(db, village_id=village_id)
     if not payload:
         return {
@@ -289,6 +314,8 @@ async def predict(
             "risk_level": "Unavailable",
             "draft_index": 0.0,
             "forecast_3_month": [],
+            "forecast_yearly": [],
             "note": f"No prediction found for village {village_id}",
         }
+    payload["mode"] = "batch"
     return payload

@@ -6,10 +6,31 @@ const MONTH_LABELS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
+function normalizeRiskLabel(value, fallbackDepth = null) {
+  const text = String(value || "").trim().toLowerCase();
+  if (["critical", "severe", "high"].includes(text)) return "Critical";
+  if (["warning", "medium", "moderate"].includes(text)) return "Warning";
+  if (["safe", "low", "good"].includes(text)) return "Safe";
+  if (Number.isFinite(Number(fallbackDepth))) {
+    return advisoryLabel(Number(fallbackDepth));
+  }
+  return "NA";
+}
+
 function riskClassName(risk) {
-  if (risk === "Critical") return "is-critical";
-  if (risk === "Warning") return "is-medium";
-  return "is-safe";
+  const normalized = normalizeRiskLabel(risk);
+  if (normalized === "Critical") return "is-critical";
+  if (normalized === "Warning") return "is-medium";
+  if (normalized === "Safe") return "is-safe";
+  return "";
+}
+
+function formatConfidencePercent(value, digits = 2) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "NA";
+  const scaled = numeric <= 1 ? numeric * 100 : numeric;
+  const bounded = Math.max(0, Math.min(100, scaled));
+  return `${bounded.toFixed(digits)}%`;
 }
 
 function formatNumber(value, digits = 1) {
@@ -267,105 +288,359 @@ function buildYearlyTrendPoints(series, selectedYear, labels = [], fallbackStart
     .filter((point) => point && Number.isFinite(point.value));
 }
 
-function WaterTrendChart({ points, predictedValue = null, actualLabel = "Actual", predictedLabel = "Predicted" }) {
+function buildYearlyAveragePoints(series, labels = [], fallbackStartYear = 1998) {
+  const values = Array.isArray(series) ? series : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const grouped = new Map();
+
+  values.forEach((rawValue, index) => {
+    const value = Number(rawValue);
+    if (!Number.isFinite(value)) return;
+    const fallbackYear = fallbackStartYear + Math.floor(index / 12);
+    const year = extractYearFromLabel(safeLabels[index], fallbackYear);
+    if (!grouped.has(year)) grouped.set(year, []);
+    grouped.get(year).push(value);
+  });
+
+  return Array.from(grouped.entries())
+    .sort((left, right) => Number(left[0]) - Number(right[0]))
+    .map(([year, valuesForYear]) => ({
+      label: String(year),
+      value: Number((valuesForYear.reduce((sum, value) => sum + value, 0) / valuesForYear.length).toFixed(2)),
+      samples: valuesForYear.length
+    }));
+}
+
+function buildWaterTrendDirection(values) {
+  const finite = values.filter((value) => Number.isFinite(value));
+  if (finite.length < 2) {
+    return { label: "Stable", arrow: "→" };
+  }
+  const delta = finite[finite.length - 1] - finite[0];
+  if (delta > 0.5) {
+    return { label: "Declining", arrow: "↓" };
+  }
+  if (delta < -0.5) {
+    return { label: "Improving", arrow: "↑" };
+  }
+  return { label: "Stable", arrow: "→" };
+}
+
+function classifyWaterDepth(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return {
+      label: "NA",
+      note: "No reading",
+      color: "#94a3b8"
+    };
+  }
+
+  const status = advisoryLabel(numeric);
+  if (status === "Critical") {
+    return {
+      label: "Critical",
+      note: "Low groundwater",
+      color: "#ef4444"
+    };
+  }
+  if (status === "Warning") {
+    return {
+      label: "Warning",
+      note: "Watch closely",
+      color: "#f59e0b"
+    };
+  }
+  return {
+    label: "Safe",
+    note: "Shallow water table",
+    color: "#22c55e"
+  };
+}
+
+function formatTrendYearLabel(label, index) {
+  const text = String(label || "").trim();
+  const yearMatch = text.match(/(20\d{2})/);
+  if (yearMatch) return yearMatch[1];
+  if (text) return text;
+  return String(1998 + index);
+}
+
+function WaterTrendChart({
+  points,
+  forecastPoints = [],
+  predictedValue = null,
+  actualLabel = "Actual",
+  predictedLabel = "Predicted",
+  yAxisLabel = "Groundwater depth (m below ground)"
+}) {
   const [hoverPoint, setHoverPoint] = useState(null);
-  const series = Array.isArray(points)
+  const observedSeries = Array.isArray(points)
     ? points
         .map((point, index) => ({
-          label: String(point?.label || `Month ${index + 1}`),
-          value: Number(point?.value)
+          label: formatTrendYearLabel(point?.label, index),
+          value: Number(point?.value),
+          kind: "observed"
         }))
         .filter((point) => Number.isFinite(point.value))
     : [];
+  const normalizedForecast = Array.isArray(forecastPoints)
+    ? forecastPoints
+        .map((point, index) => {
+          const value = Number(point?.value ?? point?.predicted_groundwater_depth ?? point?.groundwater_depth);
+          if (!Number.isFinite(value)) return null;
+          return {
+            label: formatTrendYearLabel(point?.label ?? point?.forecast_date ?? point?.date, index),
+            value,
+            kind: "forecast"
+          };
+        })
+        .filter((point) => point && Number.isFinite(point.value))
+    : [];
+  const fallbackPredicted = normalizedForecast.length
+    ? []
+    : Number.isFinite(Number(predictedValue))
+      ? [{
+          label: "Predicted",
+          value: Number(predictedValue),
+          kind: "forecast"
+        }]
+      : [];
+  const forecastSeries = normalizedForecast.length ? normalizedForecast : fallbackPredicted;
+  const series = [...observedSeries, ...forecastSeries];
   if (!series.length) {
-    return <p className="insight-muted">No monthly water-level series available.</p>;
+    return <p className="insight-muted">No yearly water-level series available.</p>;
   }
 
   const width = 100;
-  const height = 56;
+  const height = 78;
+  const plot = { left: 12, right: 8, top: 8, bottom: 18 };
   const values = series.map((point) => point.value);
-  const scaleValues = Number.isFinite(Number(predictedValue))
-    ? [...values, Number(predictedValue)]
-    : values;
-  const min = Math.min(...scaleValues);
-  const max = Math.max(...scaleValues);
-  const span = Math.max(max - min, 0.5);
-  const pathPoints = series.map((point, index) => {
-    const x = series.length === 1 ? 6 : (index / (series.length - 1)) * 88 + 6;
-    const y = 46 - ((point.value - min) / span) * 34;
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
-  }).join(" ");
+  const warningThreshold = 20;
+  const criticalThreshold = 30;
+  const scaleValues = [
+    ...values,
+    Number(predictedValue),
+    warningThreshold,
+    criticalThreshold,
+    0
+  ].filter((value) => Number.isFinite(value));
+  const upperBound = Math.max(...scaleValues, 1);
+  const lowerBound = 0;
+  const span = Math.max(upperBound - lowerBound, 1);
+  const plotWidth = width - plot.left - plot.right;
+  const plotHeight = height - plot.top - plot.bottom;
+  const xForIndex = (index) => (
+    series.length === 1
+      ? plot.left + plotWidth / 2
+      : plot.left + (index / (series.length - 1)) * plotWidth
+  );
+  const yForValue = (value) => plot.top + ((value - lowerBound) / span) * plotHeight;
+  const chartPoints = series.map((point, index) => {
+    const x = xForIndex(index);
+    const y = yForValue(point.value);
+    return {
+      ...point,
+      x,
+      y,
+      status: classifyWaterDepth(point.value)
+    };
+  });
   const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const averageY = 46 - ((average - min) / span) * 34;
-  const predictedY = Number.isFinite(Number(predictedValue))
-    ? 46 - ((Number(predictedValue) - min) / span) * 34
+  const averageY = yForValue(average);
+  const predictedY = normalizedForecast.length === 0 && Number.isFinite(Number(predictedValue))
+    ? yForValue(Number(predictedValue))
     : null;
-
+  const trendDirection = buildWaterTrendDirection(values);
+  const xTickStride = series.length > 6 ? Math.ceil(series.length / 6) : 1;
+  const yTickValues = Array.from({ length: 5 }, (_, index) => Number((lowerBound + ((upperBound - lowerBound) * index) / 4).toFixed(1)));
+  const observedPoints = chartPoints.slice(0, observedSeries.length);
+  const forecastPointsPlot = chartPoints.slice(Math.max(observedSeries.length - 1, 0));
+  const forecastPath = forecastPointsPlot.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
   const hoverLabel = hoverPoint
-    ? `${hoverPoint.label}: ${hoverPoint.value.toFixed(2)} m`
-    : "Hover a point";
+    ? `${hoverPoint.kind === "forecast" ? "Forecast" : "Observed"} ${hoverPoint.label}: ${hoverPoint.value.toFixed(2)} m`
+    : "Hover a year";
+  const axisCaption = `X-axis: Year. Y-axis: ${yAxisLabel}. Smaller depth values mean more water.${normalizedForecast.length ? " Dashed segment shows AI yearly forecast." : ""}`;
 
   return (
     <div className="trend-chart-card">
+      <div className="trend-chart-header">
+        <div className="trend-chart-title">
+          <small>Groundwater Trend</small>
+          <strong>{trendDirection.arrow} {trendDirection.label}</strong>
+        </div>
+        <div className="trend-chart-note">
+          <span>{yAxisLabel}</span>
+          <span>Lower on the chart means shallower groundwater.</span>
+        </div>
+      </div>
       <div className="trend-chart-wrap">
-        <svg viewBox={`0 0 ${width} ${height}`} className="trend-line-chart" role="img" aria-label="Groundwater level graph">
-        <defs>
-          <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#00e5ff" stopOpacity="0.05" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="8" x2="100" y2="8" className="trend-top-guide" />
-        <line x1="0" y1={averageY} x2="100" y2={averageY} className="trend-average-line" />
-        {predictedY !== null && (
-          <line x1="0" y1={predictedY} x2="100" y2={predictedY} className="trend-predicted-line" />
-        )}
-        <polygon points={`${pathPoints} 94,46 6,46`} className="trend-area" fill="url(#trendFill)" />
-        <polyline points={pathPoints} className="trend-path" />
-        {series.map((point, index) => {
-          const value = point.value;
-          const x = series.length === 1 ? 6 : (index / (series.length - 1)) * 88 + 6;
-          const y = 46 - ((value - min) / span) * 34;
-          return (
-            <circle
-              key={`${index}-${value}`}
-              cx={x}
-              cy={y}
-              r="2.6"
-              className="trend-point"
-              onMouseEnter={() => setHoverPoint({ index, label: point.label, value, x, y })}
-              onMouseLeave={() => setHoverPoint(null)}
-            />
-          );
-        })}
-        {predictedY !== null && (
-          <circle
-            cx="94"
-            cy={predictedY}
-            r="2.6"
-            className="trend-predicted-point"
+        <svg viewBox={`0 0 ${width} ${height}`} className="trend-line-chart" role="img" aria-label="Groundwater trend chart">
+          <defs>
+            <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#67e8f9" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          <rect x={plot.left} y={plot.top} width={plotWidth} height={plotHeight} rx="6" fill="rgba(15, 23, 42, 0.32)" />
+          {yTickValues.map((tick) => {
+            const y = yForValue(tick);
+            return (
+              <g key={`tick-${tick}`}>
+                <line x1={plot.left} y1={y} x2={width - plot.right} y2={y} className="trend-grid-line" />
+                <text x={plot.left - 1.5} y={y} className="trend-axis-text trend-axis-text-y" textAnchor="end" dominantBaseline="middle">
+                  {tick >= 10 || Number.isInteger(tick) ? `${tick.toFixed(0)} m` : `${tick.toFixed(1)} m`}
+                </text>
+              </g>
+            );
+          })}
+
+          <line
+            x1={plot.left}
+            y1={yForValue(warningThreshold)}
+            x2={width - plot.right}
+            y2={yForValue(warningThreshold)}
+            className="trend-threshold-line trend-threshold-warning"
           />
-        )}
+          <text
+            x={width - plot.right}
+            y={yForValue(warningThreshold) - 1.5}
+            className="trend-axis-text trend-threshold-label trend-threshold-warning"
+            textAnchor="end"
+          >
+            Warning threshold
+          </text>
+
+          <line
+            x1={plot.left}
+            y1={yForValue(criticalThreshold)}
+            x2={width - plot.right}
+            y2={yForValue(criticalThreshold)}
+            className="trend-threshold-line trend-threshold-critical"
+          />
+          <text
+            x={width - plot.right}
+            y={yForValue(criticalThreshold) - 1.5}
+            className="trend-axis-text trend-threshold-label trend-threshold-critical"
+            textAnchor="end"
+          >
+            Critical threshold
+          </text>
+
+          {chartPoints.length > 1 && (
+            <polygon
+              points={`${chartPoints.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ")} ${chartPoints[chartPoints.length - 1].x.toFixed(2)},${(plot.top + plotHeight).toFixed(2)} ${chartPoints[0].x.toFixed(2)},${(plot.top + plotHeight).toFixed(2)}`}
+              className="trend-area"
+              fill="url(#trendFill)"
+            />
+          )}
+
+          <line x1={plot.left} y1={plot.top + plotHeight} x2={width - plot.right} y2={plot.top + plotHeight} className="trend-axis-baseline" />
+          <line x1={plot.left} y1={plot.top} x2={plot.left} y2={plot.top + plotHeight} className="trend-axis-baseline" />
+
+          <line x1={plot.left} y1={averageY} x2={width - plot.right} y2={averageY} className="trend-average-line" />
+          {predictedY !== null && (
+            <line x1={plot.left} y1={predictedY} x2={width - plot.right} y2={predictedY} className="trend-predicted-line" />
+          )}
+          {forecastSeries.length > 0 && forecastPath && (
+            <polyline points={forecastPath} className="trend-forecast-line" />
+          )}
+
+          {observedPoints.map((point, index) => {
+            if (index === 0) return null;
+            const previous = observedPoints[index - 1];
+            const segmentStatus = classifyWaterDepth((previous.value + point.value) / 2);
+            return (
+              <line
+                key={`segment-${index}`}
+                x1={previous.x}
+                y1={previous.y}
+                x2={point.x}
+                y2={point.y}
+                className="trend-segment"
+                stroke={segmentStatus.color}
+              />
+            );
+          })}
+
+          {chartPoints.map((point, index) => {
+            return (
+              <circle
+                key={`${index}-${point.value}-${point.label}`}
+                cx={point.x}
+                cy={point.y}
+                r="2.7"
+                className={point.kind === "forecast" ? "trend-point trend-point-forecast" : "trend-point"}
+                fill={point.status.color}
+                stroke={point.status.color}
+                onMouseEnter={() => setHoverPoint({
+                  label: point.label,
+                  value: point.value,
+                  kind: point.kind,
+                  x: (point.x / width) * 100,
+                  y: (point.y / height) * 100,
+                  status: point.status
+                })}
+                onMouseLeave={() => setHoverPoint(null)}
+              />
+            );
+          })}
+
+          {chartPoints.map((point, index) => {
+            const showLabel = series.length <= 6 || index === 0 || index === series.length - 1 || index % xTickStride === 0;
+            if (!showLabel) return null;
+            return (
+              <text
+                key={`x-label-${index}`}
+                x={point.x}
+                y={height - 3}
+                className="trend-axis-text trend-axis-text-x"
+                textAnchor="middle"
+              >
+                {point.label}
+              </text>
+            );
+          })}
+
+          {predictedY !== null && (
+            <>
+              <circle
+                cx={width - plot.right - 1.5}
+                cy={predictedY}
+                r="2.5"
+                className="trend-predicted-point"
+              />
+              <text
+                x={width - plot.right}
+                y={predictedY - 1.5}
+                className="trend-axis-text trend-threshold-label"
+                textAnchor="end"
+              >
+                {predictedLabel}
+              </text>
+            </>
+          )}
         </svg>
         {hoverPoint && (
           <div className="trend-tooltip" style={{ left: `${hoverPoint.x}%`, top: `${hoverPoint.y}%` }}>
             <strong>{hoverLabel}</strong>
+            <span>{`Status: ${hoverPoint.status.label} (${hoverPoint.status.note})`}</span>
           </div>
         )}
       </div>
       <div className="trend-legend">
+        <span><i className="trend-legend-safe" /> Safe</span>
+        <span><i className="trend-legend-warning" /> Warning</span>
+        <span><i className="trend-legend-critical" /> Critical</span>
         <span><i className="trend-legend-line" /> {actualLabel}</span>
         <span><i className="trend-legend-average" /> Average</span>
-        {Number.isFinite(Number(predictedValue)) && (
+        {(Number.isFinite(Number(predictedValue)) || normalizedForecast.length > 0) && (
           <span><i className="trend-legend-predicted" /> {predictedLabel}</span>
         )}
-        <span><i className="trend-legend-point" /> Observed point</span>
+        <span className="trend-legend-direction">{trendDirection.arrow} {trendDirection.label}</span>
       </div>
-      <div className="trend-axis-labels" aria-hidden="true">
-        {series.map((point, index) => (
-          <span key={`${point.label}-${index}`}>{point.label}</span>
-        ))}
-      </div>
+      <p className="trend-axis-caption">{axisCaption}</p>
     </div>
   );
 }
@@ -1040,7 +1315,7 @@ export function VillageInsightsPanel({
       : depthError <= 1.5
         ? { label: "Moderate error", className: "error-medium" }
         : { label: "High error", className: "error-high" };
-  const risk = currentDepth !== null ? advisoryLabel(currentDepth) : null;
+  const risk = normalizeRiskLabel(props.risk_level, predictedDepth ?? currentDepth);
   useEffect(() => {
     setTrendYear(defaultTrendYear);
   }, [defaultTrendYear, props.village_id, props.village_name]);
@@ -1092,6 +1367,7 @@ export function VillageInsightsPanel({
     }))
     .filter((point) => Number.isFinite(point.value))
     .filter((point) => !Number.isFinite(Number(groundwaterYear)) || point.label.startsWith(`${Number(groundwaterYear)}-`));
+  const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0;
   const groundwaterPredicted = Number.isFinite(Number(groundwaterInsights?.predicted_gwl))
     ? Number(groundwaterInsights.predicted_gwl)
     : predictedDepth;
@@ -1184,6 +1460,7 @@ export function VillageInsightsPanel({
         </p>
       </div>
 
+      {hasMonthlySeries && (
       <div className="insight-trend">
         <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
           <small>Groundwater Level Graph</small>
@@ -1210,6 +1487,7 @@ export function VillageInsightsPanel({
           Average: {trendAverage !== null ? `${trendAverage.toFixed(2)} m` : "NA"} · Direction: {trendDirection}
         </p>
       </div>
+      )}
 
       <div className="insight-trend">
         <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
@@ -1363,7 +1641,7 @@ function VillageInsightsPanelContentImpl({
       : depthError <= 1.5
         ? { label: "Moderate error", className: "error-medium" }
         : { label: "High error", className: "error-high" };
-  const risk = currentDepth !== null ? advisoryLabel(currentDepth) : null;
+  const risk = normalizeRiskLabel(props.risk_level, predictedDepth ?? currentDepth);
 
   useEffect(() => {
     setTrendYear(defaultTrendYear);
@@ -1372,12 +1650,30 @@ function VillageInsightsPanelContentImpl({
   const safeTrendYear = trendYearOptions.includes(trendYear) ? trendYear : defaultTrendYear;
   const trendSourceSeries = monthlyDepthsFull.length ? monthlyDepthsFull : monthlyDepths;
   const trendSourceLabels = monthlyDepthDates.length ? monthlyDepthDates : [];
-  const trendPoints = buildYearlyTrendPoints(trendSourceSeries, safeTrendYear, trendSourceLabels, 1998);
+  const trendPoints = buildYearlyAveragePoints(trendSourceSeries, trendSourceLabels, 1998);
+  const yearlyForecastPoints = useMemo(() => {
+    if (!aiPredictionEnabled) return [];
+    const rows = Array.isArray(props.forecast_yearly) ? props.forecast_yearly : [];
+    const lastObservedYear = trendPoints.length
+      ? Number(trendPoints[trendPoints.length - 1].label)
+      : null;
+    return rows
+      .map((row, index) => ({
+        label: Number.isFinite(lastObservedYear)
+          ? String(lastObservedYear + index + 1)
+          : String(row?.forecast_date || row?.date || `Forecast ${index + 1}`),
+        value: Number(row?.predicted_groundwater_depth ?? row?.groundwater_depth ?? row?.value)
+      }))
+      .filter((point) => Number.isFinite(point.value));
+  }, [aiPredictionEnabled, props.forecast_yearly, trendPoints]);
   const trendValues = trendPoints.map((point) => point.value);
-  const trendDirection = buildTrendDirection(trendValues);
+  const trendDirection = buildWaterTrendDirection(trendValues);
   const trendAverage = trendValues.length
     ? Number((trendValues.reduce((sum, value) => sum + value, 0) / trendValues.length).toFixed(2))
     : null;
+  const trendCoverage = trendPoints.length
+    ? `${trendPoints[0].label} - ${trendPoints[trendPoints.length - 1].label}`
+    : "NA";
   const groundwaterHistory = useMemo(() => {
     const values = monthlyDepthsFull.length ? monthlyDepthsFull : monthlyDepths;
     const labels = monthlyDepthDates.length ? monthlyDepthDates : values.map((_, index) => `Month ${index + 1}`);
@@ -1415,6 +1711,7 @@ function VillageInsightsPanelContentImpl({
     }))
     .filter((point) => Number.isFinite(point.value))
     .filter((point) => !Number.isFinite(Number(groundwaterYear)) || point.label.startsWith(`${Number(groundwaterYear)}-`));
+  const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0;
   const groundwaterPredicted = Number.isFinite(Number(groundwaterInsights?.predicted_gwl))
     ? Number(groundwaterInsights.predicted_gwl)
     : predictedDepth;
@@ -1450,7 +1747,7 @@ function VillageInsightsPanelContentImpl({
         </div>
         <div>
           <small>Risk Status</small>
-          <strong className={currentDepth !== null ? riskClassName(risk) : ""}>{currentDepth !== null ? risk : "NA"}</strong>
+          <strong className={riskClassName(risk)}>{risk}</strong>
         </div>
         <div>
           <small>Total Wells</small>
@@ -1489,70 +1786,56 @@ function VillageInsightsPanelContentImpl({
           </div>
           <div className="comparison-card meta">
             <small>Confidence</small>
-            <strong>{Number.isFinite(Number(props.confidence)) ? `${Number(props.confidence).toFixed(2)}%` : "NA"}</strong>
+            <strong>{formatConfidencePercent(props.confidence ?? props.confidence_score, 2)}</strong>
           </div>
         </div>
       </div>
-      <div className="insight-trend">
-        <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
-          <small>Groundwater Trend</small>
-          <label htmlFor="trend-year-filter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Year</span>
-            <select id="trend-year-filter" value={safeTrendYear} onChange={(event) => setTrendYear(Number(event.target.value))}>
-              {trendYearOptions.map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </label>
+      {trendPoints.length > 0 && (
+        <div className="insight-trend">
+          <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
+            <small>Groundwater Trend</small>
+            <span>Yearly averages</span>
+          </div>
+          <WaterTrendChart
+            points={trendPoints}
+            forecastPoints={yearlyForecastPoints}
+            predictedValue={predictedDepth}
+            actualLabel="Actual average"
+            predictedLabel="AI yearly forecast"
+          />
+          <p className="insight-muted" style={{ marginTop: '8px' }}>
+            Year coverage: {trendCoverage}
+            {yearlyForecastPoints.length ? ` | Forecast: ${yearlyForecastPoints.map((point) => point.label).join(", ")}` : ""}
+            {" | "}Trend: {trendDirection.arrow} {trendDirection.label}
+          </p>
         </div>
-        <WaterTrendChart points={trendPoints} predictedValue={predictedDepth} actualLabel="Actual" predictedLabel="Predicted" />
-        <p className="insight-muted" style={{ marginTop: '8px' }}>
-          Average: {trendAverage !== null ? `${trendAverage.toFixed(2)} m` : "NA"} · Direction: {trendDirection}
-        </p>
-      </div>
+      )}
       <div className="insight-trend">
         <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
           <small>Groundwater History</small>
-          <label htmlFor="history-year-filter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Year</span>
-            <select
-              id="history-year-filter"
-              value={Number.isFinite(Number(groundwaterYear)) ? groundwaterYear : ""}
-              onChange={(event) => setGroundwaterYear(Number(event.target.value))}
-            >
-              {(groundwaterHistory?.available_years?.length ? groundwaterHistory.available_years : trendYearOptions).map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </label>
+          <span>Summary from monthly records</span>
         </div>
-        {groundwaterHistoryLoading && <p className="insight-muted">Loading groundwater history...</p>}
-        {!groundwaterHistoryLoading && (
-          <>
-            <WaterTrendChart points={groundwaterPoints} predictedValue={groundwaterPredicted} actualLabel="Actual" predictedLabel="Predicted" />
-            <div className="insight-comparison-grid" style={{ marginTop: '8px' }}>
-              <div className="comparison-card actual">
-                <small>Actual Last Month</small>
-                <strong>{formatDepth(groundwaterActualLast)}</strong>
-              </div>
-              <div className="comparison-card predicted">
-                <small>Prediction Error</small>
-                <strong>{Number.isFinite(groundwaterError) ? `${groundwaterError > 0 ? "+" : ""}${groundwaterError.toFixed(2)} m` : "NA"}</strong>
-              </div>
-              <div className="comparison-card meta">
-                <small>Stations</small>
-                <strong>{Number(groundwaterInsights?.obs_station_count ?? props.obs_station_count ?? 0).toFixed(0)}</strong>
-              </div>
-              <div className="comparison-card meta">
-                <small>Trend Slope</small>
-                <strong>{Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) ? Number(groundwaterInsights?.trend_slope ?? props.trend_slope).toFixed(4) : "NA"}</strong>
-              </div>
-            </div>
-          </>
-        )}
-        {groundwaterHistoryError && (
-          <p className="insight-muted" style={{ marginTop: '8px' }}>{groundwaterHistoryError}</p>
-        )}
+        <div className="insight-comparison-grid" style={{ marginTop: '8px' }}>
+          <div className="comparison-card actual">
+            <small>Actual Last Month</small>
+            <strong>{formatDepth(groundwaterActualLast)}</strong>
+          </div>
+          <div className="comparison-card predicted">
+            <small>Prediction Error</small>
+            <strong>{Number.isFinite(groundwaterError) ? `${groundwaterError > 0 ? "+" : ""}${groundwaterError.toFixed(2)} m` : "NA"}</strong>
+          </div>
+          <div className="comparison-card meta">
+            <small>Stations</small>
+            <strong>{Number(groundwaterInsights?.obs_station_count ?? props.obs_station_count ?? 0).toFixed(0)}</strong>
+          </div>
+          <div className="comparison-card meta">
+            <small>Trend Slope</small>
+            <strong>{Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) ? Number(groundwaterInsights?.trend_slope ?? props.trend_slope).toFixed(4) : "NA"}</strong>
+          </div>
+        </div>
+        <p className="insight-muted" style={{ marginTop: '8px' }}>
+          Monthly readings are averaged into the yearly chart above so the x-axis stays on year.
+        </p>
       </div>
       <div className="insight-recharge">
         <small>Recharge Suggestion</small>
@@ -1616,29 +1899,19 @@ export function DashboardAnalyticsPanel({
   const unmatchedCount = Number(datasetAnalytics?.unmatchedCount || 0);
   const meaningCards = buildMeaningCards(selectedRow);
   const profileFields = buildProfileFields(selectedProfile, selectedRow);
-  const [dashboardTrendYear, setDashboardTrendYear] = useState(groundwaterTrend?.defaultYear || null);
   const profileStatus = !selectedProfile
     ? "No selection"
     : (!hasNumericValue(selectedProfile.elevation) || String(selectedProfile.elevation_source || "").toLowerCase().includes("missing_dem"))
       ? "Partial profile"
       : "Complete profile";
-  const dashboardTrendYears = groundwaterTrend?.availableYears || [];
-
-  useEffect(() => {
-    setDashboardTrendYear(groundwaterTrend?.defaultYear || null);
-  }, [groundwaterTrend?.defaultYear, rowCount, selectedRow?.village_id]);
-
-  const safeDashboardTrendYear = dashboardTrendYears.includes(dashboardTrendYear)
-    ? dashboardTrendYear
-    : groundwaterTrend?.defaultYear || null;
   const dashboardTrendPoints = groundwaterTrend
-    ? buildYearlyTrendPoints(
-        groundwaterTrend.fullValues || [],
-        safeDashboardTrendYear,
-        groundwaterTrend.fullLabels || [],
-        1998
-      )
+    ? buildYearlyAveragePoints(groundwaterTrend.fullValues || [], groundwaterTrend.fullLabels || [], 1998)
     : [];
+  const dashboardTrendValues = dashboardTrendPoints.map((point) => point.value);
+  const dashboardTrendDirection = buildWaterTrendDirection(dashboardTrendValues);
+  const dashboardTrendCoverage = dashboardTrendPoints.length
+    ? `${dashboardTrendPoints[0].label} - ${dashboardTrendPoints[dashboardTrendPoints.length - 1].label}`
+    : "NA";
 
   return (
     <section className="full-dashboard-sheet dashboard-theme-clear" aria-label="Full dashboard analytics">
@@ -1751,23 +2024,10 @@ export function DashboardAnalyticsPanel({
         <ChartCard title="2011 vs 2021" subtitle="Grouped bars">
           <ComparisonChart data={yearComparison} />
         </ChartCard>
-        <ChartCard title="Groundwater Trend" subtitle="Average monthly depth">
+        <ChartCard title="Groundwater Trend" subtitle="Yearly average depth">
           <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
             <small>Average groundwater across villages</small>
-            <label htmlFor="dashboard-trend-year" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Year</span>
-              <select
-                id="dashboard-trend-year"
-                value={safeDashboardTrendYear || ""}
-                onChange={(event) => setDashboardTrendYear(Number(event.target.value))}
-              >
-                {dashboardTrendYears.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span>{dashboardTrendDirection.arrow} {dashboardTrendDirection.label}</span>
           </div>
           <WaterTrendChart
             points={dashboardTrendPoints}
@@ -1776,7 +2036,7 @@ export function DashboardAnalyticsPanel({
             predictedLabel="Predicted average"
           />
           <p className="insight-muted" style={{ marginTop: '8px' }}>
-            Source: piezometer history from PzWaterLevel_2024.xlsx
+            Coverage: {dashboardTrendCoverage} | Source: piezometer history from PzWaterLevel_2024.xlsx
           </p>
         </ChartCard>
         <ChartCard title="Hydro Summary" subtitle="Scaled metrics">

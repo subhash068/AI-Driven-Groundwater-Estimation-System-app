@@ -90,6 +90,16 @@ def allowed_district(value: object) -> bool:
     return canonical_district(value) in ALLOWED_DISTRICTS
 
 
+def build_join_key(district: object, mandal: object, village_name: object) -> str:
+    return "|".join(
+        [
+            norm_text(canonical_district(district)),
+            norm_text(canonical_name(mandal)),
+            norm_text(canonical_name(village_name)),
+        ]
+    )
+
+
 def mode_or_unknown(values: pd.Series, default: str = "Unknown") -> str:
     cleaned = values.dropna().astype(str).str.strip()
     cleaned = cleaned[cleaned != ""]
@@ -258,6 +268,12 @@ def read_village_boundaries_native() -> gpd.GeoDataFrame:
         )
 
     gdf = gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=frames[0].crs)
+    gdf["join_key"] = gdf.apply(
+        lambda row: build_join_key(row.get("district"), row.get("mandal"), row.get("village_name")),
+        axis=1,
+    )
+    gdf = gdf.sort_values("join_key", kind="mergesort")
+    gdf = gdf.drop_duplicates(subset=["join_key"], keep="first").reset_index(drop=True)
     gdf["village_id"] = np.arange(1, len(gdf) + 1)
     return gdf
 
@@ -318,8 +334,9 @@ def _sample_lulc_for_geometry(
     if sub.size == 0:
         return {}
 
-    xs = c + a * np.arange(col0, col1)
-    ys = f + e * np.arange(row0, row1)
+    # Sample pixel centers to avoid edge bias from world-file origin.
+    xs = c + a * (np.arange(col0, col1) + 0.5)
+    ys = f + e * (np.arange(row0, row1) + 0.5)
     xv, yv = np.meshgrid(xs, ys)
     inside = contains_xy(geom, xv, yv)
     vals = sub[inside]
@@ -361,6 +378,18 @@ def compute_lulc_stats(villages_4044: gpd.GeoDataFrame, tif_path: Path, tfw_path
             }
         )
     return pd.DataFrame(rows)
+
+
+def summarize_lulc_presence(lulc_df: pd.DataFrame, suffix: str) -> dict[str, int]:
+    summary: dict[str, int] = {}
+    for klass in LULC_CLASS_ORDER:
+        col = f"{klass}_pct_{suffix}"
+        if col not in lulc_df.columns:
+            summary[klass] = 0
+            continue
+        series = pd.to_numeric(lulc_df[col], errors="coerce").fillna(0.0)
+        summary[klass] = int((series > 0).sum())
+    return summary
 
 
 def aggregate_wells(villages_geo: gpd.GeoDataFrame) -> pd.DataFrame:
@@ -642,10 +671,24 @@ def build() -> None:
         STAGING / "LULC" / "KrishnaOrg" / "Krishna_21.tfw",
         "2021",
     )
+    lulc_presence_2011 = summarize_lulc_presence(lulc_2011, "2011")
+    lulc_presence_2021 = summarize_lulc_presence(lulc_2021, "2021")
+    print("[LULC] non-zero village counts (2011):", lulc_presence_2011)
+    print("[LULC] non-zero village counts (2021):", lulc_presence_2021)
+    for required in ("flooded_vegetation", "rangeland"):
+        if lulc_presence_2011.get(required, 0) == 0 and lulc_presence_2021.get(required, 0) == 0:
+            print(
+                f"[WARN] {required} is zero for all villages in both years. "
+                "Check raster CRS/transform alignment and class mapping."
+            )
 
     villages["district_norm"] = villages["district"].map(canonical_district)
     villages["mandal_norm"] = villages["mandal"].map(norm_text)
     villages["village_norm"] = villages["village_name"].map(norm_text)
+    villages["join_key"] = villages.apply(
+        lambda row: build_join_key(row.get("district"), row.get("mandal"), row.get("village_name")),
+        axis=1,
+    )
 
     # Join aquifer by centroid.
     centroids = villages[["village_id", "geometry"]].to_crs("EPSG:32644").copy()

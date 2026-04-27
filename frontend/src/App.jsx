@@ -199,31 +199,37 @@ function mergeVillageMapData(baseGeojson, mapData) {
   if (!baseGeojson?.features?.length) return baseGeojson || mapData || null;
   if (!mapData?.features?.length) return baseGeojson;
 
-  const mapFeaturesById = new Map();
+  const hasMeaningfulValue = (value) => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim() !== "";
+    return true;
+  };
+
   const mapFeaturesByKey = new Map();
   mapData.features.forEach((feature) => {
     const props = feature?.properties || {};
-    const villageId = Number(props.village_id);
     const key = buildLocationKey(props.district, props.mandal, props.village_name);
-    if (Number.isFinite(villageId)) mapFeaturesById.set(villageId, feature);
-    if (key) mapFeaturesByKey.set(key, feature);
+    if (key && !mapFeaturesByKey.has(key)) mapFeaturesByKey.set(key, feature);
   });
 
   return {
     ...baseGeojson,
     features: baseGeojson.features.map((feature) => {
       const props = feature?.properties || {};
-      const villageId = Number(props.village_id);
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
-      const match = (Number.isFinite(villageId) && mapFeaturesById.get(villageId))
-        || (key && mapFeaturesByKey.get(key))
-        || null;
+      const match = key ? mapFeaturesByKey.get(key) : null;
       if (!match) return feature;
+      const mapProps = match.properties || {};
+      const mergedProps = { ...props };
+      Object.entries(mapProps).forEach(([field, value]) => {
+        if (hasMeaningfulValue(value)) {
+          mergedProps[field] = value;
+        }
+      });
       return {
         ...feature,
         properties: {
-          ...props,
-          ...(match.properties || {}),
+          ...mergedProps,
           village_id: props.village_id ?? match.properties?.village_id,
           village_name: props.village_name ?? match.properties?.village_name,
           district: props.district ?? match.properties?.district,
@@ -301,7 +307,8 @@ export default function App({ navigate, pathname }) {
     recordsByLocation: datasetRowsByLocation,
     loading: datasetLoading,
     error: datasetError,
-    sourcePath: datasetSource
+    sourcePath: datasetSource,
+    integritySummary: datasetIntegritySummary
   } = useGroundwaterDataset();
 
   useEffect(() => {
@@ -602,21 +609,23 @@ export default function App({ navigate, pathname }) {
             return {
               ...(prev || {}),
               properties: {
-                ...(prev?.properties || {}),
-                ...status,
-                lstm_forecast: forecast?.forecast_3_month || []
-              }
-            };
-          }
-          return {
-            ...feature,
-            properties: {
-              ...(feature.properties || {}),
+              ...(prev?.properties || {}),
               ...status,
-              lstm_forecast: forecast?.forecast_3_month || []
+                lstm_forecast: forecast?.forecast_3_month || [],
+                forecast_yearly: forecast?.forecast_yearly || []
             }
           };
-        });
+        }
+        return {
+          ...feature,
+          properties: {
+            ...(feature.properties || {}),
+            ...status,
+              lstm_forecast: forecast?.forecast_3_month || [],
+              forecast_yearly: forecast?.forecast_yearly || []
+          }
+        };
+      });
       } catch (err) {
         if (!active) return;
         console.warn("Backend data unavailable:", err);
@@ -701,20 +710,7 @@ export default function App({ navigate, pathname }) {
     if (Number.isFinite(villageId) && datasetRowsById.has(villageId)) {
       return datasetRowsById.get(villageId);
     }
-
-    const villageNorm = normalizeLocationName(villageName);
-    const districtNorm = normalizeLocationName(district);
-    const mandalNorm = normalizeLocationName(mandal);
-    return datasetRows.find((row) => {
-      const rowDistrict = normalizeLocationName(row.district || "");
-      const rowMandal = normalizeLocationName(row.mandal || "");
-      const rowName = normalizeLocationName(row.village_name || "");
-      return (
-        rowName === villageNorm &&
-        (!districtNorm || rowDistrict === districtNorm) &&
-        (!mandalNorm || rowMandal === mandalNorm)
-      );
-    }) || null;
+    return null;
   }, [selectedFeature, datasetRows, datasetRowsById, datasetRowsByLocation]);
 
   const datasetAnalytics = useMemo(() => {
@@ -1023,6 +1019,7 @@ export default function App({ navigate, pathname }) {
                   <VillageActionPanel
                     selectedFeature={selectedFeature}
                     aiPredictionEnabled={aiPredictionEnabled}
+                    defaultMode={aiPredictionEnabled ? "live" : "batch"}
                   />
                 </>
               )}

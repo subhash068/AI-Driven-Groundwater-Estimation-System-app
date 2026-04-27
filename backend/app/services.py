@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import UTC, date, datetime
 from functools import lru_cache
 from pathlib import Path
@@ -9,9 +10,14 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .config import LIVE_FEATURE_NEAREST_NEIGHBORS, LIVE_PREDICTION_ENABLED
+from .ml.engine import predict_groundwater_live
+from .utils.key import build_location_key
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "frontend" / "public" / "data"
+LOGGER = logging.getLogger(__name__)
 
 
 def _to_float(value: Any, default: float | None = None) -> float | None:
@@ -22,6 +28,62 @@ def _to_float(value: Any, default: float | None = None) -> float | None:
         return numeric
     except (TypeError, ValueError):
         return default
+
+
+def _first_text_value(*values: Any) -> str | None:
+    for value in values:
+        text = str(value or "").strip()
+        if not text:
+            continue
+        lowered = text.lower()
+        if lowered in {"unknown", "na", "n/a", "null", "undefined", "-"}:
+            continue
+        return text
+    return None
+
+
+def _pick_preferred_pct(map_value: Any, boundary_value: Any, row_value: Any) -> float:
+    map_numeric = _to_float(map_value)
+    boundary_numeric = _to_float(boundary_value)
+    row_numeric = _to_float(row_value)
+    if map_numeric is not None and map_numeric > 0:
+        return round(map_numeric, 4)
+    if boundary_numeric is not None and boundary_numeric > 0:
+        return round(boundary_numeric, 4)
+    if row_numeric is not None and row_numeric > 0:
+        return round(row_numeric, 4)
+    if map_numeric is not None:
+        return round(map_numeric, 4)
+    if boundary_numeric is not None:
+        return round(boundary_numeric, 4)
+    if row_numeric is not None:
+        return round(row_numeric, 4)
+    return 0.0
+
+
+def _read_row_lulc_percent(row: dict | None, key: str) -> float | None:
+    if not isinstance(row, dict):
+        return None
+    aliases: dict[str, list[str]] = {
+        "water_pct": ["water_pct", "Water%", "water_2021%", "water_2021_pct"],
+        "trees_pct": ["trees_pct", "Trees%", "trees_2021%", "trees_2021_pct"],
+        "flooded_vegetation_pct": [
+            "flooded_vegetation_pct",
+            "flooded_vegetation_2021%",
+            "flooded_vegetation_2021_pct",
+        ],
+        "crops_pct": ["crops_pct", "Crops%", "crops_2021%", "crops_2021_pct"],
+        "built_area_pct": ["built_area_pct", "Built%", "built_2021%", "built_2021_pct"],
+        "bare_ground_pct": ["bare_ground_pct", "Bare%", "bare_2021%", "bare_2021_pct"],
+        "snow_ice_pct": ["snow_ice_pct", "snow_ice_2021%", "snow_ice_2021_pct"],
+        "clouds_pct": ["clouds_pct", "clouds_2021%", "clouds_2021_pct"],
+        "rangeland_pct": ["rangeland_pct", "Rangeland%", "rangeland_2021%", "rangeland_2021_pct"],
+    }
+    for candidate in aliases.get(key, [key]):
+        numeric = _to_float(row.get(candidate))
+        if numeric is not None:
+            return numeric
+    return None
 
 
 def _iso_now() -> str:
@@ -37,11 +99,105 @@ def _load_json(path: Path, default: Any) -> Any:
         return default
 
 
+def _record_completeness_score(record: dict | None) -> int:
+    if not isinstance(record, dict):
+        return 0
+    score = 0
+    for value in record.values():
+        if isinstance(value, list):
+            if value:
+                score += 1
+            continue
+        if value is None:
+            continue
+        if isinstance(value, str):
+            if value.strip():
+                score += 1
+            continue
+        if isinstance(value, bool):
+            score += 1
+            continue
+        if isinstance(value, (int, float)):
+            score += 1
+    return score
+
+
+def _feature_location_key(feature: dict | None) -> str:
+    if not isinstance(feature, dict):
+        return ""
+    props = feature.get("properties", {}) or {}
+    return build_location_key(props.get("district"), props.get("mandal"), props.get("village_name"))
+
+
+def _row_location_key(row: dict | None) -> str:
+    if not isinstance(row, dict):
+        return ""
+    return build_location_key(
+        row.get("district") or row.get("District"),
+        row.get("mandal") or row.get("Mandal"),
+        row.get("village_name") or row.get("Village_Name") or row.get("village"),
+    )
+
+
+def _merge_by_location_key(items: list[dict], key_fn) -> list[dict]:
+    merged: dict[str, dict] = {}
+    for item in items:
+        key = key_fn(item)
+        if not key:
+            continue
+        existing = merged.get(key)
+        if not existing or _record_completeness_score(item) > _record_completeness_score(existing):
+            merged[key] = item
+    return list(merged.values())
+
+
+def _log_duplicate_keys(rows: list[dict]) -> None:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for row in rows:
+        key = _row_location_key(row)
+        if not key:
+            continue
+        if key in seen:
+            duplicates.append(key)
+        else:
+            seen.add(key)
+    if duplicates:
+        LOGGER.warning("Duplicate composite keys: %s", duplicates)
+    else:
+        LOGGER.info("No duplicate composite keys")
+
+
+def _log_cross_district_collisions(rows: list[dict]) -> None:
+    by_village_name: dict[str, set[str]] = {}
+    for row in rows:
+        village_name = str(row.get("village_name") or row.get("Village_Name") or row.get("village") or "").strip().lower()
+        district = str(row.get("district") or row.get("District") or "").strip().lower()
+        if not village_name or not district:
+            continue
+        by_village_name.setdefault(village_name, set()).add(district)
+    collisions = {
+        village_name: sorted(districts)
+        for village_name, districts in by_village_name.items()
+        if len(districts) > 1
+    }
+    if collisions:
+        LOGGER.info("Cross-district same-name detected: %s", collisions)
+
+
 @lru_cache(maxsize=1)
 def _map_geojson() -> dict:
-    data = _load_json(DATA_DIR / "map_data_predictions.geojson", {})
-    if isinstance(data, dict) and data.get("type") == "FeatureCollection":
-        return data
+    primary_features: list[dict] = []
+    for candidate in ["map_data_predictions.geojson", "map_data_predictions_ntr.geojson"]:
+        data = _load_json(DATA_DIR / candidate, {})
+        if isinstance(data, dict) and data.get("type") == "FeatureCollection":
+            features = data.get("features", [])
+            if isinstance(features, list):
+                primary_features.extend(feature for feature in features if isinstance(feature, dict))
+    if primary_features:
+        merged_primary = _merge_by_location_key(primary_features, _feature_location_key)
+        return {"type": "FeatureCollection", "features": merged_primary}
+    fallback_features: list[dict] = []
     for candidate in [
         "villages.geojson",
         "village_boundaries.geojson",
@@ -50,7 +206,11 @@ def _map_geojson() -> dict:
     ]:
         fallback = _load_json(DATA_DIR / candidate, {})
         if isinstance(fallback, dict) and fallback.get("type") == "FeatureCollection":
-            return fallback
+            fallback_features.extend(
+                feature for feature in fallback.get("features", []) if isinstance(feature, dict)
+            )
+    if fallback_features:
+        return {"type": "FeatureCollection", "features": _merge_by_location_key(fallback_features, _feature_location_key)}
     return {"type": "FeatureCollection", "features": []}
 
 
@@ -61,11 +221,14 @@ def _final_rows() -> list[dict]:
         data = _load_json(DATA_DIR / candidate, [])
         if isinstance(data, list):
             rows.extend(row for row in data if isinstance(row, dict))
-    return rows
+    _log_duplicate_keys(rows)
+    _log_cross_district_collisions(rows)
+    return _merge_by_location_key(rows, _row_location_key)
 
 
 @lru_cache(maxsize=1)
 def _village_geojson() -> dict:
+    collected_features: list[dict] = []
     for candidate in [
         "villages.geojson",
         "village_boundaries.geojson",
@@ -74,7 +237,11 @@ def _village_geojson() -> dict:
     ]:
         data = _load_json(DATA_DIR / candidate, {})
         if isinstance(data, dict) and data.get("type") == "FeatureCollection":
-            return data
+            collected_features.extend(
+                feature for feature in data.get("features", []) if isinstance(feature, dict)
+            )
+    if collected_features:
+        return {"type": "FeatureCollection", "features": _merge_by_location_key(collected_features, _feature_location_key)}
     return {"type": "FeatureCollection", "features": []}
 
 
@@ -92,7 +259,7 @@ def _anomalies_geojson() -> dict:
 @lru_cache(maxsize=1)
 def _map_lookup() -> dict[int, dict]:
     lookup: dict[int, dict] = {}
-    for feature in _map_geojson().get("features", []):
+    for feature in _reconciled_map_geojson().get("features", []):
         props = feature.get("properties", {}) or {}
         village_id = int(_to_float(props.get("village_id"), default=-1) or -1)
         if village_id > 0:
@@ -101,12 +268,32 @@ def _map_lookup() -> dict[int, dict]:
 
 
 @lru_cache(maxsize=1)
+def _map_lookup_by_key() -> dict[str, dict]:
+    lookup: dict[str, dict] = {}
+    for feature in _reconciled_map_geojson().get("features", []):
+        key = _feature_location_key(feature)
+        if key and key not in lookup:
+            lookup[key] = feature
+    return lookup
+
+
+@lru_cache(maxsize=1)
 def _final_lookup() -> dict[int, dict]:
     lookup: dict[int, dict] = {}
     for row in _final_rows():
-        village_id = int(_to_float(row.get("Village_ID"), default=-1) or -1)
+        village_id = int(_to_float(row.get("Village_ID") or row.get("village_id"), default=-1) or -1)
         if village_id > 0:
             lookup[village_id] = row
+    return lookup
+
+
+@lru_cache(maxsize=1)
+def _final_lookup_by_key() -> dict[str, dict]:
+    lookup: dict[str, dict] = {}
+    for row in _final_rows():
+        key = _row_location_key(row)
+        if key and key not in lookup:
+            lookup[key] = row
     return lookup
 
 
@@ -119,6 +306,118 @@ def _village_lookup() -> dict[int, dict]:
         if village_id > 0:
             lookup[village_id] = feature
     return lookup
+
+
+@lru_cache(maxsize=1)
+def _village_lookup_by_key() -> dict[str, dict]:
+    lookup: dict[str, dict] = {}
+    for feature in _village_geojson().get("features", []):
+        key = _feature_location_key(feature)
+        if key and key not in lookup:
+            lookup[key] = feature
+    return lookup
+
+
+@lru_cache(maxsize=1)
+def _reconciled_map_geojson() -> dict:
+    map_features = [
+        feature
+        for feature in _map_geojson().get("features", [])
+        if isinstance(feature, dict)
+    ]
+    village_features = [
+        feature
+        for feature in _village_geojson().get("features", [])
+        if isinstance(feature, dict)
+    ]
+    map_by_key: dict[str, dict] = {}
+    for feature in map_features:
+        key = _feature_location_key(feature)
+        if key and key not in map_by_key:
+            map_by_key[key] = feature
+
+    row_by_key = _final_lookup_by_key()
+    seen_keys: set[str] = set()
+    reconciled_features: list[dict] = []
+    lulc_keys = [
+        "water_pct",
+        "trees_pct",
+        "flooded_vegetation_pct",
+        "crops_pct",
+        "built_area_pct",
+        "bare_ground_pct",
+        "snow_ice_pct",
+        "clouds_pct",
+        "rangeland_pct",
+    ]
+
+    for village_feature in village_features:
+        base_props = village_feature.get("properties", {}) or {}
+        key = _feature_location_key(village_feature)
+        if not key or key in seen_keys:
+            continue
+        seen_keys.add(key)
+        map_props = (map_by_key.get(key) or {}).get("properties", {}) or {}
+        row = row_by_key.get(key, {})
+        merged_props = {
+            **base_props,
+            **map_props,
+            "village_id": base_props.get("village_id"),
+            "village_name": base_props.get("village_name"),
+            "district": base_props.get("district"),
+            "mandal": base_props.get("mandal"),
+            "state": base_props.get("state")
+            or map_props.get("state")
+            or row.get("State")
+            or row.get("state")
+            or "Andhra Pradesh",
+            "location_key": key,
+            "soil": _first_text_value(
+                base_props.get("soil"),
+                row.get("soil"),
+                row.get("Soil"),
+                map_props.get("soil"),
+            ),
+            "soil_taxonomy": _first_text_value(
+                base_props.get("soil_taxonomy"),
+                row.get("soil_taxonomy"),
+                row.get("Soil_Taxonomy"),
+                map_props.get("soil_taxonomy"),
+            ),
+            "soil_map_unit": _first_text_value(
+                base_props.get("soil_map_unit"),
+                row.get("soil_map_unit"),
+                row.get("Soil_Map_Unit"),
+                map_props.get("soil_map_unit"),
+            ),
+            "dominant_crop_type": _first_text_value(
+                base_props.get("dominant_crop_type"),
+                row.get("dominant_crop_type"),
+                map_props.get("dominant_crop_type"),
+            ),
+        }
+        for lulc_key in lulc_keys:
+            merged_props[lulc_key] = _pick_preferred_pct(
+                map_props.get(lulc_key),
+                base_props.get(lulc_key),
+                _read_row_lulc_percent(row, lulc_key),
+            )
+        reconciled_features.append(
+            {
+                "type": "Feature",
+                "geometry": village_feature.get("geometry")
+                or (map_by_key.get(key) or {}).get("geometry"),
+                "properties": merged_props,
+            }
+        )
+
+    for map_feature in map_features:
+        key = _feature_location_key(map_feature)
+        if key and key not in seen_keys:
+            seen_keys.add(key)
+            reconciled_features.append(map_feature)
+
+    return {"type": "FeatureCollection", "features": reconciled_features}
 
 
 def _normalize_risk_level(value: Any, fallback_depth: float | None = None) -> str:
@@ -252,6 +551,41 @@ def _forecast_from_anchor(
     return result
 
 
+def _forecast_yearly_from_anchor(
+    anchor: float | None,
+    forecast: float | None = None,
+    years: int = 2,
+) -> list[dict]:
+    if anchor is None and forecast is None:
+        return []
+    if anchor is None:
+        anchor = forecast
+    if anchor is None:
+        return []
+    target = forecast if forecast is not None else anchor
+    if years <= 1:
+        values = [target]
+    else:
+        step = (target - anchor) / float(years)
+        values = [anchor + step * idx for idx in range(1, years + 1)]
+    year_start = date.today().replace(month=1, day=1)
+    result: list[dict] = []
+    for idx, depth in enumerate(values, start=1):
+        year = year_start.year + idx
+        stamp = date(year, 1, 1).isoformat()
+        rounded = round(float(depth), 3)
+        result.append(
+            {
+                "forecast_date": stamp,
+                "predicted_groundwater_depth": rounded,
+                "predicted_lower": round(rounded - 0.8, 3),
+                "predicted_upper": round(rounded + 0.8, 3),
+                "kind": "forecast",
+            }
+        )
+    return result
+
+
 def _trend_direction_from_series(values: list[dict] | list[Any]) -> str:
     parsed = [_to_float(item.get("groundwater_depth") if isinstance(item, dict) else item) for item in values]
     numeric = [value for value in parsed if value is not None]
@@ -282,6 +616,7 @@ def _standardize_village_payload(payload: dict) -> dict:
     ).strip()
     district = str(payload.get("district") or payload.get("District") or "Unknown").strip()
     mandal = str(payload.get("mandal") or payload.get("Mandal") or "Unknown").strip()
+    location_key = build_location_key(district, mandal, village_name)
     current_depth = _to_float(
         payload.get("current_depth")
         or payload.get("estimated_groundwater_depth")
@@ -315,6 +650,25 @@ def _standardize_village_payload(payload: dict) -> dict:
         anchor = current_depth
         target = _to_float(payload.get("forecast_3m") or payload.get("predicted_groundwater_level"))
         forecast_series = _forecast_from_anchor(anchor, target, months=3)
+    forecast_yearly_values = payload.get("forecast_yearly")
+    forecast_yearly: list[dict] = []
+    if isinstance(forecast_yearly_values, list) and forecast_yearly_values:
+        for row in forecast_yearly_values:
+            if not isinstance(row, dict):
+                continue
+            forecast_yearly.append(
+                {
+                    "forecast_date": str(row.get("forecast_date") or row.get("date") or ""),
+                    "predicted_groundwater_depth": _to_float(row.get("predicted_groundwater_depth") or row.get("depth")),
+                    "predicted_lower": _to_float(row.get("predicted_lower")),
+                    "predicted_upper": _to_float(row.get("predicted_upper")),
+                    "kind": "forecast",
+                }
+            )
+    else:
+        anchor = current_depth
+        target = _to_float(payload.get("predicted_groundwater_level") or payload.get("forecast_3m"))
+        forecast_yearly = _forecast_yearly_from_anchor(anchor, target, years=2)
     trend_direction = _trend_direction_from_series(observed_series or forecast_series)
     recommendations = _recommendations_from_context(risk_level, anomaly_flag=anomaly_flag, anomaly_score=anomaly_score)
     if alert_status == "critical":
@@ -335,6 +689,7 @@ def _standardize_village_payload(payload: dict) -> dict:
         "village_name": village_name,
         "district": district,
         "mandal": mandal,
+        "location_key": location_key,
         "current_depth": current_depth,
         "predicted_groundwater_level": _to_float(
             payload.get("predicted_groundwater_level")
@@ -349,6 +704,7 @@ def _standardize_village_payload(payload: dict) -> dict:
         "anomaly_flags": anomaly_flags,
         "observed_series": observed_series,
         "forecast_3_month": forecast_series,
+        "forecast_yearly": forecast_yearly,
         "recommended_actions": recommendations,
     }
 
@@ -466,7 +822,7 @@ async def fetch_map_data(db: AsyncSession) -> dict:
     except Exception:
         pass
     fallback_features = []
-    for feature in _map_geojson().get("features", []):
+    for feature in _reconciled_map_geojson().get("features", []):
         props = feature.get("properties", {}) or {}
         standardized = _standardize_village_payload(props)
         standardized.update(
@@ -538,6 +894,27 @@ async def fetch_predict(db: AsyncSession, village_id: int) -> dict | None:
     return payload
 
 
+async def fetch_predict_live(
+    db: AsyncSession,
+    village_id: int,
+    as_of_date: date | None = None,
+) -> dict | None:
+    if not LIVE_PREDICTION_ENABLED:
+        return None
+    try:
+        payload = await predict_groundwater_live(
+            db=db,
+            village_id=village_id,
+            as_of=as_of_date,
+            nearest_neighbors=max(1, int(LIVE_FEATURE_NEAREST_NEIGHBORS)),
+        )
+        if payload:
+            return payload
+    except Exception as exc:
+        LOGGER.exception("Live prediction failed for village %s: %s", village_id, exc)
+    return None
+
+
 async def fetch_village_status(db: AsyncSession, village_id: int) -> dict:
     try:
         query = text(
@@ -580,6 +957,7 @@ async def fetch_village_status(db: AsyncSession, village_id: int) -> dict:
                 "village_id": payload["village_id"],
                 "current_depth": payload["current_depth"],
                 "forecast_3_month": payload["forecast_3_month"],
+                "forecast_yearly": payload["forecast_yearly"],
                 "anomaly_flags": payload["anomaly_flags"],
                 "confidence_score": payload["confidence_score"],
                 "risk_level": payload["risk_level"],
@@ -591,8 +969,9 @@ async def fetch_village_status(db: AsyncSession, village_id: int) -> dict:
         pass
 
     final_row = _final_lookup().get(village_id, {})
-    map_feature = _map_lookup().get(village_id, {})
-    village_feature = _village_lookup().get(village_id, {})
+    lookup_key = _row_location_key(final_row) if final_row else ""
+    map_feature = (_map_lookup_by_key().get(lookup_key) if lookup_key else None) or _map_lookup().get(village_id, {})
+    village_feature = (_village_lookup_by_key().get(lookup_key) if lookup_key else None) or _village_lookup().get(village_id, {})
     village_props = village_feature.get("properties", {}) if village_feature else {}
     map_props = map_feature.get("properties", {}) if map_feature else {}
 
@@ -635,6 +1014,7 @@ async def fetch_village_status(db: AsyncSession, village_id: int) -> dict:
         "village_id": village_id,
         "current_depth": current_depth,
         "forecast_3_month": forecast,
+        "forecast_yearly": _forecast_yearly_from_anchor(current_depth, predicted_depth, years=2),
         "observed_series": observed_series,
         "anomaly_flags": anomaly_flags,
         "confidence_score": _to_float(map_props.get("confidence") or village_props.get("confidence"), 0.0),
@@ -679,9 +1059,10 @@ async def fetch_village_forecast_lstm(db: AsyncSession, village_id: int) -> dict
                 }
                 for row in rows
             ]
-            village_feature = _village_lookup().get(village_id, {})
-            village_props = village_feature.get("properties", {}) if village_feature else {}
             final_row = _final_lookup().get(village_id, {})
+            lookup_key = _row_location_key(final_row) if final_row else ""
+            village_feature = (_village_lookup_by_key().get(lookup_key) if lookup_key else None) or _village_lookup().get(village_id, {})
+            village_props = village_feature.get("properties", {}) if village_feature else {}
             observed_series = _observed_series_from_payload(village_props or final_row, limit=6)
             return {
                 "village_id": village_id,
@@ -698,6 +1079,11 @@ async def fetch_village_forecast_lstm(db: AsyncSession, village_id: int) -> dict
                 "trend_direction": _trend_direction_from_series(observed_series or forecast_rows),
                 "observed_series": observed_series,
                 "forecast_3_month": forecast_rows,
+                "forecast_yearly": _forecast_yearly_from_anchor(
+                    _to_float(village_props.get("actual_last_month")) or _to_float(final_row.get("actual_last_month")),
+                    _to_float(rows[0].get("predicted_groundwater_depth")),
+                    years=2,
+                ),
                 "recommended_actions": _recommendations_from_context(
                     rows[0].get("risk_level"),
                     anomaly_flag=bool(village_props.get("anomaly_flag")),
@@ -718,6 +1104,7 @@ async def fetch_village_forecast_lstm(db: AsyncSession, village_id: int) -> dict
         "trend_direction": status.get("trend_direction"),
         "observed_series": status.get("observed_series", []),
         "forecast_3_month": status.get("forecast_3_month", []),
+        "forecast_yearly": status.get("forecast_yearly", []),
         "recommended_actions": status.get("recommended_actions", []),
     }
 

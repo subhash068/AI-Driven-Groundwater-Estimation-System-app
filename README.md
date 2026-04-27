@@ -113,6 +113,7 @@ python -m model.stage_data
 
 # 2) Build village-level features + XGBoost + Kriging outputs
 python -m model.pipeline --kriging-strategy residual
+python -m model.pipeline --export
 
 # 3) Run backend API
 uvicorn backend.app.main:app --reload
@@ -169,6 +170,7 @@ python ml/interpolation_engine.py --input data/training_dataset.geojson --out da
 ```bash
 python ml/forecasting_module.py --input data/timeseries.csv --out data/forecast_output.csv
 python ml/lstm_forecast.py --input data/timeseries.csv --out data/lstm_forecast_output.csv --horizon 3
+python -m model.train_from_csv --predict-ntr
 ```
 
 ### 9) Run Dashboard

@@ -10,7 +10,9 @@ function formatDepth(value) {
 function formatConfidence(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "NA";
-  return `${numeric.toFixed(0)}%`;
+  const scaled = numeric <= 1 ? numeric * 100 : numeric;
+  const bounded = Math.max(0, Math.min(100, scaled));
+  return `${bounded.toFixed(0)}%`;
 }
 
 function titleCase(value) {
@@ -166,17 +168,25 @@ function ForecastLineChart({ observedSeries, forecastSeries }) {
   );
 }
 
-export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true }) {
+export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true, defaultMode = "live" }) {
   const [status, setStatus] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [anomalies, setAnomalies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const normalizedDefaultMode = String(defaultMode || "live").toLowerCase() === "batch" ? "batch" : "live";
+  const [predictionMode, setPredictionMode] = useState(normalizedDefaultMode);
 
   const villageId = Number(selectedFeature?.properties?.village_id);
   const villageName = String(selectedFeature?.properties?.village_name || "Selected village");
   const district = String(selectedFeature?.properties?.district || "Unknown");
   const mandal = String(selectedFeature?.properties?.mandal || "Unknown");
+  const effectiveMode = aiPredictionEnabled && predictionMode === "live" ? "live" : "batch";
+  const futureForecastEnabled = Boolean(aiPredictionEnabled);
+
+  useEffect(() => {
+    setPredictionMode(normalizedDefaultMode);
+  }, [normalizedDefaultMode]);
 
   useEffect(() => {
     let active = true;
@@ -193,20 +203,20 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
       try {
         setLoading(true);
         setError(null);
-        const statusPromise = api.getVillageStatus(villageId);
-        const forecastPromise = aiPredictionEnabled
-          ? api.getVillageForecast(villageId)
+        const predictionPromise = futureForecastEnabled
+          ? api.getPrediction(villageId, { mode: effectiveMode })
           : Promise.resolve(null);
+        const statusPromise = api.getVillageStatus(villageId);
         const anomaliesPromise = api.getAnomalies("json");
-        const [nextStatus, nextForecast, nextAnomalies] = await Promise.all([
+        const [nextPrediction, nextStatus, nextAnomalies] = await Promise.all([
+          predictionPromise,
           statusPromise,
-          forecastPromise,
           anomaliesPromise
         ]);
 
         if (!active) return;
         setStatus(nextStatus || null);
-        setForecast(nextForecast || null);
+        setForecast(nextPrediction || null);
         setAnomalies(Array.isArray(nextAnomalies) ? nextAnomalies : []);
       } catch (err) {
         if (!active) return;
@@ -221,7 +231,7 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
     return () => {
       active = false;
     };
-  }, [villageId, aiPredictionEnabled]);
+  }, [villageId, futureForecastEnabled, effectiveMode]);
 
   const anomalyMatch = useMemo(() => {
     if (!Number.isFinite(villageId)) return null;
@@ -231,6 +241,7 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
   const forecastObserved = Array.isArray(forecast?.observed_series) ? forecast.observed_series : [];
   const statusObserved = Array.isArray(status?.observed_series) ? status.observed_series : [];
   const currentDepth = Number(
+    forecast?.predicted_groundwater_level ??
     status?.current_depth ??
     forecastObserved[forecastObserved.length - 1]?.groundwater_depth ??
     statusObserved[statusObserved.length - 1]?.groundwater_depth ??
@@ -240,15 +251,22 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
   );
 
   const riskLevel = titleCase(
+    forecast?.risk_level ||
     status?.risk_level ||
       selectedFeature?.properties?.risk_level ||
       selectedFeature?.properties?.risk ||
       "warning"
   );
-  const alertStatus = deriveAlertStatus(
+  const derivedAlert = deriveAlertStatus(
     riskLevel,
-    Boolean(anomalyMatch),
-    anomalyMatch?.anomaly_score,
+    Boolean(anomalyMatch) || Boolean(forecast?.anomaly_flag),
+    anomalyMatch?.anomaly_score ?? forecast?.anomaly_score,
+    currentDepth
+  );
+  const alertStatus = normalizeRisk(
+    forecast?.alert_status ||
+      status?.alert_status ||
+      derivedAlert,
     currentDepth
   );
   const confidenceScore = Number(
@@ -259,11 +277,17 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
     0
   );
   const trendDirection = forecast?.trend_direction || status?.trend_direction || "Stable";
+  const anomalyLabel = anomalyMatch
+    ? anomalyMatch.anomaly_type || "Detected"
+    : forecast?.anomaly_flag
+      ? titleCase(String(forecast?.anomaly_type || "Detected").replace(/_/g, " "))
+      : "None";
 
   const { observedSeries, forecastSeries } = useMemo(
     () => buildForecastSeries(selectedFeature, forecast, status),
     [selectedFeature, forecast, status]
   );
+  const visibleForecastSeries = futureForecastEnabled ? forecastSeries : [];
 
   const recommendations = useMemo(() => {
     const seed = Array.isArray(forecast?.recommended_actions) && forecast.recommended_actions.length
@@ -313,16 +337,47 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
           <h3>{villageName}</h3>
           <p>{mandal}, {district}</p>
         </div>
-        <div className={`status-pill status-${alertStatus}`}>
-          {titleCase(alertStatus)}
+        <div className="village-action-header-controls">
+          <div className={`status-pill status-${alertStatus}`}>
+            {titleCase(alertStatus)}
+          </div>
+          <div className="prediction-mode-toggle" role="group" aria-label="Prediction mode">
+            <button
+              type="button"
+              className={predictionMode === "batch" ? "active" : ""}
+              onClick={() => setPredictionMode("batch")}
+            >
+              Fast
+            </button>
+            <button
+              type="button"
+              className={predictionMode === "live" ? "active" : ""}
+              onClick={() => setPredictionMode("live")}
+              disabled={!aiPredictionEnabled}
+              title={!aiPredictionEnabled ? "Enable AI prediction to use Live mode." : "Use live model inference"}
+            >
+              Live AI
+            </button>
+          </div>
         </div>
       </div>
 
-      {loading && <div className="village-action-loading">Loading live forecast and alerts...</div>}
+      {loading && (
+        <div className="village-action-loading">
+          Loading {futureForecastEnabled ? (effectiveMode === "live" ? "live AI prediction" : "batch prediction") : "observed history"} and alerts...
+        </div>
+      )}
       {error && <div className="village-action-error">{error}</div>}
 
       {!loading && !error && (
         <>
+          <div className="prediction-mode-note">
+            {futureForecastEnabled ? (
+              <>Display mode: <strong>{effectiveMode === "live" ? "Live AI inference" : "Fast batch snapshot"}</strong></>
+            ) : (
+              <>AI Prediction is <strong>OFF</strong>. Future forecast is hidden until you turn it on.</>
+            )}
+          </div>
           <div className="village-action-metrics">
             <div>
               <small>Current Depth</small>
@@ -338,11 +393,11 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
             </div>
             <div>
               <small>Anomaly</small>
-              <strong>{anomalyMatch ? anomalyMatch.anomaly_type || "Detected" : "None"}</strong>
+              <strong>{anomalyLabel}</strong>
             </div>
           </div>
 
-          <ForecastLineChart observedSeries={observedSeries} forecastSeries={forecastSeries} />
+          <ForecastLineChart observedSeries={observedSeries} forecastSeries={visibleForecastSeries} />
 
           <div className="village-forecast-summary">
             <div>
@@ -351,7 +406,7 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
             </div>
             <div>
               <small>Future months</small>
-              <strong>{forecastSeries.length || 3}</strong>
+              <strong>{futureForecastEnabled ? visibleForecastSeries.length || 3 : 0}</strong>
             </div>
             <div>
               <small>Alert level</small>
@@ -379,6 +434,11 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
                 Anomaly score {Number(anomalyMatch.anomaly_score ?? 0).toFixed(2)} detected at {anomalyMatch.detected_at}
               </p>
             )}
+            {!anomalyMatch && forecast?.anomaly_flag && (
+              <p className="alert-card-note">
+                Live anomaly score {Number(forecast.anomaly_score ?? 0).toFixed(2)} flagged by the model.
+              </p>
+            )}
           </div>
 
           <div className="recommendation-card">
@@ -390,9 +450,9 @@ export function VillageActionPanel({ selectedFeature, aiPredictionEnabled = true
             </ul>
           </div>
 
-          {forecastSeries.length > 0 && (
+          {futureForecastEnabled && visibleForecastSeries.length > 0 && (
             <div className="forecast-table">
-              {forecastSeries.map((item) => (
+              {visibleForecastSeries.map((item) => (
                 <div key={`${item.forecast_date}-${item.groundwater_depth}`} className="forecast-table-row">
                   <span>{formatMonthLabel(item.forecast_date)}</span>
                   <strong>{formatDepth(item.groundwater_depth)}</strong>

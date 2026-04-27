@@ -1,21 +1,12 @@
 import L from "leaflet";
+import { buildDistrictVillageKey, normalizeDistrictVillageKeyPart } from "./key";
 
 export function normalizeLocationName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/\(.*?\)/g, "")
-    .replace(/\./g, "")
-    .replace(/\s+/g, "")
-    .replace(/[^a-z0-9]+/g, "")
-    .trim();
+  return normalizeDistrictVillageKeyPart(value);
 }
 
 export function buildLocationKey(district, mandal, villageName = "") {
-  return [
-    normalizeLocationName(district),
-    normalizeLocationName(mandal),
-    normalizeLocationName(villageName)
-  ].join("|");
+  return buildDistrictVillageKey(district, mandal, villageName);
 }
 
 export function geometryCenter(geometry) {

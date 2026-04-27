@@ -83,6 +83,7 @@ services:
       context: ..
       dockerfile: frontend/Dockerfile
       args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
         VITE_API_BASE: ${VITE_API_BASE:-/api}
         VITE_ENABLE_LIVE_API: ${VITE_ENABLE_LIVE_API:-true}
         VITE_LOCAL_DATA_ONLY: ${VITE_LOCAL_DATA_ONLY:-false}

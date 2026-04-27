@@ -49,6 +49,8 @@ class PreparedData:
 
 PREDICTIONS_GEOJSON_PATH = DATA_EXPORTS_DIR / "map_data_predictions.geojson"
 FRONTEND_PREDICTIONS_GEOJSON_PATH = REPO_ROOT / "frontend" / "public" / "data" / "map_data_predictions.geojson"
+TRAIN_READY_EXPORT_PATH = DATA_EXPORTS_DIR / "final_dataset_train_ready.csv"
+TRAIN_READY_OUTPUT_PATH = REPO_ROOT / "output" / "final_dataset_train_ready.csv"
 
 
 def ensure_dirs() -> None:
@@ -56,6 +58,7 @@ def ensure_dirs() -> None:
     DATA_PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     DATA_EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+    TRAIN_READY_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def _find_file(patterns: list[str], root: Path, suffixes: tuple[str, ...]) -> Path | None:
@@ -66,6 +69,42 @@ def _find_file(patterns: list[str], root: Path, suffixes: tuple[str, ...]) -> Pa
         if any(p in name for p in patterns):
             return path
     return None
+
+
+def _read_tabular_with_fallback(path: Path, raw_dir: Path, patterns: list[str]) -> pd.DataFrame:
+    suffix = path.suffix.lower()
+    if suffix == ".csv":
+        return pd.read_csv(path)
+    if suffix in {".xlsx", ".xls"}:
+        try:
+            return pd.read_excel(path)
+        except ImportError:
+            csv_candidate = _find_file(patterns, raw_dir, (".csv",))
+            if csv_candidate:
+                warnings.warn(
+                    f"openpyxl unavailable. Falling back to CSV source {csv_candidate.name} for {path.name}.",
+                )
+                return pd.read_csv(csv_candidate)
+            warnings.warn(
+                f"openpyxl unavailable and no CSV fallback found for {path.name}; using defaults.",
+            )
+            return pd.DataFrame()
+        except Exception as exc:
+            warnings.warn(f"Failed to read {path.name}: {exc}. Using defaults.")
+            return pd.DataFrame()
+    warnings.warn(f"Unsupported tabular source {path.name}; using defaults.")
+    return pd.DataFrame()
+
+
+def _safe_to_parquet(df: pd.DataFrame, path: Path, index: bool = False) -> None:
+    try:
+        df.to_parquet(path, index=index)
+    except Exception as exc:
+        csv_fallback = path.with_suffix(".csv")
+        warnings.warn(
+            f"Parquet export unavailable for {path.name}: {exc}. Wrote CSV fallback to {csv_fallback.name}.",
+        )
+        df.to_csv(csv_fallback, index=index)
 
 
 def _read_vector_from_zip(zip_path: Path, name_hint: str | None = None) -> gpd.GeoDataFrame:
@@ -420,66 +459,68 @@ def _load_excel_features(raw_dir: Path, villages: gpd.GeoDataFrame) -> pd.DataFr
         .to_dict()
     )
 
-    pumping_path = _find_file(["pumping"], raw_dir, (".xlsx", ".xls"))
-    piezo_path = _find_file(["pzwater", "waterlevel", "piez"], raw_dir, (".xlsx", ".xls"))
+    pumping_path = _find_file(["pumping"], raw_dir, (".xlsx", ".xls", ".csv"))
+    piezo_path = _find_file(["pzwater", "waterlevel", "piez"], raw_dir, (".xlsx", ".xls", ".csv"))
 
     pump_df = pd.DataFrame(columns=["village_id", "pumping_rate"])
     if pumping_path:
-        pdf = pd.read_excel(pumping_path)
-        pdf.columns = [str(c).strip().lower() for c in pdf.columns]
-        id_col = _pick_col(list(pdf.columns), ["village_id", "villageid", "id"])
-        village_col = _pick_col(list(pdf.columns), ["village", "name"])
-        pump_col = _pick_col(list(pdf.columns), ["pumping", "draft", "rate"])
-        if pump_col:
-            fields = [pump_col]
-            if id_col:
-                fields.append(id_col)
-            if village_col:
-                fields.append(village_col)
-            temp = pdf[fields].copy()
-            temp["pumping_rate"] = pd.to_numeric(temp[pump_col], errors="coerce")
-            if id_col:
-                temp["village_id"] = pd.to_numeric(temp[id_col], errors="coerce")
-            else:
-                temp["village_id"] = np.nan
-            if village_col:
-                temp["village_name_norm"] = temp[village_col].astype(str).str.lower().str.strip()
-                temp.loc[temp["village_id"].isna(), "village_id"] = temp.loc[
-                    temp["village_id"].isna(), "village_name_norm"
-                ].map(village_lookup)
-            temp["pumping_rate"] = pd.to_numeric(temp["pumping_rate"], errors="coerce")
-            temp = temp.dropna(subset=["pumping_rate", "village_id"])
-            temp["village_id"] = temp["village_id"].astype(int)
-            pump_df = temp.groupby("village_id", as_index=False)["pumping_rate"].mean()
+        pdf = _read_tabular_with_fallback(pumping_path, raw_dir=raw_dir, patterns=["pumping"])
+        if not pdf.empty:
+            pdf.columns = [str(c).strip().lower() for c in pdf.columns]
+            id_col = _pick_col(list(pdf.columns), ["village_id", "villageid", "id"])
+            village_col = _pick_col(list(pdf.columns), ["village", "name"])
+            pump_col = _pick_col(list(pdf.columns), ["pumping", "draft", "rate"])
+            if pump_col:
+                fields = [pump_col]
+                if id_col:
+                    fields.append(id_col)
+                if village_col:
+                    fields.append(village_col)
+                temp = pdf[fields].copy()
+                temp["pumping_rate"] = pd.to_numeric(temp[pump_col], errors="coerce")
+                if id_col:
+                    temp["village_id"] = pd.to_numeric(temp[id_col], errors="coerce")
+                else:
+                    temp["village_id"] = np.nan
+                if village_col:
+                    temp["village_name_norm"] = temp[village_col].astype(str).str.lower().str.strip()
+                    temp.loc[temp["village_id"].isna(), "village_id"] = temp.loc[
+                        temp["village_id"].isna(), "village_name_norm"
+                    ].map(village_lookup)
+                temp["pumping_rate"] = pd.to_numeric(temp["pumping_rate"], errors="coerce")
+                temp = temp.dropna(subset=["pumping_rate", "village_id"])
+                temp["village_id"] = temp["village_id"].astype(int)
+                pump_df = temp.groupby("village_id", as_index=False)["pumping_rate"].mean()
 
     pz_df = pd.DataFrame(columns=["village_id", "groundwater_level"])
     if piezo_path:
-        zdf = pd.read_excel(piezo_path)
-        zdf.columns = [str(c).strip().lower() for c in zdf.columns]
-        id_col = _pick_col(list(zdf.columns), ["village_id", "villageid", "id"])
-        village_col = _pick_col(list(zdf.columns), ["village", "location", "name"])
-        level_col = _pick_col(list(zdf.columns), ["water level", "groundwater", "depth", "wl"])
-        if level_col:
-            fields = [level_col]
-            if id_col:
-                fields.append(id_col)
-            if village_col:
-                fields.append(village_col)
-            temp = zdf[fields].copy()
-            temp["groundwater_level"] = pd.to_numeric(temp[level_col], errors="coerce")
-            if id_col:
-                temp["village_id"] = pd.to_numeric(temp[id_col], errors="coerce")
-            else:
-                temp["village_id"] = np.nan
-            if village_col:
-                temp["village_name_norm"] = temp[village_col].astype(str).str.lower().str.strip()
-                temp.loc[temp["village_id"].isna(), "village_id"] = temp.loc[
-                    temp["village_id"].isna(), "village_name_norm"
-                ].map(village_lookup)
-            temp["groundwater_level"] = pd.to_numeric(temp["groundwater_level"], errors="coerce")
-            temp = temp.dropna(subset=["groundwater_level", "village_id"])
-            temp["village_id"] = temp["village_id"].astype(int)
-            pz_df = temp.groupby("village_id", as_index=False)["groundwater_level"].mean()
+        zdf = _read_tabular_with_fallback(piezo_path, raw_dir=raw_dir, patterns=["pzwater", "waterlevel", "piez"])
+        if not zdf.empty:
+            zdf.columns = [str(c).strip().lower() for c in zdf.columns]
+            id_col = _pick_col(list(zdf.columns), ["village_id", "villageid", "id"])
+            village_col = _pick_col(list(zdf.columns), ["village", "location", "name"])
+            level_col = _pick_col(list(zdf.columns), ["water level", "groundwater", "depth", "wl"])
+            if level_col:
+                fields = [level_col]
+                if id_col:
+                    fields.append(id_col)
+                if village_col:
+                    fields.append(village_col)
+                temp = zdf[fields].copy()
+                temp["groundwater_level"] = pd.to_numeric(temp[level_col], errors="coerce")
+                if id_col:
+                    temp["village_id"] = pd.to_numeric(temp[id_col], errors="coerce")
+                else:
+                    temp["village_id"] = np.nan
+                if village_col:
+                    temp["village_name_norm"] = temp[village_col].astype(str).str.lower().str.strip()
+                    temp.loc[temp["village_id"].isna(), "village_id"] = temp.loc[
+                        temp["village_id"].isna(), "village_name_norm"
+                    ].map(village_lookup)
+                temp["groundwater_level"] = pd.to_numeric(temp["groundwater_level"], errors="coerce")
+                temp = temp.dropna(subset=["groundwater_level", "village_id"])
+                temp["village_id"] = temp["village_id"].astype(int)
+                pz_df = temp.groupby("village_id", as_index=False)["groundwater_level"].mean()
 
     merged = village_key[["village_id"]].drop_duplicates().merge(pump_df, on="village_id", how="left").merge(
         pz_df, on="village_id", how="left"
@@ -532,7 +573,7 @@ def build_feature_table(raw_dir: Path = DATA_RAW_DIR) -> PreparedData:
     table["aquifer_storage_factor"] = aquifer_types.map(_aquifer_storage_factor)
 
     features_path = DATA_PROCESSED_DIR / "village_features.parquet"
-    table.to_parquet(features_path, index=False)
+    _safe_to_parquet(table, features_path, index=False)
 
     villages_geo = villages.merge(
         table.drop(columns=["village_name", "district", "mandal"], errors="ignore"),
@@ -543,6 +584,159 @@ def build_feature_table(raw_dir: Path = DATA_RAW_DIR) -> PreparedData:
 
     trends.to_csv(DATA_EXPORTS_DIR / "lulc_trends.csv", index=False)
     return PreparedData(villages=villages_geo, train_df=table, trends_df=trends)
+
+
+def ensure_training_schema(frame: pd.DataFrame) -> pd.DataFrame:
+    train_df = frame.copy()
+    rename_map = {
+        "village_id": "Village_ID",
+        "village_name": "Village_Name",
+        "district": "District",
+        "mandal": "Mandal",
+        "water_pct": "Water%",
+        "trees_pct": "Trees%",
+        "crops_pct": "Crops%",
+        "built_area_pct": "Built%",
+        "bare_ground_pct": "Bare%",
+        "rangeland_pct": "Rangeland%",
+        "pumping_rate": "Pumping",
+        "groundwater_level": "GW_Level",
+        "soil_type": "Soil",
+        "soil": "Soil",
+        "elevation_dem": "Elevation",
+        "elevation": "Elevation",
+        "dem": "Elevation",
+        "extraction": "Pumping",
+    }
+    train_df = train_df.rename(columns={src: dst for src, dst in rename_map.items() if src in train_df.columns})
+
+    village_id = _series_or_default(train_df, "Village_ID", default=np.nan).fillna(
+        _series_or_default(train_df, "village_id", default=np.nan)
+    )
+    missing_id = village_id.isna()
+    if missing_id.any():
+        max_existing = int(village_id.dropna().max()) if village_id.notna().any() else 0
+        village_id.loc[missing_id] = np.arange(max_existing + 1, max_existing + 1 + int(missing_id.sum()))
+    train_df["Village_ID"] = village_id.astype(int)
+
+    if "Village_Name" in train_df.columns:
+        village_name = train_df["Village_Name"]
+    elif "village_name" in train_df.columns:
+        village_name = train_df["village_name"]
+    else:
+        village_name = train_df["Village_ID"].astype(str)
+    train_df["Village_Name"] = village_name.fillna("").astype(str).str.strip()
+    train_df.loc[train_df["Village_Name"] == "", "Village_Name"] = train_df.loc[train_df["Village_Name"] == "", "Village_ID"].astype(str)
+
+    if "District" in train_df.columns:
+        district = train_df["District"]
+    elif "district" in train_df.columns:
+        district = train_df["district"]
+    else:
+        district = pd.Series("Unknown", index=train_df.index)
+    train_df["District"] = district.fillna("Unknown").astype(str).str.strip().replace("", "Unknown")
+
+    if "Mandal" in train_df.columns:
+        mandal = train_df["Mandal"]
+    elif "mandal" in train_df.columns:
+        mandal = train_df["mandal"]
+    else:
+        mandal = pd.Series("Unknown", index=train_df.index)
+    train_df["Mandal"] = mandal.fillna("Unknown").astype(str).str.strip().replace("", "Unknown")
+
+    if "State" in train_df.columns:
+        state = train_df["State"]
+    elif "state" in train_df.columns:
+        state = train_df["state"]
+    else:
+        state = pd.Series("Andhra Pradesh", index=train_df.index)
+    train_df["State"] = state.fillna("Andhra Pradesh").astype(str).str.strip().replace("", "Andhra Pradesh")
+
+    percentage_defaults = {
+        "Water%": 0.0,
+        "Trees%": 0.0,
+        "Crops%": 0.0,
+        "Built%": 0.0,
+        "Bare%": 0.0,
+        "Rangeland%": 0.0,
+    }
+    for col, default in percentage_defaults.items():
+        train_df[col] = _series_or_default(train_df, col, default=default)
+
+    pumping = _series_or_default(train_df, "Pumping", default=np.nan)
+    pumping = pumping.fillna(_series_or_default(train_df, "Extraction", default=np.nan))
+    pumping = pumping.fillna(_series_or_default(train_df, "pumping_estimated_draft_ha_m", default=np.nan))
+    train_df["Pumping"] = pumping.fillna(0.0)
+
+    gw_level = _series_or_default(train_df, "GW_Level", default=np.nan)
+    gw_level = gw_level.fillna(_series_or_default(train_df, "groundwater_level", default=np.nan))
+    gw_level = gw_level.fillna(_series_or_default(train_df, "depth", default=np.nan))
+    gw_median = float(gw_level.median()) if gw_level.notna().any() else 10.0
+    train_df["GW_Level"] = gw_level.fillna(gw_median if np.isfinite(gw_median) else 10.0)
+
+    elevation = _series_or_default(train_df, "Elevation", default=np.nan)
+    elevation = elevation.fillna(_series_or_default(train_df, "obs_elevation_msl_mean", default=np.nan))
+    elevation = elevation.fillna(_series_or_default(train_df, "obs_elevation_msl", default=np.nan))
+    elevation = elevation.fillna(_series_or_default(train_df, "elevation_min", default=np.nan))
+    elevation = elevation.fillna(_series_or_default(train_df, "elevation_max", default=np.nan))
+    train_df["Elevation"] = elevation.fillna(0.0)
+
+    if "Soil" in train_df.columns:
+        soil = train_df["Soil"]
+    elif "soil" in train_df.columns:
+        soil = train_df["soil"]
+    elif "soil_type" in train_df.columns:
+        soil = train_df["soil_type"]
+    else:
+        soil = pd.Series("unknown", index=train_df.index)
+    train_df["Soil"] = soil.fillna("unknown").astype(str).str.strip()
+    train_df.loc[train_df["Soil"] == "", "Soil"] = "unknown"
+    train_df["Soil_enc"] = train_df["Soil"].astype("category").cat.codes
+
+    base_cols = [
+        "Village_ID",
+        "Village_Name",
+        "District",
+        "Mandal",
+        "State",
+        "Water%",
+        "Trees%",
+        "Crops%",
+        "Built%",
+        "Bare%",
+        "Rangeland%",
+        "Pumping",
+        "GW_Level",
+        "Soil",
+        "Elevation",
+        "Soil_enc",
+    ]
+    optional_cols = [
+        col
+        for col in [
+            "pumping_functioning_wells",
+            "pumping_monsoon_draft_ha_m",
+            "tank_count",
+            "wells_total",
+            "elevation_min",
+            "elevation_max",
+            "flooded_vegetation_pct",
+            "obs_station_count",
+            "long_term_avg",
+            "trend_slope",
+            "seasonal_variation",
+            "aquifer_type",
+            "aquifer_storage_factor",
+            "infiltration_score",
+            "recharge_factor",
+            "groundwater_stress",
+            "recharge_index",
+            "extraction_stress",
+            "terrain_gradient",
+        ]
+        if col in train_df.columns
+    ]
+    return train_df[base_cols + optional_cols].copy()
 
 
 def _kriging_predict(train_xy: np.ndarray, train_values: np.ndarray, query_xy: np.ndarray) -> np.ndarray:
@@ -817,7 +1011,7 @@ def train_and_predict(data: PreparedData, kriging_strategy: str = "residual") ->
     FRONTEND_PREDICTIONS_GEOJSON_PATH.parent.mkdir(parents=True, exist_ok=True)
     export.to_file(PREDICTIONS_GEOJSON_PATH, driver="GeoJSON")
     export.to_file(FRONTEND_PREDICTIONS_GEOJSON_PATH, driver="GeoJSON")
-    export.drop(columns=["geometry"]).to_parquet(DATA_EXPORTS_DIR / "predictions.parquet", index=False)
+    _safe_to_parquet(export.drop(columns=["geometry"]), DATA_EXPORTS_DIR / "predictions.parquet", index=False)
 
     return export, metrics
 
@@ -840,6 +1034,11 @@ def run_pipeline(raw_dir: Path = DATA_RAW_DIR, kriging_strategy: str = "residual
     prepared = build_feature_table(raw_dir)
     export_gdf, metrics = train_and_predict(prepared, kriging_strategy=kriging_strategy)
     attach_trend_flags(export_gdf, prepared.trends_df)
+    train_ready = ensure_training_schema(prepared.train_df)
+    train_ready.to_csv(TRAIN_READY_EXPORT_PATH, index=False)
+    train_ready.to_csv(TRAIN_READY_OUTPUT_PATH, index=False)
+    metrics["train_ready_dataset"] = str(TRAIN_READY_OUTPUT_PATH)
+    metrics["train_ready_rows"] = int(len(train_ready))
     return metrics
 
 
@@ -847,6 +1046,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Groundwater AI pipeline")
     parser.add_argument("--raw-dir", type=Path, default=DATA_RAW_DIR)
     parser.add_argument("--kriging-strategy", choices=sorted(KRIGING_STRATEGIES), default="residual")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Explicit export mode. Keeps behavior deterministic and writes prediction artifacts.",
+    )
     return parser.parse_args()
 
 

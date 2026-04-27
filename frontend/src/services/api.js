@@ -1,4 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
+import { makeKey as buildLocationKey } from "../utils/key";
+
+const API_BASE = String(
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_BASE ||
+  "/api"
+).replace(/\/$/, "");
 const endpointCircuitOpen = new Set();
 const endpointCircuitReasons = new Map();
 const apiStatusSubscribers = new Set();
@@ -166,6 +172,29 @@ function forecastFromAnchor(anchor, target = null, months = 3) {
   return results;
 }
 
+function forecastYearlyFromAnchor(anchor, target = null, years = 2) {
+  if (!Number.isFinite(Number(anchor)) && !Number.isFinite(Number(target))) {
+    return [];
+  }
+  const base = Number.isFinite(Number(anchor)) ? Number(anchor) : Number(target);
+  const next = Number.isFinite(Number(target)) ? Number(target) : base;
+  const step = years > 0 ? (next - base) / years : 0;
+  const now = new Date();
+  const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+  const results = [];
+  for (let index = 1; index <= years; index += 1) {
+    const stamp = new Date(Date.UTC(yearStart.getUTCFullYear() + index, 0, 1));
+    const depth = Number((base + step * index).toFixed(3));
+    results.push({
+      forecast_date: stamp.toISOString().slice(0, 10),
+      predicted_groundwater_depth: depth,
+      predicted_lower: Number((depth - 0.8).toFixed(3)),
+      predicted_upper: Number((depth + 0.8).toFixed(3))
+    });
+  }
+  return results;
+}
+
 function observedSeriesFromFeature(feature, limit = 6) {
   const props = feature?.properties || {};
   const values = Array.isArray(props.monthly_depths_full) && props.monthly_depths_full.length
@@ -226,51 +255,271 @@ function recommendationTextForStatus(status, anomalyFlag = false) {
   ];
 }
 
-async function findLocalVillageFeature(villageId) {
-  const numericVillageId = Number(villageId);
-  const [mapData, villageData, finalData] = await Promise.all([
-    fetchJsonCached("/data/map_data_predictions.geojson"),
-    fetchJsonCached("/data/villages.geojson"),
-    fetchJsonCached("/data/final_dataset.json")
-  ]);
-  const finalDatasetNtr = await fetchJsonCached("/data/final_dataset_ntr.json");
+function toFiniteNumber(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
 
-  const searchCollections = [
-    Array.isArray(mapData?.features) ? mapData.features : [],
-    Array.isArray(villageData?.features) ? villageData.features : []
-  ];
-  for (const collection of searchCollections) {
-    const match = collection.find((feature) => Number(feature?.properties?.village_id) === numericVillageId);
-    if (match) return match;
+function pickFirstTextValue(...values) {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (!text) continue;
+    const normalized = text.toLowerCase();
+    if (["unknown", "na", "n/a", "null", "undefined", "-"].includes(normalized)) continue;
+    return text;
+  }
+  return null;
+}
+
+function pickPreferredPct(mapValue, boundaryValue, rowValue) {
+  const mapNumeric = toFiniteNumber(mapValue);
+  const boundaryNumeric = toFiniteNumber(boundaryValue);
+  const rowNumeric = toFiniteNumber(rowValue);
+  if (mapNumeric !== null && mapNumeric > 0) return Number(mapNumeric.toFixed(4));
+  if (boundaryNumeric !== null && boundaryNumeric > 0) return Number(boundaryNumeric.toFixed(4));
+  if (rowNumeric !== null && rowNumeric > 0) return Number(rowNumeric.toFixed(4));
+  if (mapNumeric !== null) return Number(mapNumeric.toFixed(4));
+  if (boundaryNumeric !== null) return Number(boundaryNumeric.toFixed(4));
+  if (rowNumeric !== null) return Number(rowNumeric.toFixed(4));
+  return 0;
+}
+
+function readRowLulcPercent(row, key) {
+  if (!row || typeof row !== "object") return null;
+  const aliases = {
+    water_pct: ["water_pct", "Water%", "water_2021%", "water_2021_pct"],
+    trees_pct: ["trees_pct", "Trees%", "trees_2021%", "trees_2021_pct"],
+    flooded_vegetation_pct: [
+      "flooded_vegetation_pct",
+      "flooded_vegetation_2021%",
+      "flooded_vegetation_2021_pct"
+    ],
+    crops_pct: ["crops_pct", "Crops%", "crops_2021%", "crops_2021_pct"],
+    built_area_pct: ["built_area_pct", "Built%", "built_2021%", "built_2021_pct"],
+    bare_ground_pct: ["bare_ground_pct", "Bare%", "bare_2021%", "bare_2021_pct"],
+    snow_ice_pct: ["snow_ice_pct", "snow_ice_2021%", "snow_ice_2021_pct"],
+    clouds_pct: ["clouds_pct", "clouds_2021%", "clouds_2021_pct"],
+    rangeland_pct: ["rangeland_pct", "Rangeland%", "rangeland_2021%", "rangeland_2021_pct"],
+  };
+  const candidates = aliases[key] || [key];
+  for (const candidate of candidates) {
+    const numeric = toFiniteNumber(row?.[candidate]);
+    if (numeric !== null) return numeric;
+  }
+  return null;
+}
+
+function buildFinalRowMaps(finalRows) {
+  const byId = new Map();
+  const byKey = new Map();
+  for (const row of finalRows) {
+    if (!row || typeof row !== "object") continue;
+    const district = row.District ?? row.district;
+    const mandal = row.Mandal ?? row.mandal;
+    const villageName = row.Village_Name ?? row.village_name ?? row.village;
+    const key = buildLocationKey(district, mandal, villageName);
+    const rowId = Number(row.Village_ID ?? row.village_id);
+    if (Number.isFinite(rowId) && !byId.has(rowId)) {
+      byId.set(rowId, row);
+    }
+    if (key && !byKey.has(key)) {
+      byKey.set(key, row);
+    }
+  }
+  return { byId, byKey };
+}
+
+function reconcileMapFeatureCollections(mapCollections, villageCollections, finalRows) {
+  const mapByKey = new Map();
+  const mapFeatures = mapCollections
+    .flatMap((collection) => (Array.isArray(collection?.features) ? collection.features : []))
+    .filter(Boolean);
+  for (const feature of mapFeatures) {
+    const props = feature?.properties || {};
+    const key = buildLocationKey(props.district, props.mandal, props.village_name);
+    if (key && !mapByKey.has(key)) {
+      mapByKey.set(key, feature);
+    }
   }
 
-  const fallbackRow = Array.isArray(finalData)
-    ? finalData.find((row) => Number(row?.Village_ID) === numericVillageId)
-    : null;
-  const fallbackRowNtr = Array.isArray(finalDatasetNtr)
-    ? finalDatasetNtr.find((row) => Number(row?.Village_ID) === numericVillageId)
-    : null;
-  const row = fallbackRow || fallbackRowNtr;
-  if (!row) return null;
+  const { byKey: rowByKey } = buildFinalRowMaps(finalRows);
+  const villageFeatures = villageCollections
+    .flatMap((collection) => (Array.isArray(collection?.features) ? collection.features : []))
+    .filter(Boolean);
+  const features = [];
+  const seenKeys = new Set();
+  const lulcKeys = [
+    "water_pct",
+    "trees_pct",
+    "flooded_vegetation_pct",
+    "crops_pct",
+    "built_area_pct",
+    "bare_ground_pct",
+    "snow_ice_pct",
+    "clouds_pct",
+    "rangeland_pct",
+  ];
+
+  for (const villageFeature of villageFeatures) {
+    const baseProps = villageFeature?.properties || {};
+    const locationKey = buildLocationKey(baseProps.district, baseProps.mandal, baseProps.village_name);
+    if (!locationKey || seenKeys.has(locationKey)) continue;
+    seenKeys.add(locationKey);
+    const mapProps = mapByKey.get(locationKey)?.properties || {};
+    const row = rowByKey.get(locationKey) || {};
+
+    const mergedProps = {
+      ...baseProps,
+      ...mapProps,
+      village_id: baseProps.village_id,
+      village_name: baseProps.village_name,
+      district: baseProps.district,
+      mandal: baseProps.mandal,
+      state: baseProps.state ?? mapProps.state ?? row.State ?? row.state ?? "Andhra Pradesh",
+      location_key: locationKey,
+      soil: pickFirstTextValue(baseProps.soil, row.soil, row.Soil, mapProps.soil),
+      soil_taxonomy: pickFirstTextValue(baseProps.soil_taxonomy, row.soil_taxonomy, row.Soil_Taxonomy, mapProps.soil_taxonomy),
+      soil_map_unit: pickFirstTextValue(baseProps.soil_map_unit, row.soil_map_unit, row.Soil_Map_Unit, mapProps.soil_map_unit),
+      dominant_crop_type: pickFirstTextValue(baseProps.dominant_crop_type, row.dominant_crop_type, mapProps.dominant_crop_type),
+    };
+
+    for (const key of lulcKeys) {
+      mergedProps[key] = pickPreferredPct(
+        mapProps[key],
+        baseProps[key],
+        readRowLulcPercent(row, key)
+      );
+    }
+
+    features.push({
+      type: "Feature",
+      geometry: villageFeature.geometry || mapByKey.get(locationKey)?.geometry || null,
+      properties: mergedProps
+    });
+  }
+
+  for (const mapFeature of mapFeatures) {
+    const props = mapFeature?.properties || {};
+    const key = buildLocationKey(props.district, props.mandal, props.village_name);
+    if (!key || seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    features.push(mapFeature);
+  }
+
+  return { type: "FeatureCollection", features };
+}
+
+let alignedLocalDataPromise = null;
+
+async function getAlignedLocalData() {
+  if (alignedLocalDataPromise) return alignedLocalDataPromise;
+  alignedLocalDataPromise = (async () => {
+    const [mapData, mapDataNtr, villageData, villageDataNtr, finalData, finalDatasetNtr] = await Promise.all([
+      fetchJsonCached("/data/map_data_predictions.geojson"),
+      fetchJsonCached("/data/map_data_predictions_ntr.geojson"),
+      fetchJsonCached("/data/villages.geojson"),
+      fetchJsonCached("/data/villages_ntr.geojson"),
+      fetchJsonCached("/data/final_dataset.json"),
+      fetchJsonCached("/data/final_dataset_ntr.json")
+    ]);
+    const finalRows = [
+      ...(Array.isArray(finalData) ? finalData : []),
+      ...(Array.isArray(finalDatasetNtr) ? finalDatasetNtr : [])
+    ].filter((row) => row && typeof row === "object");
+    const mapCollection = reconcileMapFeatureCollections(
+      [mapData, mapDataNtr],
+      [villageData, villageDataNtr],
+      finalRows
+    );
+    return { mapCollection, finalRows };
+  })();
+  return alignedLocalDataPromise;
+}
+
+async function findLocalVillageFeature(villageId) {
+  const numericVillageId = Number(villageId);
+  const { mapCollection, finalRows } = await getAlignedLocalData();
+
+  const featureById = new Map();
+  const featureByKey = new Map();
+  const features = Array.isArray(mapCollection?.features) ? mapCollection.features : [];
+  for (const feature of features) {
+    const props = feature?.properties || {};
+    const featureId = Number(props.village_id);
+    const featureKey = buildLocationKey(props.district, props.mandal, props.village_name);
+    if (Number.isFinite(featureId) && !featureById.has(featureId)) {
+      featureById.set(featureId, feature);
+    }
+    if (featureKey && !featureByKey.has(featureKey)) {
+      featureByKey.set(featureKey, feature);
+    }
+  }
+
+  const { byId: rowById, byKey: rowByKey } = buildFinalRowMaps(finalRows);
+
+  const row = rowById.get(numericVillageId) || null;
+  const idFeature = Number.isFinite(numericVillageId) ? featureById.get(numericVillageId) : null;
+  const idFeatureKey = buildLocationKey(
+    idFeature?.properties?.district,
+    idFeature?.properties?.mandal,
+    idFeature?.properties?.village_name
+  );
+  const resolvedRow = (idFeatureKey && rowByKey.get(idFeatureKey)) || row;
+  const rowKey = buildLocationKey(
+    resolvedRow?.District ?? resolvedRow?.district,
+    resolvedRow?.Mandal ?? resolvedRow?.mandal,
+    resolvedRow?.Village_Name ?? resolvedRow?.village_name ?? resolvedRow?.village
+  );
+  const matchedFeature = idFeature || (rowKey && featureByKey.get(rowKey)) || null;
+  if (matchedFeature) return matchedFeature;
+  if (!resolvedRow) return null;
 
   return {
     type: "Feature",
     geometry: null,
     properties: {
-      village_id: row.Village_ID,
-      village_name: row.Village_Name,
-      district: row.District,
-      mandal: row.Mandal,
-      actual_last_month: row.actual_last_month ?? row.GW_Level,
-      long_term_avg: row.long_term_avg,
-      monthly_depths: row.monthly_depths,
-      monthly_depths_dates: row.monthly_depths_dates,
-      monthly_depths_full: row.monthly_depths_full,
-      monthly_depths_full_dates: row.monthly_depths_full_dates,
-      predicted_groundwater_level: row.GW_Level,
-      risk_level: row.risk_level,
-      confidence: row.confidence_score
+      village_id: resolvedRow.Village_ID ?? resolvedRow.village_id,
+      village_name: resolvedRow.Village_Name ?? resolvedRow.village_name ?? resolvedRow.village,
+      district: resolvedRow.District ?? resolvedRow.district,
+      mandal: resolvedRow.Mandal ?? resolvedRow.mandal,
+      location_key: rowKey,
+      actual_last_month: resolvedRow.actual_last_month ?? resolvedRow.GW_Level,
+      long_term_avg: resolvedRow.long_term_avg,
+      monthly_depths: resolvedRow.monthly_depths,
+      monthly_depths_dates: resolvedRow.monthly_depths_dates,
+      monthly_depths_full: resolvedRow.monthly_depths_full,
+      monthly_depths_full_dates: resolvedRow.monthly_depths_full_dates,
+      predicted_groundwater_level: resolvedRow.GW_Level,
+      risk_level: resolvedRow.risk_level,
+      confidence: resolvedRow.confidence_score
     }
+  };
+}
+
+function mergeFeatureCollections(collections) {
+  const byLocation = new Map();
+  const byVillageId = new Map();
+  for (const collection of collections) {
+    const features = Array.isArray(collection?.features) ? collection.features : [];
+    for (const feature of features) {
+      const props = feature?.properties || {};
+      const villageId = Number(props.village_id);
+      const key = buildLocationKey(props.district, props.mandal, props.village_name);
+      if (Number.isFinite(villageId) && !byVillageId.has(villageId)) {
+        byVillageId.set(villageId, feature);
+      }
+      if (key && !byLocation.has(key)) {
+        byLocation.set(key, feature);
+      }
+    }
+  }
+  return {
+    type: "FeatureCollection",
+    features: Array.from(byLocation.values()).concat(
+      Array.from(byVillageId.entries())
+        .filter(([id]) => !Array.from(byLocation.values()).some((feature) => Number(feature?.properties?.village_id) === id))
+        .map(([, feature]) => feature)
+    )
   };
 }
 
@@ -293,6 +542,16 @@ async function buildVillageForecastFallback(villageId) {
   const forecast_3_month = Array.isArray(props.forecast_3_month) && props.forecast_3_month.length
     ? props.forecast_3_month
     : forecastFromAnchor(currentDepth, forecastAnchor, 3);
+  const forecast_yearly = Array.isArray(props.forecast_yearly) && props.forecast_yearly.length
+    ? props.forecast_yearly
+    : forecastYearlyFromAnchor(currentDepth, forecastAnchor, 2);
+  const predictedDepth = Number.isFinite(Number(props.predicted_groundwater_level))
+    ? Number(props.predicted_groundwater_level)
+    : Number.isFinite(Number(forecastAnchor))
+      ? Number(forecastAnchor)
+      : Number.isFinite(Number(currentDepth))
+        ? Number(currentDepth)
+        : null;
   const riskLevel = titleCaseRisk(normalizeRiskLevel(props.risk_level, currentDepth));
   const alertStatus = buildAlertStatus(riskLevel, Boolean(props.anomaly_flag));
   return {
@@ -301,14 +560,21 @@ async function buildVillageForecastFallback(villageId) {
     district: props.district || "",
     mandal: props.mandal || "",
     model_name: "krishna-fallback-model",
+    mode: "batch_fallback",
+    current_depth: Number.isFinite(Number(currentDepth)) ? Number(currentDepth) : null,
+    predicted_groundwater_level: Number.isFinite(Number(predictedDepth)) ? Number(predictedDepth) : null,
     confidence_score: Number.isFinite(Number(props.confidence_score ?? props.confidence))
       ? Number(props.confidence_score ?? props.confidence)
       : 0,
     risk_level: riskLevel,
     alert_status: alertStatus,
+    anomaly_flag: Boolean(props.anomaly_flag),
+    anomaly_score: Number.isFinite(Number(props.anomaly_score)) ? Number(props.anomaly_score) : null,
+    anomaly_type: props.anomaly_type || null,
     trend_direction: computeTrendDirection(observedSeries),
     observed_series: observedSeries,
     forecast_3_month,
+    forecast_yearly,
     recommended_actions: recommendationTextForStatus(alertStatus, Boolean(props.anomaly_flag)),
   };
 }
@@ -320,8 +586,9 @@ async function buildVillageStatusFallback(villageId) {
     village_id: forecast.village_id,
     current_depth: forecast.observed_series.length
       ? forecast.observed_series[forecast.observed_series.length - 1].groundwater_depth
-      : null,
+      : forecast.current_depth,
     forecast_3_month: forecast.forecast_3_month,
+    forecast_yearly: forecast.forecast_yearly,
     anomaly_flags: [
       `Risk level: ${forecast.risk_level}`,
       ...(forecast.alert_status === "critical" ? ["Urgent advisory required"] : []),
@@ -439,6 +706,18 @@ const fetchSafe = async (url, defaultValue = null, options = {}) => {
 };
 
 export const api = {
+  getPrediction: async (villageId, options = {}) => {
+    const mode = String(options.mode || "batch").toLowerCase() === "live" ? "live" : "batch";
+    const asOf = options.asOf ? `&as_of=${encodeURIComponent(options.asOf)}` : "";
+    const remote = await fetchSafe(
+      `${API_BASE}/predict?village_id=${encodeURIComponent(villageId)}&mode=${mode}${asOf}`,
+      null,
+      { breakerKey: "predict", live: LIVE_API_ENABLED }
+    );
+    if (remote && Number.isFinite(Number(remote.village_id))) return remote;
+    return (await buildVillageForecastFallback(villageId)) || null;
+  },
+
   getMapData: async () => {
     const remote = await fetchSafe(
       `${API_BASE}/map-data`,
@@ -446,8 +725,15 @@ export const api = {
       { breakerKey: "mapData", live: LIVE_API_ENABLED }
     );
     if (remote && Array.isArray(remote.features)) return remote;
-    const local = await fetchJsonCached("/data/map_data_predictions.geojson");
-    return local || { type: "FeatureCollection", features: [] };
+    const [krishna, ntr] = await Promise.all([
+      fetchJsonCached("/data/map_data_predictions.geojson"),
+      fetchJsonCached("/data/map_data_predictions_ntr.geojson"),
+    ]);
+    if (krishna || ntr) {
+      const { mapCollection } = await getAlignedLocalData();
+      return mapCollection;
+    }
+    return { type: "FeatureCollection", features: [] };
   },
 
   getRechargeRecommendations: async () => {
@@ -471,6 +757,7 @@ export const api = {
       village_id: Number(villageId),
       current_depth: null,
       forecast_3_month: [],
+      forecast_yearly: [],
       anomaly_flags: [],
       confidence_score: 0,
       risk_level: "Warning",
@@ -492,6 +779,7 @@ export const api = {
       model_name: "krishna-fallback-model",
       observed_series: [],
       forecast_3_month: [],
+      forecast_yearly: [],
       confidence_score: 0,
       risk_level: "Warning",
       alert_status: "warning",

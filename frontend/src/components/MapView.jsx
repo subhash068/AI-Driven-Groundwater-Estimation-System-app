@@ -42,6 +42,13 @@ function districtToSlug(value) {
   return normalizeDistrictName(value).toLowerCase().replace(/\s+/g, "_");
 }
 
+function normalizeVillageLabel(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^\d+\s*[-._:/]?\s*/u, "")
+    .replace(/\s+/g, " ");
+}
+
 function isPointGeometry(feature) {
   return String(feature?.geometry?.type || "").toLowerCase() === "point";
 }
@@ -87,8 +94,20 @@ function villagePointToLayer(feature, latlng) {
   });
 }
 
-function villageInfoHtml(feature) {
+function firstValidText(...values) {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (!text) continue;
+    const normalized = text.toLowerCase();
+    if (["unknown", "na", "n/a", "null", "undefined", "-"].includes(normalized)) continue;
+    return text;
+  }
+  return "NA";
+}
+
+function villageInfoHtml(feature, datasetRow = null) {
   const props = feature?.properties || {};
+  const row = datasetRow || {};
   const gwl = Number(
     props.groundwater_estimate ??
     props.predicted_groundwater_level ??
@@ -97,8 +116,18 @@ function villageInfoHtml(feature) {
     props.depth ??
     NaN
   );
-  const confidence = Number(props.confidence ?? props.confidence_score ?? 0);
-  const risk = String(props.risk_level || "Unknown");
+  const confidenceRaw = Number(props.confidence ?? props.confidence_score);
+  const confidence = Number.isFinite(confidenceRaw)
+    ? Math.max(0, Math.min(100, confidenceRaw <= 1 ? confidenceRaw * 100 : confidenceRaw))
+    : NaN;
+  const normalizedRisk = normalizeRiskLevel(props.risk_level, gwl);
+  const risk = normalizedRisk === "critical"
+    ? "Critical"
+    : normalizedRisk === "warning"
+      ? "Warning"
+      : normalizedRisk === "safe"
+        ? "Safe"
+        : "Unknown";
   const alert = String(props.alert_status || "").trim();
   const recommendation = Array.isArray(props.recommended_actions) && props.recommended_actions.length
     ? props.recommended_actions[0]
@@ -108,6 +137,24 @@ function villageInfoHtml(feature) {
   const district = String(props.district || "Unknown");
   const mandal = String(props.mandal || "Unknown");
   const village = String(props.village_name || props.village || "Unknown");
+  const soilType = firstValidText(
+    row.soil_taxonomy,
+    row.Soil_Taxonomy,
+    row.soil,
+    row.Soil,
+    props.soil_taxonomy,
+    props.Soil_Taxonomy,
+    props.soil,
+    props.Soil
+  );
+  const cropType = firstValidText(
+    row.dominant_crop_type,
+    row.Dominant_Crop_Type,
+    row.crop_type,
+    props.dominant_crop_type,
+    props.Dominant_Crop_Type,
+    props.crop_type
+  );
   return `
     <div style="min-width: 220px">
       <strong>Village:</strong> ${village}<br/>
@@ -115,8 +162,10 @@ function villageInfoHtml(feature) {
       <strong>District:</strong> ${district}<br/>
       <strong>Mandal:</strong> ${mandal}<br/>
       <strong>Groundwater estimate:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
+      <strong>Soil type:</strong> ${soilType}<br/>
+      <strong>Crop type:</strong> ${cropType}<br/>
       <strong>Risk level:</strong> ${risk}<br/>
-      <strong>Confidence:</strong> ${Number.isFinite(confidence) ? `${confidence.toFixed(0)}%` : "NA"}<br/>
+      <strong>Confidence:</strong> ${Number.isFinite(confidence) ? `${confidence.toFixed(2)}%` : "NA"}<br/>
       ${alert ? `<strong>Alert:</strong> ${alert}<br/>` : ""}
       ${nextForecast ? `<strong>Next forecast:</strong> ${Number.isFinite(Number(nextForecast.predicted_groundwater_depth)) ? `${Number(nextForecast.predicted_groundwater_depth).toFixed(2)} m` : "NA"}<br/>` : ""}
       ${recommendation ? `<strong>Recommendation:</strong> ${recommendation}` : ""}
@@ -553,7 +602,9 @@ export function MapView({
         const districtSlug = districtToSlug(selectedDistrict);
         const candidatePaths = districtSlug === "krishna"
           ? ["/data/wells_krishna.json"]
-          : [];
+          : districtSlug === "ntr"
+            ? ["/data/wells_ntr.json", "/data/wells_krishna.json"]
+            : ["/data/wells_krishna.json"];
 
         let features = [];
         for (const path of candidatePaths) {
@@ -918,13 +969,58 @@ export function MapView({
     `;
   };
 
+  const villageWellStatsByKey = useMemo(() => {
+    const out = new Map();
+    const features = Array.isArray(filteredGeojson?.features) ? filteredGeojson.features : [];
+    features.forEach((feature) => {
+      const props = feature?.properties || {};
+      const key = buildLocationKey(props.district, props.mandal, props.village_name);
+      if (!key || out.has(key)) return;
+      out.set(key, props);
+    });
+    return out;
+  }, [filteredGeojson]);
+
   const wellsGeojson = useMemo(() => {
     if (!showWells || !wellPoints.length) return null;
+    const features = wellPoints.map((feature) => {
+      const props = feature?.properties || {};
+      const lookupKey = buildLocationKey(
+        props.district,
+        props.mandal,
+        normalizeVillageLabel(props.village)
+      );
+      const villageProps = lookupKey ? villageWellStatsByKey.get(lookupKey) : null;
+      if (!villageProps) return feature;
+      const villageWellsTotal = Number(villageProps.wells_total);
+      const villageFunctioning = Number(villageProps.pumping_functioning_wells);
+      const inferredWorkingPct =
+        Number.isFinite(villageWellsTotal) && villageWellsTotal > 0 && Number.isFinite(villageFunctioning)
+          ? (villageFunctioning / villageWellsTotal) * 100
+          : null;
+      return {
+        ...feature,
+        properties: {
+          ...props,
+          village: villageProps.village_name || props.village,
+          district: villageProps.district || props.district,
+          mandal: villageProps.mandal || props.mandal,
+          well_count: Number.isFinite(villageWellsTotal) ? villageWellsTotal : props.well_count,
+          working_count: Number.isFinite(villageFunctioning) ? villageFunctioning : props.working_count,
+          working_pct: Number.isFinite(inferredWorkingPct) ? inferredWorkingPct : props.working_pct,
+          avg_bore_depth_m: Number.isFinite(Number(villageProps.avg_bore_depth_m))
+            ? Number(villageProps.avg_bore_depth_m)
+            : props.avg_bore_depth_m,
+          dominant_irrigation: villageProps.dominant_irrigation || props.dominant_irrigation,
+          dominant_well_type: villageProps.dominant_well_type || props.dominant_well_type,
+        }
+      };
+    });
     return {
       type: "FeatureCollection",
-      features: wellPoints
+      features
     };
-  }, [showWells, wellPoints]);
+  }, [showWells, wellPoints, villageWellStatsByKey]);
 
   const districtNote = useMemo(() => {
     if (selectedDistrictNorm === "NTR") {
@@ -999,7 +1095,13 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             eventHandlers={villageEvents}
             pointToLayer={(feature, latlng) => (isPointGeometry(feature) ? villagePointToLayer(feature, latlng) : undefined)}
             onEachFeature={(feature, layer) => {
-              const popupHtml = villageInfoHtml(feature);
+              const props = feature?.properties || {};
+              const villageId = Number(props.village_id);
+              const locationKey = buildLocationKey(props.district, props.mandal, props.village_name);
+              const datasetRow =
+                (locationKey && datasetRowsByLocation?.get(locationKey)) ||
+                (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+              const popupHtml = villageInfoHtml(feature, datasetRow);
               if (layer?.bindTooltip) {
                 layer.bindTooltip(popupHtml, {
                   sticky: true,
@@ -1236,6 +1338,9 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
                 direction: "top",
                 opacity: 0.96,
                 className: "wells-tooltip"
+              });
+              layer.on("mouseover", () => {
+                if (layer.openTooltip) layer.openTooltip();
               });
             }}
           />

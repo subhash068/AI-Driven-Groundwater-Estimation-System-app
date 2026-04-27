@@ -5,6 +5,7 @@ class VillageStatusResponse(BaseModel):
     village_id: int
     current_depth: float | None = Field(default=None)
     forecast_3_month: list[dict]
+    forecast_yearly: list[dict] = Field(default_factory=list)
     anomaly_flags: list[str]
     confidence_score: float | None = None
     risk_level: str | None = None
@@ -73,6 +74,7 @@ class VillageForecastResponse(BaseModel):
     trend_direction: str | None = None
     observed_series: list[dict] = Field(default_factory=list)
     forecast_3_month: list[dict]
+    forecast_yearly: list[dict] = Field(default_factory=list)
     recommended_actions: list[str] = Field(default_factory=list)
 
 

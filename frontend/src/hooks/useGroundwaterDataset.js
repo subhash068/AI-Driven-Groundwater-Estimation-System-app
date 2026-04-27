@@ -3,18 +3,22 @@ import { buildLocationKey, normalizeLocationName } from "../utils/mapUtils";
 
 const UNIFIED_DATASET_CANDIDATES = [
   "/data/final_dataset.json",
-  "/data/map_data_predictions.geojson"
+  "/data/map_data_predictions.geojson",
+  "/data/map_data_predictions_ntr.geojson"
 ];
 
 const DISTRICT_DATASET_CANDIDATES = [
   "/data/final_dataset.json",
   "/data/map_data_predictions.geojson",
+  "/data/map_data_predictions_ntr.geojson",
   "/data/final_dataset_ntr.json"
 ];
 
 const FALLBACK_DATASET_CANDIDATES = [
   "/data/village_boundaries.geojson",
-  "/data/villages.geojson"
+  "/data/villages.geojson",
+  "/data/village_boundaries_ntr.geojson",
+  "/data/villages_ntr.geojson"
 ];
 
 function toNumber(value, fallback = 0) {
@@ -103,11 +107,127 @@ function parseObjectArray(value) {
   return [];
 }
 
+function recordCompletenessScore(record) {
+  let score = 0;
+  for (const value of Object.values(record || {})) {
+    if (Array.isArray(value)) {
+      if (value.length > 0) score += 1;
+      continue;
+    }
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string") {
+      if (value.trim()) score += 1;
+      continue;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      score += 1;
+      continue;
+    }
+    if (typeof value === "boolean") score += 1;
+  }
+  return score;
+}
+
+function isSyntheticVillageName(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return !normalized || normalized === "forest";
+}
+
+function getRecordLocationKey(row) {
+  if (!row || typeof row !== "object") return "";
+  return row.location_key || buildLocationKey(row?.district || "", row?.mandal || "", row?.village_name || "");
+}
+
+function setRicherRecord(map, key, row) {
+  if (!map.has(key)) {
+    map.set(key, row);
+    return;
+  }
+  const current = map.get(key);
+  if (recordCompletenessScore(row) > recordCompletenessScore(current)) {
+    map.set(key, row);
+  }
+}
+
+function mergeRecordsByLocationKey(records) {
+  const merged = new Map();
+  records.forEach((row) => {
+    if (isSyntheticVillageName(row?.village_name ?? row?.Village_Name ?? row?.village ?? row?.name)) return;
+    const key = getRecordLocationKey(row);
+    if (!key) return;
+    setRicherRecord(merged, key, row);
+  });
+  return Array.from(merged.values());
+}
+
+function logDuplicateCompositeKeys(records) {
+  const seen = new Set();
+  const duplicates = [];
+
+  records.forEach((row) => {
+    if (isSyntheticVillageName(row?.village_name ?? row?.Village_Name ?? row?.village ?? row?.name)) return;
+    const key = getRecordLocationKey(row);
+    if (!key) return;
+    if (seen.has(key)) {
+      duplicates.push(key);
+      return;
+    }
+    seen.add(key);
+  });
+
+  if (duplicates.length) {
+    console.warn("Duplicate composite keys:", duplicates);
+  } else {
+    console.info("No duplicate composite keys");
+  }
+
+  return {
+    duplicateCount: duplicates.length,
+    duplicates
+  };
+}
+
+function logCrossDistrictCollisions(records) {
+  const byVillageName = new Map();
+  const collisions = [];
+
+  records.forEach((row) => {
+    const villageName = normalizeText(row?.village_name, "");
+    const district = normalizeText(row?.district, "");
+    if (!villageName || !district || isSyntheticVillageName(villageName)) return;
+    const bucket = byVillageName.get(villageName) || new Map();
+    if (!bucket.has(district)) {
+      bucket.set(district, getRecordLocationKey(row));
+    }
+    byVillageName.set(villageName, bucket);
+  });
+
+  byVillageName.forEach((districts, villageName) => {
+    if (districts.size > 1) {
+      collisions.push({
+        village_name: villageName,
+        districts: Array.from(districts.keys())
+      });
+    }
+  });
+
+  if (collisions.length) {
+    console.info("Cross-district same-name detected:", collisions);
+  }
+
+  return {
+    collisionCount: collisions.length,
+    collisions
+  };
+}
+
 function normalizeRecord(input, index) {
   const props = input?.properties || input || {};
+  const rawVillageName = String(props.village_name ?? props.Village_Name ?? props.name ?? props.village ?? "").trim();
+  if (!rawVillageName || rawVillageName.toLowerCase() === "forest") return null;
   const district = normalizeText(props.district ?? props.District);
   const mandal = normalizeText(props.mandal ?? props.Mandal);
-  const village_name = normalizeText(props.village_name ?? props.Village_Name ?? props.name ?? props.village, `Village ${index + 1}`);
+  const village_name = normalizeText(rawVillageName, `Village ${index + 1}`);
   const locationKey = buildLocationKey(district, mandal, village_name);
   return {
     ...props,
@@ -200,14 +320,14 @@ async function fetchJsonIfValid(path) {
 function normalizeDataset(payload, sourcePath) {
   if (Array.isArray(payload)) {
     return {
-      records: payload.map((row, index) => normalizeRecord(row, index)),
+      records: payload.map((row, index) => normalizeRecord(row, index)).filter(Boolean),
       sourcePath
     };
   }
 
   if (payload?.type === "FeatureCollection" && Array.isArray(payload.features)) {
     return {
-      records: payload.features.map((feature, index) => normalizeRecord(feature, index)),
+      records: payload.features.map((feature, index) => normalizeRecord(feature, index)).filter(Boolean),
       sourcePath
     };
   }
@@ -220,45 +340,43 @@ export function useGroundwaterDataset() {
   const [sourcePath, setSourcePath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [integritySummary, setIntegritySummary] = useState({
+    duplicateCount: 0,
+    duplicates: [],
+    collisionCount: 0,
+    collisions: []
+  });
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
         setLoading(true);
-        let unifiedRecords = [];
-        let unifiedSource = null;
-        for (const path of UNIFIED_DATASET_CANDIDATES) {
-          const payload = await fetchJsonIfValid(path);
-          const normalized = normalizeDataset(payload, path);
-          if (!normalized) continue;
-          unifiedRecords = normalized.records;
-          unifiedSource = normalized.sourcePath;
-          break;
-        }
-
-        const districtScoped = [];
+        const loadedRecords = [];
         const districtSources = [];
-        for (const path of DISTRICT_DATASET_CANDIDATES) {
+        const candidatePaths = Array.from(new Set([
+          ...UNIFIED_DATASET_CANDIDATES,
+          ...DISTRICT_DATASET_CANDIDATES
+        ]));
+        for (const path of candidatePaths) {
           const payload = await fetchJsonIfValid(path);
           const normalized = normalizeDataset(payload, path);
           if (!normalized) continue;
-          districtScoped.push(...normalized.records);
+          loadedRecords.push(...normalized.records);
           districtSources.push(path);
         }
 
-        if (districtScoped.length > 0 || unifiedRecords.length > 0) {
-          const seen = new Set();
-          const merged = [];
-          for (const row of [...unifiedRecords, ...districtScoped]) {
-            const key = row.location_key || buildLocationKey(row?.district || "", row?.mandal || "", row?.village_name || "");
-            if (seen.has(key)) continue;
-            seen.add(key);
-            merged.push(row);
-          }
+        if (loadedRecords.length > 0) {
+          const merged = mergeRecordsByLocationKey(loadedRecords);
+          const duplicateSummary = logDuplicateCompositeKeys(merged);
+          const collisionSummary = logCrossDistrictCollisions(merged);
           if (!active) return;
           setRecords(merged);
-          setSourcePath([unifiedSource, districtSources.join(", ")].filter(Boolean).join(", "));
+          setIntegritySummary({
+            ...duplicateSummary,
+            ...collisionSummary
+          });
+          setSourcePath(districtSources.join(", "));
           setError(null);
           return;
         }
@@ -276,11 +394,23 @@ export function useGroundwaterDataset() {
 
         if (!active) return;
         setRecords([]);
+        setIntegritySummary({
+          duplicateCount: 0,
+          duplicates: [],
+          collisionCount: 0,
+          collisions: []
+        });
         setSourcePath(null);
         setError("No dashboard dataset found under /public/data.");
       } catch (err) {
         if (!active) return;
         setRecords([]);
+        setIntegritySummary({
+          duplicateCount: 0,
+          duplicates: [],
+          collisionCount: 0,
+          collisions: []
+        });
         setSourcePath(null);
         setError(err?.message || "Failed to load dashboard dataset.");
       } finally {
@@ -296,7 +426,9 @@ export function useGroundwaterDataset() {
   const recordsById = useMemo(() => {
     const map = new Map();
     records.forEach((row) => {
-      map.set(Number(row.village_id), row);
+      const villageId = Number(row.village_id);
+      if (!Number.isFinite(villageId)) return;
+      setRicherRecord(map, villageId, row);
     });
     return map;
   }, [records]);
@@ -304,7 +436,9 @@ export function useGroundwaterDataset() {
   const recordsByLocation = useMemo(() => {
     const map = new Map();
     records.forEach((row) => {
-      map.set(row.location_key || buildLocationKey(row.district, row.mandal, row.village_name), row);
+      const key = getRecordLocationKey(row);
+      if (!key) return;
+      setRicherRecord(map, key, row);
     });
     return map;
   }, [records]);
@@ -315,6 +449,7 @@ export function useGroundwaterDataset() {
     recordsByLocation,
     sourcePath,
     loading,
-    error
+    error,
+    integritySummary
   };
 }

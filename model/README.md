@@ -8,6 +8,10 @@ This folder hosts the production-oriented training and interpolation pipeline us
    `python -m model.stage_data`
 2. Train + export map data:
    `python -m model.pipeline --kriging-strategy residual`
+3. Explicit deterministic export mode:
+   `python -m model.pipeline --export`
+4. Backfill NTR predictions from current artifacts:
+   `python -m model.train_from_csv --predict-ntr`
 
 Outputs:
 - `data/processed/village_features.parquet`
