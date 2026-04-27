@@ -511,8 +511,8 @@ export function MapView({
     const villageId = Number(props.village_id);
     const locationKey = buildLocationKey(props.district, props.mandal, props.village_name);
     const row =
-      (locationKey && datasetRowsByLocation?.get(locationKey)) ||
-      (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+      (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
+      (locationKey && datasetRowsByLocation?.get(locationKey));
     const villageName = row?.village_name || props.village_name || `Village ${props.village_id || "NA"}`;
     const rawType = String(props.anomaly_type || props.type || props.reason || "Normal");
     const anomalyClass = anomalyMeta(feature).label;
@@ -922,7 +922,7 @@ export function MapView({
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
       
       const villageId = Number(props.village_id);
-      const datasetRow = (key && datasetRowsByLocation?.get(key)) || (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+      const datasetRow = (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) || (key && datasetRowsByLocation?.get(key));
       
       const effectiveProps = { ...props, ...(datasetRow || {}) };
       
@@ -1047,8 +1047,8 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const villageId = Number(props.village_id);
               const locationKey = buildLocationKey(props.district, props.mandal, props.village_name);
               const datasetRow =
-                (locationKey && datasetRowsByLocation?.get(locationKey)) ||
-                (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+                (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
+                (locationKey && datasetRowsByLocation?.get(locationKey));
               const popupHtml = villageInfoHtml(feature, datasetRow);
               if (layer?.bindTooltip) {
                 layer.bindTooltip(popupHtml, {
@@ -1282,14 +1282,15 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             pointToLayer={(feature, latlng) => {
               const props = feature?.properties || {};
               const wells = Number(props._estimated_wells);
-              const radius = Math.sqrt(wells) * 2;
-              const fillColor = wells > 20 ? "red" : wells > 10 ? "orange" : "green";
+              const radius = clamp(3.5 + Math.log10(Math.max(wells, 1)) * 2.8, 3.5, 11);
+              const hue = clamp(120 - Math.log10(Math.max(wells, 1)) * 40, 0, 120);
+              const fillColor = `hsl(${hue}, 85%, 52%)`;
               return L.circleMarker(latlng, {
-                radius: clamp(radius, 4, 16),
-                color: "#333",
-                weight: 1,
+                radius,
+                color: "#1f2937",
+                weight: 0.8,
                 fillColor: fillColor,
-                fillOpacity: 0.7
+                fillOpacity: 0.5
               });
             }}
             onEachFeature={(feature, layer) => {
@@ -1302,7 +1303,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
                   <strong>Estimated Wells:</strong> ${wells}<br/>
                   <br/>
                   <span style="font-size: 0.85em; opacity: 0.85; display: block; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 6px; margin-top: 6px;">
-                    <em>Estimated wells density based on village-level data. Not exact well locations.</em>
+                    <em>Village-level estimate only. These are not exact well locations.</em>
                   </span>
                 </div>
               `;

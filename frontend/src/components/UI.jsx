@@ -45,6 +45,12 @@ function formatMaybePercent(value, digits = 1) {
   return `${numeric.toFixed(digits)}%`;
 }
 
+function formatEstimatedDepth(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "NA";
+  return `${numeric.toFixed(2)} m`;
+}
+
 function InfoDot({ label, text }) {
   return (
     <span className="info-dot" title={text} aria-label={label}>
@@ -1181,7 +1187,7 @@ export function MapLegend({
           <div className="legend-divider" />
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#38BDF8' }}></div>
-            <span>Wells: extraction infrastructure</span>
+            <span>Village wells: estimated counts</span>
           </div>
         </>
       )}
@@ -1413,6 +1419,10 @@ export function VillageInsightsPanel({
           <strong>{formatDepth(currentDepth)}</strong>
         </div>
         <div>
+          <small>Groundwater Estimate</small>
+          <strong>{formatEstimatedDepth(props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.estimated_groundwater_depth)}</strong>
+        </div>
+        <div>
           <small>Risk Status</small>
           <strong className={currentDepth !== null ? riskClassName(risk) : ""}>{currentDepth !== null ? risk : "NA"}</strong>
         </div>
@@ -1422,7 +1432,7 @@ export function VillageInsightsPanel({
         </div>
         <div>
           <small>Functioning Pump Wells</small>
-          <strong>{Number(props.pumping_functioning_wells || 0).toFixed(0)}</strong>
+          <strong>{Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0).toFixed(0)}</strong>
         </div>
         <div>
           <small>Avg Bore Depth</small>
@@ -1761,6 +1771,10 @@ function VillageInsightsPanelContentImpl({
           <strong>{formatDepth(currentDepth)}</strong>
         </div>
         <div>
+          <small>Groundwater Estimate</small>
+          <strong>{formatEstimatedDepth(props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.estimated_groundwater_depth)}</strong>
+        </div>
+        <div>
           <small>Risk Status</small>
           <strong className={riskClassName(risk)}>{risk}</strong>
         </div>
@@ -1770,7 +1784,7 @@ function VillageInsightsPanelContentImpl({
         </div>
         <div>
           <small>Functioning Pump Wells</small>
-          <strong>{Number(props.pumping_functioning_wells || 0).toFixed(0)}</strong>
+          <strong>{Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0).toFixed(0)}</strong>
         </div>
         <div>
           <small>Avg Bore Depth</small>
