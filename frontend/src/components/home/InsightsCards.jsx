@@ -66,18 +66,6 @@ export function InsightsCards({ stats, loading, error }) {
       value: formatTrend(stats?.avg_trend_slope),
       description: "mean long-term slope",
       tone: "warn"
-    },
-    {
-      title: "Anomalies Detected",
-      value: formatCount(stats?.anomaly_count),
-      description: "non-normal anomaly flags",
-      tone: "critical"
-    },
-    {
-      title: "High-Risk Villages",
-      value: formatCount(stats?.high_risk_count),
-      description: "risk score above threshold",
-      tone: "danger"
     }
   ];
 
