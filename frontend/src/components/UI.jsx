@@ -1181,7 +1181,7 @@ export function MapLegend({
           <div className="legend-divider" />
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#38BDF8' }}></div>
-            <span>Wells: extraction infrastructure</span>
+            <span>Village wells: estimated counts</span>
           </div>
         </>
       )}
@@ -1422,7 +1422,7 @@ export function VillageInsightsPanel({
         </div>
         <div>
           <small>Functioning Pump Wells</small>
-          <strong>{Number(props.pumping_functioning_wells || 0).toFixed(0)}</strong>
+          <strong>{Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0).toFixed(0)}</strong>
         </div>
         <div>
           <small>Avg Bore Depth</small>
@@ -1770,7 +1770,7 @@ function VillageInsightsPanelContentImpl({
         </div>
         <div>
           <small>Functioning Pump Wells</small>
-          <strong>{Number(props.pumping_functioning_wells || 0).toFixed(0)}</strong>
+          <strong>{Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0).toFixed(0)}</strong>
         </div>
         <div>
           <small>Avg Bore Depth</small>

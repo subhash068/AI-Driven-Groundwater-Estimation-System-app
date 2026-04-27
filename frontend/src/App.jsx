@@ -374,6 +374,7 @@ export default function App({ navigate, pathname }) {
     setSelectedFeature(feature);
     const center = geometryCenter(feature.geometry);
     setPopupLngLat([center.longitude, center.latitude]);
+    setIsInsightsOpen(true);
     const villageId = Number(feature.properties?.village_id);
     if (Number.isFinite(villageId)) {
       setSimulatorVillageId(villageId);
@@ -672,6 +673,12 @@ export default function App({ navigate, pathname }) {
   }, [selectedFeature, simulatorVillageId]);
 
   useEffect(() => {
+    if (selectedFeature) {
+      setIsInsightsOpen(true);
+    }
+  }, [selectedFeature]);
+
+  useEffect(() => {
     if (!simulatorVillageId) return;
     const feature = (dashboardGeojson?.features || []).find(
       (item) => Number(item?.properties?.village_id) === Number(simulatorVillageId)
@@ -721,6 +728,26 @@ export default function App({ navigate, pathname }) {
     return null;
   }, [selectedFeature, datasetRows, datasetRowsById, datasetRowsByLocation]);
 
+  const selectedVillageFeature = useMemo(() => {
+    if (!selectedFeature) return null;
+    if (!selectedDatasetRow) return selectedFeature;
+
+    const featureProps = selectedFeature.properties || {};
+    const rowProps = selectedDatasetRow || {};
+
+    return {
+      ...selectedFeature,
+      properties: {
+        ...featureProps,
+        ...rowProps,
+        village_id: rowProps.village_id ?? featureProps.village_id,
+        village_name: rowProps.village_name ?? featureProps.village_name,
+        district: rowProps.district ?? featureProps.district,
+        mandal: rowProps.mandal ?? featureProps.mandal
+      }
+    };
+  }, [selectedFeature, selectedDatasetRow]);
+
   const datasetAnalytics = useMemo(() => {
     const scopeRows = selectedDatasetRow
       ? [selectedDatasetRow]
@@ -765,6 +792,33 @@ export default function App({ navigate, pathname }) {
     setSelectedFeature(null);
     setPopupLngLat(null);
   }, [filters.state, filters.district, filters.mandal, filters.villageName]);
+
+  useEffect(() => {
+    if (!filters.villageName || !dashboardGeojson?.features?.length) return;
+
+    const requestedVillageName = normalizeLocationName(filters.villageName);
+    const matchedFeature = dashboardGeojson.features.find((feature) => {
+      return normalizeLocationName(feature?.properties?.village_name) === requestedVillageName;
+    });
+
+    if (!matchedFeature) return;
+
+    const matchedVillageId = Number(matchedFeature?.properties?.village_id);
+    const currentVillageId = Number(selectedFeature?.properties?.village_id);
+    if (Number.isFinite(matchedVillageId) && matchedVillageId === currentVillageId) {
+      setIsInsightsOpen(true);
+      return;
+    }
+
+    setSelectedFeature(matchedFeature);
+    const center = geometryCenter(matchedFeature.geometry);
+    setPopupLngLat([center.longitude, center.latitude]);
+    setIsInsightsOpen(true);
+
+    if (Number.isFinite(matchedVillageId)) {
+      setSimulatorVillageId(matchedVillageId);
+    }
+  }, [filters.villageName, dashboardGeojson, selectedFeature]);
 
   useEffect(() => {
     if (pathname !== "/dashboard") return;
@@ -936,7 +990,7 @@ export default function App({ navigate, pathname }) {
           setSelectedLulcClasses={setSelectedLulcClasses}
           highRiskOnly={highRiskOnly}
           setHighRiskOnly={setHighRiskOnly}
-          selectedFeature={selectedFeature}
+          selectedFeature={selectedVillageFeature}
           hoveredDistrict={hoveredDistrict}
           showAnomalies={showAnomalies}
           setShowAnomalies={setShowAnomalies}
@@ -975,7 +1029,7 @@ export default function App({ navigate, pathname }) {
           {isFullDashboardOpen && (
             <DashboardAnalyticsPanel
               datasetAnalytics={datasetAnalytics}
-              selectedFeature={selectedFeature}
+              selectedFeature={selectedVillageFeature}
               onClose={() => setIsFullDashboardOpen(false)}
             />
           )}
@@ -987,7 +1041,7 @@ export default function App({ navigate, pathname }) {
                 is3D={is3D}
                 onVillageClick={handleVillageClick}
                 onDistrictHover={setHoveredDistrict}
-                selectedFeature={selectedFeature}
+                selectedFeature={selectedVillageFeature}
                 popupLngLat={popupLngLat}
                 filters={filters}
                 showLulc={showLulc}
@@ -1021,14 +1075,14 @@ export default function App({ navigate, pathname }) {
               {isInsightsOpen && (
                 <>
                   <VillageInsightsPanel
-                    selectedFeature={selectedFeature}
+                    selectedFeature={selectedVillageFeature}
                     monthIndex={monthIndex}
                     aiPredictionEnabled={aiPredictionEnabled}
                     aquiferAnalytics={aquiferAnalytics}
                     datasetAnalytics={datasetAnalytics}
                   />
                   <VillageActionPanel
-                    selectedFeature={selectedFeature}
+                    selectedFeature={selectedVillageFeature}
                     aiPredictionEnabled={aiPredictionEnabled}
                     defaultMode={aiPredictionEnabled ? "live" : "batch"}
                   />

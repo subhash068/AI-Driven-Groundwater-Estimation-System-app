@@ -24,8 +24,8 @@ Government-grade starter platform for village-level groundwater estimation, fore
 
 ### 2) ML & AI
 - Interpolation engine:
-  - Random Forest regression with hydrogeological covariates.
-  - Confidence scoring from tree-level uncertainty.
+  - XGBoost regression with hydrogeological covariates.
+  - Confidence scoring from feature-distance and residual spread.
 - Training features supported:
   - `elevation_dem`
   - `slope_deg`
@@ -58,13 +58,13 @@ Government-grade starter platform for village-level groundwater estimation, fore
 - MapServer mapfile alternative.
 
 ### 5) Frontend Dashboard
-- React + Mapbox GL JS + Deck.gl.
+- React + Leaflet/react-leaflet + Three.js.
 - 2D village polygon rendering with status color classes.
-- 3D terrain toggle + aquifer stratification visualization (Deck extrusion + Three.js scene).
+- 3D terrain toggle + aquifer stratification visualization (Leaflet overlays + Three.js scene).
 - Temporal playback slider: 24 months.
 - District/Mandal/Village filtering.
 - Auto-zoom to selected village and popup with forecast details.
-- Vector-tile switch support via environment variable.
+- OpenStreetMap-backed map rendering with local GeoJSON fallbacks.
 
 ### 6) Farmer Portal (Mobile-First)
 - Lightweight low-bandwidth page under `frontend/public/farmer`.
@@ -252,9 +252,10 @@ Publishes layers such as:
 ## Frontend Environment Variables
 
 Set in `frontend/.env` (or `.env.local`):
-- `VITE_MAPBOX_TOKEN=...`
+- `VITE_API_BASE_URL=http://localhost:8000`
 - `VITE_API_BASE=http://localhost:8000`
-- `VITE_VILLAGE_VECTOR_TILESET=mapbox://...` (optional for vector tiles)
+- `VITE_ENABLE_LIVE_API=true`
+- `VITE_LOCAL_DATA_ONLY=false`
 
 ---
 
@@ -265,7 +266,7 @@ Set in `frontend/.env` (or `.env.local`):
 - Anomaly precision target (`>=90%`):
   - seasonal-rule precision metric emitted.
 - Scalability:
-  - vector-tile-compatible dashboard path + Deck.gl rendering.
+  - Leaflet/react-leaflet dashboard path + Three.js 3D aquifer rendering.
 - Government integration:
   - secured APIs, GeoJSON outputs, WMS/WFS server support, PDF exports.
 

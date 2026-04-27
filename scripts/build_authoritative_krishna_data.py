@@ -455,6 +455,35 @@ def aggregate_pumping() -> pd.DataFrame:
     return out
 
 
+def _apply_pumping_fallback(villages: pd.DataFrame, pumping: pd.DataFrame) -> pd.DataFrame:
+    """
+    Fill missing pumping metrics using a district-agnostic village/mandal match.
+
+    Some raw pumping sheets label villages under a different district name than the
+    village boundary dataset. We keep the exact district join first, then backfill
+    from the more permissive match only where the exact join produced no values.
+    """
+    relaxed_cols = ["mandal_norm", "village_norm", "pumping_functioning_wells", "pumping_estimated_draft_ha_m"]
+    relaxed = pumping[relaxed_cols].drop_duplicates(subset=["mandal_norm", "village_norm"], keep="first")
+    relaxed = relaxed.rename(
+        columns={
+            "pumping_functioning_wells": "pumping_functioning_wells_relaxed",
+            "pumping_estimated_draft_ha_m": "pumping_estimated_draft_ha_m_relaxed",
+        }
+    )
+
+    villages = villages.merge(relaxed, on=["mandal_norm", "village_norm"], how="left")
+    for base_col in ["pumping_functioning_wells", "pumping_estimated_draft_ha_m"]:
+        relaxed_col = f"{base_col}_relaxed"
+        if relaxed_col not in villages.columns:
+            continue
+        villages[base_col] = pd.to_numeric(villages[base_col], errors="coerce").combine_first(
+            pd.to_numeric(villages[relaxed_col], errors="coerce")
+        )
+        villages = villages.drop(columns=[relaxed_col])
+    return villages
+
+
 def export_pumping_sheet_rows() -> dict:
     df = pd.read_excel(RAW / "Pumping Data.xlsx", sheet_name="Sheet1", header=1)
     df.columns = [str(c).strip() for c in df.columns]
@@ -710,6 +739,7 @@ def build() -> None:
     # Tabular joins.
     villages = villages.merge(wells, on=["village_id"], how="left")
     villages = villages.merge(pumping, on=["district_norm", "mandal_norm", "village_norm"], how="left")
+    villages = _apply_pumping_fallback(villages, pumping)
     villages = villages.merge(water_exact, on=["district_norm", "mandal_norm", "village_norm"], how="left")
     villages = villages.merge(water_dm, on=["district_norm", "mandal_norm"], how="left")
     villages = villages.merge(lulc_2011, on="village_id", how="left")
