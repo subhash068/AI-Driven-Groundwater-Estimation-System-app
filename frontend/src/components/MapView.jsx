@@ -511,8 +511,8 @@ export function MapView({
     const villageId = Number(props.village_id);
     const locationKey = buildLocationKey(props.district, props.mandal, props.village_name);
     const row =
-      (locationKey && datasetRowsByLocation?.get(locationKey)) ||
-      (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+      (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
+      (locationKey && datasetRowsByLocation?.get(locationKey));
     const villageName = row?.village_name || props.village_name || `Village ${props.village_id || "NA"}`;
     const rawType = String(props.anomaly_type || props.type || props.reason || "Normal");
     const anomalyClass = anomalyMeta(feature).label;
@@ -922,7 +922,7 @@ export function MapView({
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
       
       const villageId = Number(props.village_id);
-      const datasetRow = (key && datasetRowsByLocation?.get(key)) || (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+      const datasetRow = (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) || (key && datasetRowsByLocation?.get(key));
       
       const effectiveProps = { ...props, ...(datasetRow || {}) };
       
@@ -1047,8 +1047,8 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const villageId = Number(props.village_id);
               const locationKey = buildLocationKey(props.district, props.mandal, props.village_name);
               const datasetRow =
-                (locationKey && datasetRowsByLocation?.get(locationKey)) ||
-                (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null);
+                (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
+                (locationKey && datasetRowsByLocation?.get(locationKey));
               const popupHtml = villageInfoHtml(feature, datasetRow);
               if (layer?.bindTooltip) {
                 layer.bindTooltip(popupHtml, {

@@ -45,6 +45,12 @@ function formatMaybePercent(value, digits = 1) {
   return `${numeric.toFixed(digits)}%`;
 }
 
+function formatEstimatedDepth(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "NA";
+  return `${numeric.toFixed(2)} m`;
+}
+
 function InfoDot({ label, text }) {
   return (
     <span className="info-dot" title={text} aria-label={label}>
@@ -1413,6 +1419,10 @@ export function VillageInsightsPanel({
           <strong>{formatDepth(currentDepth)}</strong>
         </div>
         <div>
+          <small>Groundwater Estimate</small>
+          <strong>{formatEstimatedDepth(props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.estimated_groundwater_depth)}</strong>
+        </div>
+        <div>
           <small>Risk Status</small>
           <strong className={currentDepth !== null ? riskClassName(risk) : ""}>{currentDepth !== null ? risk : "NA"}</strong>
         </div>
@@ -1759,6 +1769,10 @@ function VillageInsightsPanelContentImpl({
         <div>
           <small>Actual Groundwater</small>
           <strong>{formatDepth(currentDepth)}</strong>
+        </div>
+        <div>
+          <small>Groundwater Estimate</small>
+          <strong>{formatEstimatedDepth(props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.estimated_groundwater_depth)}</strong>
         </div>
         <div>
           <small>Risk Status</small>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildLocationKey, normalizeLocationName } from "../utils/mapUtils";
+import pumpingWorkbook from "../constants/pumping_data.json";
 
 const UNIFIED_DATASET_CANDIDATES = [
   "/data/final_dataset.json",
@@ -106,6 +107,34 @@ function parseObjectArray(value) {
   }
   return [];
 }
+
+function buildPumpingWellsIndex() {
+  const rows = Array.isArray(pumpingWorkbook?.rows) ? pumpingWorkbook.rows : [];
+  const index = new Map();
+
+  for (const row of rows) {
+    const district = normalizeText(row?.district, "");
+    const mandal = normalizeText(row?.mandal, "");
+    const village = normalizeText(row?.village, "");
+    if (!district || !mandal || !village) continue;
+
+    const key = buildLocationKey(district, mandal, village);
+    if (!key) continue;
+
+    const wells = Number(row?.functioning_wells);
+    if (!Number.isFinite(wells)) continue;
+
+    const current = index.get(key) || { functioning_wells: 0, row_count: 0 };
+    index.set(key, {
+      functioning_wells: current.functioning_wells + wells,
+      row_count: current.row_count + 1
+    });
+  }
+
+  return index;
+}
+
+const PUMPING_WELLS_BY_LOCATION = buildPumpingWellsIndex();
 
 function recordCompletenessScore(record) {
   let score = 0;
@@ -223,6 +252,12 @@ function normalizeRecord(input, index) {
   const mandal = normalizeText(props.mandal ?? props.Mandal);
   const village_name = normalizeText(rawVillageName, `Village ${index + 1}`);
   const locationKey = buildLocationKey(district, mandal, village_name);
+  const pumpingWells = Number(
+    PUMPING_WELLS_BY_LOCATION.get(locationKey)?.functioning_wells ??
+    props.pumping_functioning_wells ??
+    props.functioning_wells ??
+    0
+  );
   return {
     ...props,
     village_id: toNumber(props.village_id ?? props.Village_ID ?? props.villageId ?? index + 1, index + 1),
@@ -234,6 +269,8 @@ function normalizeRecord(input, index) {
     district_key: normalizeLocationName(district),
     mandal_key: normalizeLocationName(mandal),
     village_key: normalizeLocationName(village_name),
+    functioning_wells: pumpingWells,
+    pumping_functioning_wells: pumpingWells,
     water_pct: toNumber(props.water_pct ?? props["Water%"] ?? props.water, null),
     trees_pct: toNumber(props.trees_pct ?? props["Trees%"] ?? props.trees, null),
     flooded_vegetation_pct: toNumber(props.flooded_vegetation_pct ?? props["flooded_vegetation_pct"] ?? props.flooded_vegetation, null),

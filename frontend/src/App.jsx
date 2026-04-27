@@ -157,7 +157,7 @@ function simulateFromFeature(feature, simulationInputs) {
   const props = feature?.properties || {};
   const base = Number(props.predicted_groundwater_level ?? props.gw_level ?? props.depth ?? 0);
   const basePumping = Number(props.pumping_rate ?? props.Pumping ?? 0);
-  const baseWells = Number(props.pumping_functioning_wells ?? 0);
+  const baseWells = Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0);
   const baseDraft = Number(props.pumping_monsoon_draft_ha_m ?? 0);
   const wellsTotal = Number(props.wells_total ?? 0);
 
@@ -193,6 +193,30 @@ function simulateFromFeature(feature, simulationInputs) {
         ? `Over-extraction risk: pumping per well (${pumpingNorm.toFixed(2)}) exceeds the sustainable limit (${pumpingThreshold.toFixed(2)}).`
         : null,
   };
+}
+
+function sameSimulationInputs(left, right) {
+  return (
+    Number(left?.pumping ?? 0) === Number(right?.pumping ?? 0) &&
+    Number(left?.functioningWells ?? 0) === Number(right?.functioningWells ?? 0) &&
+    Number(left?.draft ?? 0) === Number(right?.draft ?? 0)
+  );
+}
+
+function buildHydratedFeatureSignature(feature) {
+  const props = feature?.properties || {};
+  return JSON.stringify({
+    village_id: Number(props.village_id ?? 0),
+    village_name: String(props.village_name || ""),
+    district: String(props.district || ""),
+    mandal: String(props.mandal || ""),
+    risk_level: props.risk_level ?? null,
+    alert_status: props.alert_status ?? null,
+    confidence_score: Number(props.confidence_score ?? 0),
+    lstm_forecast: Array.isArray(props.lstm_forecast) ? props.lstm_forecast : [],
+    forecast_yearly: Array.isArray(props.forecast_yearly) ? props.forecast_yearly : [],
+    st_gnn_prediction: props.st_gnn_prediction ?? null
+  });
 }
 
 function mergeVillageMapData(baseGeojson, mapData) {
@@ -601,30 +625,14 @@ export default function App({ navigate, pathname }) {
         if (!active) return;
 
         const inputs = feature?.properties || {};
-        setSimulation(simulateFromFeature(feature, simulationInputs));
-        setSimulationError(null);
-        setSimulationInputs({
+        const nextInputs = {
           pumping: Number(inputs.pumping ?? inputs.pumping_rate ?? inputs.Pumping ?? 0),
           functioningWells: Number(
             inputs.functioning_wells ?? inputs.pumping_functioning_wells ?? 0
           ),
           draft: Number(inputs.draft ?? inputs.pumping_monsoon_draft_ha_m ?? 0)
-        });
-
-        setSelectedFeature((prev) => {
-          if (Number(prev?.properties?.village_id) === villageId) {
-            return {
-              ...(prev || {}),
-              properties: {
-              ...(prev?.properties || {}),
-              ...status,
-              lstm_forecast: forecast?.forecast_3_month || [],
-              forecast_yearly: forecast?.forecast_yearly || [],
-              st_gnn_prediction: stGnnPrediction || null
-            }
-          };
-        }
-        return {
+        };
+        const nextSelectedFeature = {
           ...feature,
           properties: {
             ...(feature.properties || {}),
@@ -634,7 +642,20 @@ export default function App({ navigate, pathname }) {
             st_gnn_prediction: stGnnPrediction || null
           }
         };
-      });
+        const nextSelectedSignature = buildHydratedFeatureSignature(nextSelectedFeature);
+
+        setSimulation(simulateFromFeature(feature, nextInputs));
+        setSimulationError(null);
+        setSimulationInputs((prev) =>
+          sameSimulationInputs(prev, nextInputs) ? prev : nextInputs
+        );
+
+        setSelectedFeature((prev) => {
+          if (buildHydratedFeatureSignature(prev) === nextSelectedSignature) {
+            return prev;
+          }
+          return nextSelectedFeature;
+        });
       } catch (err) {
         if (!active) return;
         console.warn("Backend data unavailable:", err);
@@ -712,6 +733,11 @@ export default function App({ navigate, pathname }) {
   const selectedDatasetRow = useMemo(() => {
     if (!selectedFeature) return null;
     const props = selectedFeature.properties || {};
+    const villageId = Number(props.village_id ?? props.Village_ID);
+    if (Number.isFinite(villageId) && datasetRowsById.has(villageId)) {
+      return datasetRowsById.get(villageId);
+    }
+
     const district = String(props.district ?? props.District ?? "").trim();
     const mandal = String(props.mandal ?? props.Mandal ?? "").trim();
     const villageName = String(props.village_name ?? props.Village_Name ?? "").trim();
@@ -719,11 +745,6 @@ export default function App({ navigate, pathname }) {
 
     if (locationKey && datasetRowsByLocation?.has(locationKey)) {
       return datasetRowsByLocation.get(locationKey);
-    }
-
-    const villageId = Number(props.village_id ?? props.Village_ID);
-    if (Number.isFinite(villageId) && datasetRowsById.has(villageId)) {
-      return datasetRowsById.get(villageId);
     }
     return null;
   }, [selectedFeature, datasetRows, datasetRowsById, datasetRowsByLocation]);
@@ -738,12 +759,21 @@ export default function App({ navigate, pathname }) {
     return {
       ...selectedFeature,
       properties: {
-        ...featureProps,
         ...rowProps,
-        village_id: rowProps.village_id ?? featureProps.village_id,
-        village_name: rowProps.village_name ?? featureProps.village_name,
-        district: rowProps.district ?? featureProps.district,
-        mandal: rowProps.mandal ?? featureProps.mandal
+        ...featureProps,
+        groundwater_estimate:
+          featureProps.groundwater_estimate ??
+          featureProps.predicted_groundwater_level ??
+          featureProps.depth ??
+          featureProps.actual_last_month ??
+          rowProps.groundwater_estimate ??
+          rowProps.predicted_groundwater_level ??
+          rowProps.depth ??
+          rowProps.actual_last_month,
+        village_id: featureProps.village_id ?? rowProps.village_id,
+        village_name: featureProps.village_name ?? rowProps.village_name,
+        district: featureProps.district ?? rowProps.district,
+        mandal: featureProps.mandal ?? rowProps.mandal
       }
     };
   }, [selectedFeature, selectedDatasetRow]);
