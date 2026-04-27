@@ -199,6 +199,7 @@ def _map_geojson() -> dict:
         return {"type": "FeatureCollection", "features": merged_primary}
     fallback_features: list[dict] = []
     for candidate in [
+        "village_boundaries_imputed.geojson",
         "villages.geojson",
         "village_boundaries.geojson",
         "villages_ntr.geojson",
@@ -230,6 +231,7 @@ def _final_rows() -> list[dict]:
 def _village_geojson() -> dict:
     collected_features: list[dict] = []
     for candidate in [
+        "village_boundaries_imputed.geojson",
         "villages.geojson",
         "village_boundaries.geojson",
         "villages_ntr.geojson",

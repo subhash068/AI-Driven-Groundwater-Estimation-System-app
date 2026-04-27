@@ -148,6 +148,7 @@ def _local_feature_lookup() -> tuple[dict[int, dict[str, Any]], dict[str, dict[s
     feature_files = (
         "map_data_predictions.geojson",
         "map_data_predictions_ntr.geojson",
+        "village_boundaries_imputed.geojson",
         "villages.geojson",
         "village_boundaries.geojson",
         "villages_ntr.geojson",
@@ -632,4 +633,3 @@ async def build_features(
             "source_location_key": location_key,
         },
     )
-

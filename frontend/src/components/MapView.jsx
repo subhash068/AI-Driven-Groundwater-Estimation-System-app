@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { MapLegend } from './UI';
 import { INITIAL_VIEW_STATE } from '../constants/data';
@@ -374,6 +374,91 @@ function FitToFilterSelection({ filteredGeojson, filters }) {
   return null;
 }
 
+function NtrVillageClickFallback({ filteredGeojson, selectedDistrictNorm, onVillageClick }) {
+  useMapEvents({
+    click(event) {
+      if (selectedDistrictNorm !== "NTR") return;
+      const pointFeatures = (filteredGeojson?.features || []).filter(
+        (feature) => String(feature?.geometry?.type || "").toLowerCase() === "point"
+      );
+      if (!pointFeatures.length) return;
+
+      let nearestFeature = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+      pointFeatures.forEach((feature) => {
+        const coordinates = feature?.geometry?.coordinates;
+        if (!Array.isArray(coordinates) || coordinates.length < 2) return;
+        const lon = Number(coordinates[0]);
+        const lat = Number(coordinates[1]);
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
+        const distance = event.latlng.distanceTo(L.latLng(lat, lon));
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestFeature = feature;
+        }
+      });
+
+      if (nearestFeature) {
+        onVillageClick(nearestFeature);
+      }
+    }
+  });
+
+  return null;
+}
+
+function RegionalLabels({ filters }) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+
+  useEffect(() => {
+    const handleZoom = () => setZoom(map.getZoom());
+    map.on('zoomend', handleZoom);
+    return () => map.off('zoomend', handleZoom);
+  }, [map]);
+
+  // Major AP Districts with rough coordinates
+  const districts = [
+    { name: "Visakhapatnam", lat: 17.6868, lng: 83.2185 },
+    { name: "Vijayawada", lat: 16.5062, lng: 80.6480 },
+    { name: "Guntur", lat: 16.3067, lng: 80.4365 },
+    { name: "Tirupati", lat: 13.6285, lng: 79.4192 },
+    { name: "Kurnool", lat: 15.8281, lng: 78.0373 },
+    { name: "Anantapur", lat: 14.6819, lng: 77.6006 },
+    { name: "Nellore", lat: 14.4426, lng: 79.9865 },
+    { name: "Kakinada", lat: 16.9891, lng: 82.2475 },
+    { name: "Kadapa", lat: 14.4673, lng: 78.8242 }
+  ];
+
+  // Only show labels when zoomed out enough, or if a district is specifically filtered
+  if (zoom > 12) return null;
+
+  return (
+    <>
+      {districts.map(d => (
+        <Marker 
+          key={d.name} 
+          position={[d.lat, d.lng]} 
+          icon={L.divIcon({
+            className: 'regional-label',
+            html: `<div style="
+              color: rgba(255,255,255,0.6);
+              font-size: ${zoom > 8 ? '0.85rem' : '0.7rem'};
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              white-space: nowrap;
+              pointer-events: none;
+              text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            ">${d.name}</div>`,
+            iconSize: [0, 0]
+          })}
+        />
+      ))}
+    </>
+  );
+}
+
 export function MapView({ 
   filteredGeojson, 
   monthIndex, 
@@ -615,6 +700,7 @@ export function MapView({
   }, [filteredGeojson, is3D]);
 
   const groundwaterStyle = (feature) => {
+    const isSelected = isSelectedVillageFeature(feature);
     const props = feature?.properties || {};
     const depth = Number(
       props.groundwater_estimate ??
@@ -625,41 +711,27 @@ export function MapView({
       props.depth ??
       0
     );
-    const color = villageRiskColor(feature);
+    
+    const normalized = normalizeRiskLevel(props.risk_level, depth);
+    const fillColor = normalized === "critical" ? 'var(--critical)' : normalized === "warning" ? 'var(--warning)' : 'var(--safe)';
+    
     return {
-      color: "rgba(15, 23, 42, 0.55)",
-      weight: 1.2,
-      fillColor: color,
-      fillOpacity: Number.isFinite(depth) ? 0.76 : 0.4
+      color: isSelected ? "#fff" : "rgba(255, 255, 255, 0.1)",
+      weight: isSelected ? 2.5 : 0.8,
+      fillColor: fillColor,
+      fillOpacity: isSelected ? 0.9 : 0.65,
+      className: 'premium-village-polygon'
     };
   };
 
   const neutralVillageStyle = () => ({
-    color: "rgba(50, 50, 50, 0.35)",
-    weight: 1,
-    fillColor: "#2b3440",
-    fillOpacity: 0.15
+    color: "rgba(255, 255, 255, 0.05)",
+    weight: 0.5,
+    fillColor: "rgba(255, 255, 255, 0.02)",
+    fillOpacity: 0.1
   });
 
-  const selectedVillageStyle = (feature) => {
-    const depth = Number(
-      feature?.properties?.groundwater_estimate ??
-      feature?.properties?.predicted_groundwater_level ??
-      feature?.properties?.estimated_groundwater_depth ??
-      feature?.properties?.monthly_depths?.[monthIndex] ??
-      feature?.properties?.actual_last_month ??
-      feature?.properties?.depth ??
-      0
-    );
-    const color = villageRiskColor(feature);
-    return {
-      color: "#000000",
-      weight: 2.8,
-      opacity: 1,
-      fillColor: color,
-      fillOpacity: Number.isFinite(depth) ? 0.86 : 0.18
-    };
-  };
+  const selectedVillageStyle = (feature) => groundwaterStyle(feature);
 
   const isSelectedVillageFeature = (feature) => {
     if (!feature || !selectedFeature) return false;
@@ -1368,6 +1440,12 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           />
         )}
 
+        <RegionalLabels filters={filters} />
+        <NtrVillageClickFallback
+          filteredGeojson={filteredGeojson}
+          selectedDistrictNorm={selectedDistrictNorm}
+          onVillageClick={onVillageClick}
+        />
         <FlyToSelection popupLngLat={popupLngLat} selectedFeature={selectedFeature} filters={filters} />
         <FitToFilterSelection filteredGeojson={filteredGeojson} filters={filters} />
       <MapLegend
