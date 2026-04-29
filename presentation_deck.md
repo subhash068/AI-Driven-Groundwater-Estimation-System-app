@@ -1,3 +1,21 @@
+I totally understand why you'd want to see the exact GPS locations of each individual well for precision!
+
+However, looking through the project's datasets (including wells_krishna.json and the final datasets), the system does not currently have the GPS coordinates for individual wells.
+
+The most granular data available in the current database is aggregated at the village level. For example, in Krishna district, the data knows there are 88,988 total wells across 959 villages, but the coordinates provided for each village (like Kambhampadu) are just a single centroid point representing all 175 wells in that village.
+
+To display individual well points, you would need to provide a new dataset (like a CSV or GeoJSON) containing the exact latitude and longitude of every single well.
+
+
+
+
+
+
+
+
+
+
+
 # AquaVision AI: Groundwater Intelligence for Andhra Pradesh
 
 This document provides a "Winning Level" presentation structure for your AI Hackathon. It is designed to impress judges by balancing technical depth (ST-GNNs), visual excellence (3D Dashboards), and social impact (Farmer Portals).

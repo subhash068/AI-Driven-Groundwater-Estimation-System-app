@@ -1,4 +1,4 @@
-import { makeKey as buildLocationKey } from "../utils/key";
+import { makeKey as buildLocationKey, buildMandalVillageKey } from "../utils/key";
 
 const API_BASE = String(
   import.meta.env.VITE_API_BASE_URL ||
@@ -312,12 +312,14 @@ function readRowLulcPercent(row, key) {
 function buildFinalRowMaps(finalRows) {
   const byId = new Map();
   const byKey = new Map();
+  const byMandalVillageKey = new Map();
   for (const row of finalRows) {
     if (!row || typeof row !== "object") continue;
     const district = row.District ?? row.district;
     const mandal = row.Mandal ?? row.mandal;
     const villageName = row.Village_Name ?? row.village_name ?? row.village;
     const key = buildLocationKey(district, mandal, villageName);
+    const mvKey = buildMandalVillageKey(mandal, villageName);
     const rowId = Number(row.Village_ID ?? row.village_id);
     if (Number.isFinite(rowId) && !byId.has(rowId)) {
       byId.set(rowId, row);
@@ -325,24 +327,49 @@ function buildFinalRowMaps(finalRows) {
     if (key && !byKey.has(key)) {
       byKey.set(key, row);
     }
+    if (mvKey) {
+      if (!byMandalVillageKey.has(mvKey) || String(district).toLowerCase() === "ntr") {
+        byMandalVillageKey.set(mvKey, row);
+      }
+    }
   }
-  return { byId, byKey };
+  return { byId, byKey, byMandalVillageKey };
 }
 
 function reconcileMapFeatureCollections(mapCollections, villageCollections, finalRows) {
-  const mapByKey = new Map();
   const mapFeatures = mapCollections
     .flatMap((collection) => (Array.isArray(collection?.features) ? collection.features : []))
     .filter(Boolean);
+
+  const finalMapByKey = new Map();
+
   for (const feature of mapFeatures) {
-    const props = feature?.properties || {};
-    const key = buildLocationKey(props.district, props.mandal, props.village_name);
-    if (key && !mapByKey.has(key)) {
-      mapByKey.set(key, feature);
+    const props = feature.properties || {};
+    const key = buildMandalVillageKey(props.mandal, props.village_name);
+    if (!key) continue;
+
+    if (!finalMapByKey.has(key)) {
+      finalMapByKey.set(key, { ...feature, properties: { ...props } });
+    } else {
+      const existing = finalMapByKey.get(key);
+      const mergedProps = { ...existing.properties };
+      for (const [k, v] of Object.entries(props)) {
+        const isFalsyNew = v === null || v === undefined || v === "" || v === 0 || v === "NA" || v === "Unknown";
+        const isFalsyOld = mergedProps[k] === null || mergedProps[k] === undefined || mergedProps[k] === "" || mergedProps[k] === 0 || mergedProps[k] === "NA" || mergedProps[k] === "Unknown";
+        if (!isFalsyNew || isFalsyOld) {
+          mergedProps[k] = v;
+        }
+      }
+      if (String(props.district).toLowerCase() === "ntr") {
+        mergedProps.district = "NTR";
+        if (props.actual_last_month) mergedProps.actual_last_month = props.actual_last_month;
+        if (props.GW_Level) mergedProps.GW_Level = props.GW_Level;
+      }
+      existing.properties = mergedProps;
     }
   }
 
-  const { byKey: rowByKey } = buildFinalRowMaps(finalRows);
+  const { byMandalVillageKey: rowByKey } = buildFinalRowMaps(finalRows);
   const villageFeatures = villageCollections
     .flatMap((collection) => (Array.isArray(collection?.features) ? collection.features : []))
     .filter(Boolean);
@@ -362,45 +389,46 @@ function reconcileMapFeatureCollections(mapCollections, villageCollections, fina
 
   for (const villageFeature of villageFeatures) {
     const baseProps = villageFeature?.properties || {};
-    const locationKey = buildLocationKey(baseProps.district, baseProps.mandal, baseProps.village_name);
-    if (!locationKey || seenKeys.has(locationKey)) continue;
-    seenKeys.add(locationKey);
-    const mapProps = mapByKey.get(locationKey)?.properties || {};
-    const row = rowByKey.get(locationKey) || {};
+    const key = buildMandalVillageKey(baseProps.mandal, baseProps.village_name);
+    if (!key || seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    
+    const mapProps = finalMapByKey.get(key)?.properties || {};
+    const row = rowByKey.get(key) || {};
 
     const mergedProps = {
       ...baseProps,
       ...mapProps,
-      village_id: baseProps.village_id,
-      village_name: baseProps.village_name,
-      district: baseProps.district,
-      mandal: baseProps.mandal,
+      village_id: mapProps.village_id ?? baseProps.village_id,
+      village_name: mapProps.village_name ?? baseProps.village_name,
+      district: mapProps.district ?? baseProps.district,
+      mandal: mapProps.mandal ?? baseProps.mandal,
       state: baseProps.state ?? mapProps.state ?? row.State ?? row.state ?? "Andhra Pradesh",
-      location_key: locationKey,
-      soil: pickFirstTextValue(baseProps.soil, row.soil, row.Soil, mapProps.soil),
-      soil_taxonomy: pickFirstTextValue(baseProps.soil_taxonomy, row.soil_taxonomy, row.Soil_Taxonomy, mapProps.soil_taxonomy),
-      soil_map_unit: pickFirstTextValue(baseProps.soil_map_unit, row.soil_map_unit, row.Soil_Map_Unit, mapProps.soil_map_unit),
-      dominant_crop_type: pickFirstTextValue(baseProps.dominant_crop_type, row.dominant_crop_type, mapProps.dominant_crop_type),
+      location_key: key,
+      soil: pickFirstTextValue(mapProps.soil, baseProps.soil, row.soil, row.Soil),
+      soil_taxonomy: pickFirstTextValue(mapProps.soil_taxonomy, baseProps.soil_taxonomy, row.soil_taxonomy, row.Soil_Taxonomy),
+      soil_map_unit: pickFirstTextValue(mapProps.soil_map_unit, baseProps.soil_map_unit, row.soil_map_unit, row.Soil_Map_Unit),
+      dominant_crop_type: pickFirstTextValue(mapProps.dominant_crop_type, baseProps.dominant_crop_type, row.dominant_crop_type),
     };
 
-    for (const key of lulcKeys) {
-      mergedProps[key] = pickPreferredPct(
-        mapProps[key],
-        baseProps[key],
-        readRowLulcPercent(row, key)
+    for (const lkey of lulcKeys) {
+      mergedProps[lkey] = pickPreferredPct(
+        mapProps[lkey],
+        baseProps[lkey],
+        readRowLulcPercent(row, lkey)
       );
     }
 
     features.push({
       type: "Feature",
-      geometry: villageFeature.geometry || mapByKey.get(locationKey)?.geometry || null,
+      geometry: villageFeature.geometry || finalMapByKey.get(key)?.geometry || null,
       properties: mergedProps
     });
   }
 
-  for (const mapFeature of mapFeatures) {
+  for (const mapFeature of finalMapByKey.values()) {
     const props = mapFeature?.properties || {};
-    const key = buildLocationKey(props.district, props.mandal, props.village_name);
+    const key = buildMandalVillageKey(props.mandal, props.village_name);
     if (!key || seenKeys.has(key)) continue;
     seenKeys.add(key);
     features.push(mapFeature);

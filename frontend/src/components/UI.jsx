@@ -254,7 +254,7 @@ function parseLabelArray(value) {
 }
 
 function extractYearFromLabel(label, fallbackYear) {
-  const match = String(label || "").match(/(20\d{2})/);
+  const match = String(label || "").match(/(19\d{2}|20\d{2})/);
   if (match) return Number(match[1]);
   return fallbackYear;
 }
@@ -968,15 +968,23 @@ export function DashboardTopBar({
 
         <div className="topbar-center-controls">
           <div className="topbar-time topbar-time-main">
-            <label htmlFor="year-slider">Timeline</label>
-            <input
-              id="year-slider"
-              type="range"
-              min="0"
-              max="23"
+            <label htmlFor="year-select" style={{ marginRight: '8px' }}>Timeline</label>
+            <select
+              id="year-select"
+              className="timeline-dropdown"
               value={monthIndex}
               onChange={(event) => setMonthIndex(Number(event.target.value))}
-            />
+            >
+              {Array.from({ length: 24 }).map((_, i) => {
+                const y = 2023 + Math.floor(i / 12);
+                const m = MONTH_LABELS[i % 12];
+                return (
+                  <option key={i} value={i} className="timeline-option">
+                    {m} {y}
+                  </option>
+                );
+              })}
+            </select>
           </div>
         </div>
 
@@ -1042,8 +1050,16 @@ export function MapLegend({
         <>
           <div className="legend-divider" />
           <div className="legend-item">
-            <div className="legend-color" style={{ background: '#38BDF8' }}></div>
-            <span>Village wells: estimated counts</span>
+            <div className="legend-color" style={{ background: '#60a5fa', width: '10px', height: '10px', borderRadius: '50%' }}></div>
+            <span>Low wells</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#3b82f6', width: '14px', height: '14px', borderRadius: '50%' }}></div>
+            <span>Moderate wells</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#1e3a8a', width: '18px', height: '18px', borderRadius: '50%' }}></div>
+            <span>High density wells</span>
           </div>
         </>
       )}
@@ -1478,10 +1494,12 @@ function VillageInsightsPanelContentImpl({
     () => parseSeriesArray(props.monthly_depths_full ?? props.monthly_depths_history),
     [props.monthly_depths_full, props.monthly_depths_history]
   );
-  const monthlyDepthDates = useMemo(
-    () => parseLabelArray(props.monthly_depths_full_dates ?? props.monthly_depths_dates),
-    [props.monthly_depths_full_dates, props.monthly_depths_dates]
-  );
+  const monthlyDepthDates = useMemo(() => {
+    if (monthlyDepthsFull.length > 0) {
+      return parseLabelArray(props.monthly_depths_full_dates);
+    }
+    return parseLabelArray(props.monthly_depths_dates);
+  }, [monthlyDepthsFull.length, props.monthly_depths_full_dates, props.monthly_depths_dates]);
   const trendYearOptions = useMemo(
     () => buildTrendYearOptions(monthlyDepthDates, 1998),
     [monthlyDepthDates]

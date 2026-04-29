@@ -4,6 +4,7 @@ import L from "leaflet";
 import { MapLegend } from './UI';
 import { INITIAL_VIEW_STATE } from '../constants/data';
 import { buildLocationKey, healthColor, shiftGeometryFor3D, clamp } from '../utils/mapUtils';
+import WellsLayerController from './WellsLayer';
 
 const isValidGeoJSON = (data) => {
   return data && (data.type === "FeatureCollection" || data.type === "Feature") && Array.isArray(data.features || [data.geometry]);
@@ -105,10 +106,11 @@ function firstValidText(...values) {
   return "NA";
 }
 
-function villageInfoHtml(feature, datasetRow = null) {
+function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
   const props = feature?.properties || {};
   const row = datasetRow || {};
   const gwl = Number(
+    props.monthly_depths?.[monthIndex] ??
     props.groundwater_estimate ??
     props.predicted_groundwater_level ??
     props.estimated_groundwater_depth ??
@@ -459,36 +461,7 @@ function RegionalLabels({ filters }) {
   );
 }
 
-function RiskLegend({ riskFilters, setRiskFilters }) {
-  const options = [
-    { id: 'safe', label: 'Low', className: 'low' },
-    { id: 'warning', label: 'Medium', className: 'medium' },
-    { id: 'critical', label: 'High', className: 'high' },
-  ];
 
-  const toggleFilter = (id) => {
-    setRiskFilters(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
-  return (
-    <div className="map-risk-legend">
-      <h4>Risk Level</h4>
-      {options.map((opt) => (
-        <div 
-          key={opt.id} 
-          className="risk-legend-item"
-          onClick={() => toggleFilter(opt.id)}
-        >
-          <div className={`risk-checkbox ${opt.className} ${riskFilters[opt.id] ? 'active' : ''}`} />
-          <span>{opt.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function MapView({ 
   filteredGeojson, 
@@ -515,9 +488,7 @@ export function MapView({
   datasetRowsByLocation,
   anomalies,
   rechargeZones,
-  selectedDistrict,
-  riskFilters,
-  setRiskFilters
+  selectedDistrict
 }) {
   const [hoverBadge, setHoverBadge] = useState(null);
   const [hoveredDistrictName, setHoveredDistrictName] = useState(null);
@@ -713,25 +684,7 @@ export function MapView({
     };
   }, [selectedDistrict, selectedDistrictNorm]);
 
-  const visibleFeatures = useMemo(() => {
-    if (!filteredGeojson?.features) return null;
-    return {
-      ...filteredGeojson,
-      features: filteredGeojson.features.filter(feature => {
-        const props = feature.properties || {};
-        const depth = Number(
-          props.groundwater_estimate ??
-          props.predicted_groundwater_level ??
-          props.estimated_groundwater_depth ??
-          props.actual_last_month ??
-          props.depth ??
-          0
-        );
-        const normalized = normalizeRiskLevel(props.risk_level, depth);
-        return riskFilters[normalized];
-      })
-    };
-  }, [filteredGeojson, riskFilters]);
+  const visibleFeatures = filteredGeojson;
 
   const extrusionGeojson = useMemo(() => {
     if (!visibleFeatures || !is3D) return null;
@@ -754,17 +707,17 @@ export function MapView({
     const isSelected = isSelectedVillageFeature(feature);
     const props = feature?.properties || {};
     const depth = Number(
+      props.monthly_depths?.[monthIndex] ??
       props.groundwater_estimate ??
       props.predicted_groundwater_level ??
       props.estimated_groundwater_depth ??
-      props.monthly_depths?.[monthIndex] ??
       props.actual_last_month ??
       props.depth ??
       0
     );
     
     const normalized = normalizeRiskLevel(props.risk_level, depth);
-    const fillColor = normalized === "critical" ? 'var(--critical)' : normalized === "warning" ? 'var(--warning)' : 'var(--safe)';
+    const fillColor = normalized === "critical" ? '#ef4444' : normalized === "warning" ? '#f59e0b' : '#22c55e';
     
     return {
       color: isSelected ? "#fff" : "rgba(255, 255, 255, 0.1)",
@@ -1038,9 +991,9 @@ export function MapView({
     `;
   };
 
-  const wellsGeojson = useMemo(() => {
+  const wellsData = useMemo(() => {
     if (!showWells || !visibleFeatures?.features?.length) return null;
-    const features = visibleFeatures.features.map((feature) => {
+    const data = visibleFeatures.features.map((feature) => {
       const props = feature?.properties || {};
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
       
@@ -1074,18 +1027,15 @@ export function MapView({
       if (!Number.isFinite(lat) || !Number.isFinite(lon) || wells <= 0) return null;
 
       return {
-        type: "Feature",
-        geometry: { type: "Point", coordinates: [lon, lat] },
-        properties: {
-          ...effectiveProps,
-          _estimated_wells: wells,
-          _village_label: effectiveProps.village_name || effectiveProps.village || "Unknown",
-          _district_label: effectiveProps.district || "Unknown"
-        }
+        lat,
+        lng: lon,
+        well_count: wells,
+        village: effectiveProps.village_name || effectiveProps.village || "Unknown",
+        district: effectiveProps.district || "Unknown"
       };
     }).filter(Boolean);
     
-    return { type: "FeatureCollection", features };
+    return data;
   }, [showWells, visibleFeatures, datasetRowsByLocation, datasetRowsById]);
 
   const districtNote = useMemo(() => {
@@ -1125,17 +1075,12 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           </strong>
           <div>
             {villageDataSource
-              ? "Boundary file is loaded, but current filter selection returned zero villages."
+              ? "All villages have been hidden by your current filter selections. Try adjusting the risk levels or location filters."
               : villageDataError || "No real village polygons are loaded."}
           </div>
           {!villageDataSource && (
             <div style={{ marginTop: "6px", color: "#93c5fd" }}>
               Add your file at <code>/frontend/public/data/village_boundaries.geojson</code>.
-            </div>
-          )}
-          {villageDataSource && (
-            <div style={{ marginTop: "4px", color: "#67e8f9" }}>
-              Active source: <code>{villageDataSource}</code>
             </div>
           )}
         </div>
@@ -1148,9 +1093,10 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
       >
         <TileLayer attribution={baseTileAttribution} url={baseTileUrl} />
 
-        {extrusionGeojson && <GeoJSON data={extrusionGeojson} style={extrusionStyle} interactive={false} />}
+        {extrusionGeojson && <GeoJSON key={`3d-${monthIndex}`} data={extrusionGeojson} style={extrusionStyle} interactive={false} />}
         {visibleFeatures && (
           <GeoJSON
+            key={`2d-${monthIndex}`}
             data={visibleFeatures}
             style={(feature) => {
               if (isSelectedVillageFeature(feature)) {
@@ -1172,7 +1118,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const datasetRow =
                 (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
                 (locationKey && datasetRowsByLocation?.get(locationKey));
-              const popupHtml = villageInfoHtml(feature, datasetRow);
+              const popupHtml = villageInfoHtml(feature, datasetRow, monthIndex);
               if (layer?.bindTooltip) {
                 layer.bindTooltip(popupHtml, {
                   sticky: true,
@@ -1399,49 +1345,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           />
         )}
 
-        {wellsGeojson && (
-          <GeoJSON
-            data={wellsGeojson}
-            pointToLayer={(feature, latlng) => {
-              const props = feature?.properties || {};
-              const wells = Number(props._estimated_wells);
-              const radius = clamp(3.5 + Math.log10(Math.max(wells, 1)) * 2.8, 3.5, 11);
-              const hue = clamp(120 - Math.log10(Math.max(wells, 1)) * 40, 0, 120);
-              const fillColor = `hsl(${hue}, 85%, 52%)`;
-              return L.circleMarker(latlng, {
-                radius,
-                color: "#1f2937",
-                weight: 0.8,
-                fillColor: fillColor,
-                fillOpacity: 0.5
-              });
-            }}
-            onEachFeature={(feature, layer) => {
-              const props = feature?.properties || {};
-              const wells = Number(props._estimated_wells);
-              const tooltipHtml = `
-                <div style="min-width: 220px; font-family: sans-serif;">
-                  <strong>Village:</strong> ${props._village_label}<br/>
-                  <strong>District:</strong> ${props._district_label}<br/>
-                  <strong>Estimated Wells:</strong> ${wells}<br/>
-                  <br/>
-                  <span style="font-size: 0.85em; opacity: 0.85; display: block; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 6px; margin-top: 6px;">
-                    <em>Village-level estimate only. These are not exact well locations.</em>
-                  </span>
-                </div>
-              `;
-              layer.bindTooltip(tooltipHtml, {
-                sticky: true,
-                direction: "top",
-                opacity: 0.96,
-                className: "wells-tooltip"
-              });
-              layer.on("mouseover", () => {
-                if (layer.openTooltip) layer.openTooltip();
-              });
-            }}
-          />
-        )}
+        {wellsData && <WellsLayerController data={wellsData} />}
 
         {showRecharge && aquiferGeojson && (
           <GeoJSON
@@ -1499,7 +1403,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         />
         <FlyToSelection popupLngLat={popupLngLat} selectedFeature={selectedFeature} filters={filters} />
         <FitToFilterSelection filteredGeojson={visibleFeatures} filters={filters} />
-        <RiskLegend riskFilters={riskFilters} setRiskFilters={setRiskFilters} />
+
         <MapLegend
           showGroundwaterLevels={showGroundwaterLevels}
           showPiezometers={showPiezometers}

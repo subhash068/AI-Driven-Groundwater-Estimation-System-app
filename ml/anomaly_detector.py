@@ -1,61 +1,93 @@
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn as nn
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
-class TimeSeriesAnomalyDetector:
+class Autoencoder(nn.Module):
+    def __init__(self, input_dim: int, hidden_dim: int = 8):
+        super(Autoencoder, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU()
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(hidden_dim // 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+class AdvancedAnomalyDetector:
     def __init__(self, contamination: float = 0.05, random_state: int = 42):
-        """
-        Anomaly detector using Isolation Forest.
-        contamination: The expected proportion of outliers in the data.
-        """
         self.contamination = contamination
-        self.model = IsolationForest(
+        self.iforest = IsolationForest(
             contamination=self.contamination, 
             random_state=random_state,
-            n_estimators=100
+            n_estimators=200
         )
         self.scaler = StandardScaler()
+        self.ae = None
 
-    def fit_predict(self, df: pd.DataFrame, value_col: str = 'depth', time_col: str = 'date', group_col: str = 'piezometer_id') -> pd.DataFrame:
-        """
-        Fits the model and predicts anomalies on time-series data.
-        Returns the dataframe with an 'is_anomaly' boolean column.
-        """
+    def fit_ae(self, data_scaled, epochs=50):
+        input_dim = data_scaled.shape[1]
+        self.ae = Autoencoder(input_dim)
+        optimizer = torch.optim.Adam(self.ae.parameters(), lr=0.01)
+        criterion = nn.MSELoss()
+        
+        data_tensor = torch.FloatTensor(data_scaled)
+        
+        self.ae.train()
+        for epoch in range(epochs):
+            optimizer.zero_grad()
+            output = self.ae(data_tensor)
+            loss = criterion(output, data_tensor)
+            loss.backward()
+            optimizer.step()
+
+    def predict(self, df: pd.DataFrame, feature_cols: list) -> pd.DataFrame:
         df_out = df.copy()
-        df_out['is_anomaly'] = False
-        df_out['anomaly_score'] = 0.0
-
-        if df_out.empty or value_col not in df_out.columns:
-            return df_out
-
-        # We extract rolling features to give the model temporal context
-        # Process each piezometer independently
-        for pid, group in df_out.groupby(group_col):
-            if len(group) < 5: # Not enough data to find anomalies
-                continue
-                
-            # Sort by time
-            if time_col in group.columns:
-                group = group.sort_values(time_col)
+        if df_out.empty: return df_out
+        
+        features = df_out[feature_cols].values
+        features_scaled = self.scaler.fit_transform(features)
+        
+        # 1. Isolation Forest Prediction
+        if_preds = self.iforest.fit_predict(features_scaled)
+        df_out['is_anomaly_iforest'] = (if_preds == -1)
+        
+        # 2. Autoencoder Reconstruction Error
+        if self.ae is None:
+            self.fit_ae(features_scaled)
+        
+        self.ae.eval()
+        with torch.no_grad():
+            features_tensor = torch.FloatTensor(features_scaled)
+            reconstructed = self.ae(features_tensor)
+            mse = torch.mean((features_tensor - reconstructed)**2, dim=1).numpy()
             
-            idx = group.index
-            values = group[value_col].values.reshape(-1, 1)
-            
-            # Simple features: the value itself, and the diff from previous time step
-            diffs = np.diff(values, axis=0)
-            diffs = np.insert(diffs, 0, 0).reshape(-1, 1)
-            
-            # Combine features
-            features = np.hstack([values, diffs])
-            features_scaled = self.scaler.fit_transform(features)
-            
-            # Fit and predict
-            preds = self.model.fit_predict(features_scaled)
-            scores = self.model.decision_function(features_scaled)
-            
-            # IsolationForest returns -1 for anomalies and 1 for inliers
-            df_out.loc[idx, 'is_anomaly'] = (preds == -1)
-            df_out.loc[idx, 'anomaly_score'] = scores
-
+        # Threshold for AE based on contamination percentile
+        threshold = np.percentile(mse, 100 * (1 - self.contamination))
+        df_out['is_anomaly_ae'] = (mse > threshold)
+        df_out['anomaly_score_ae'] = mse
+        
+        # Final flag: Combined decision
+        df_out['is_anomaly'] = df_out['is_anomaly_iforest'] | df_out['is_anomaly_ae']
+        
         return df_out
+
+class TimeSeriesAnomalyDetector:
+    # Retaining for backward compatibility
+    def __init__(self, contamination: float = 0.05, random_state: int = 42):
+        self.detector = AdvancedAnomalyDetector(contamination, random_state)
+
+    def fit_predict(self, df: pd.DataFrame, value_col: str = 'depth', **kwargs) -> pd.DataFrame:
+        # Simplified wrapper for standard use case
+        return self.detector.predict(df, [value_col])

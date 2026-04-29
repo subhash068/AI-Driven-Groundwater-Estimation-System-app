@@ -12,9 +12,16 @@ SQL = """
 WITH nearest_weighted AS (
     SELECT
         v.village_id,
-        AVG(n.current_depth * n.normalized_weight) AS weighted_sensor_depth
+        -- Use 1/d^2 weighting as requested for better spatial sensitivity
+        SUM(p.current_depth * (1.0 / (NULLIF(ST_Distance(ST_Transform(ST_Centroid(v.geom), 3857), ST_Transform(p.geom, 3857)), 0)^2 + 1e-6))) / 
+        SUM(1.0 / (NULLIF(ST_Distance(ST_Transform(ST_Centroid(v.geom), 3857), ST_Transform(p.geom, 3857)), 0)^2 + 1e-6)) AS weighted_sensor_depth
     FROM groundwater.villages v
-    JOIN LATERAL groundwater.find_nearest_piezometers(v.village_id, 5) n ON TRUE
+    CROSS JOIN LATERAL (
+        SELECT current_depth, geom
+        FROM groundwater.piezometers
+        ORDER BY v.geom <-> geom
+        LIMIT 5
+    ) p
     GROUP BY v.village_id
 )
 SELECT
@@ -27,6 +34,9 @@ SELECT
     m.rainfall_lag_1m,
     m.lulc_code,
     m.geomorphology_class,
+    -- Seasonal features
+    EXTRACT(MONTH FROM NOW()) AS month_num,
+    CASE WHEN EXTRACT(MONTH FROM NOW()) BETWEEN 6 AND 9 THEN 1 ELSE 0 END AS is_monsoon,
     COALESCE(m.depth_to_water_level, nw.weighted_sensor_depth) AS depth_to_water_level,
     m.has_sensor,
     COALESCE(va.is_anomaly_label, 0) AS is_anomaly_label
@@ -43,6 +53,10 @@ LEFT JOIN (
 def run(dsn: str, out_path: Path) -> None:
     engine = create_engine(dsn)
     df = pd.read_sql(SQL, engine)
+    
+    # In a real spatio-temporal scenario, we would have multiple rows per village
+    # for different time steps. For this POC, we derive seasonal features from current time.
+    
     out_path.parent.mkdir(parents=True, exist_ok=True)
     if out_path.suffix.lower() == ".csv":
         df.to_csv(out_path, index=False)
@@ -52,7 +66,7 @@ def run(dsn: str, out_path: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build ML training dataset from PostGIS spatial joins")
+    parser = argparse.ArgumentParser(description="Build ML training dataset with advanced hydro-geological features")
     parser.add_argument("--dsn", default=DEFAULT_DSN, help="SQLAlchemy DSN")
     parser.add_argument("--out", type=Path, required=True, help="Output file (.csv or .parquet)")
     return parser.parse_args()

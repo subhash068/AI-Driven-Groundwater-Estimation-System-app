@@ -302,11 +302,7 @@ export default function App({ navigate, pathname }) {
   });
 
   const [activeLayer, setActiveLayer] = useState(1);
-  const [riskFilters, setRiskFilters] = useState({
-    safe: true,
-    warning: true,
-    critical: true
-  });
+
 
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [popupLngLat, setPopupLngLat] = useState(null);
@@ -1099,8 +1095,6 @@ export default function App({ navigate, pathname }) {
                 anomalies={aiPredictionEnabled && showAnomalies ? anomalies : null}
                 rechargeZones={aiPredictionEnabled && showRecharge ? rechargeZones : null}
                 selectedDistrict={filters.district}
-                riskFilters={riskFilters}
-                setRiskFilters={setRiskFilters}
               />
             </main>
             <div className={`insights-dock ${isInsightsOpen ? "open" : "closed"}`}>

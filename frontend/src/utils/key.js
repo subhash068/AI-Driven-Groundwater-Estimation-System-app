@@ -11,6 +11,10 @@ export function buildDistrictVillageKey(district, mandal, villageName = "") {
   return [district, mandal, villageName].map(normalizeKeyPart).join("|");
 }
 
+export function buildMandalVillageKey(mandal, villageName = "") {
+  return [mandal, villageName].map(normalizeKeyPart).join("|");
+}
+
 export const makeKey = buildDistrictVillageKey;
 
 export function getDistrictVillageKeyFromRecord(record) {
