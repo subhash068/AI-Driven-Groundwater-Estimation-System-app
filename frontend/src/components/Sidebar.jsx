@@ -114,12 +114,13 @@ export function Sidebar({
               </select>
             </label>
             <label>
-              District Selector
+              District
               <select
                 value={district}
                 onChange={(e) => onFilterChange('district', e.target.value)}
+                disabled={!state}
               >
-                <option value="">{state ? "All Districts" : "All Districts"}</option>
+                <option value="">{state ? "All Districts" : "Select state first"}</option>
                 {districtOptions.map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}

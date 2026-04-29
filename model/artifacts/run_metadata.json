@@ -1,7 +1,7 @@
 {
   "pipeline": "train_from_csv",
-  "dataset": "output\\final_dataset_train_ready.csv",
+  "dataset": "output\\final_dataset.csv",
   "map_output": "C:\\Users\\windows-11\\Desktop\\AI-Driven-Groundwater-Estimation-System\\data\\exports\\map_data_predictions.geojson",
-  "rows": 879,
-  "feature_count": 24
+  "rows": 939,
+  "feature_count": 70
 }

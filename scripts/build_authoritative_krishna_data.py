@@ -274,7 +274,10 @@ def read_village_boundaries_native() -> gpd.GeoDataFrame:
     )
     gdf = gdf.sort_values("join_key", kind="mergesort")
     gdf = gdf.drop_duplicates(subset=["join_key"], keep="first").reset_index(drop=True)
-    gdf["village_id"] = np.arange(1, len(gdf) + 1)
+    if "village_id" not in gdf.columns or gdf["village_id"].isnull().any() or gdf["village_id"].duplicated().any():
+        gdf["village_id"] = np.arange(1, len(gdf) + 1)
+    else:
+        gdf["village_id"] = pd.to_numeric(gdf["village_id"], errors="coerce").fillna(0).astype(int)
     return gdf
 
 

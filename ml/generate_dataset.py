@@ -559,7 +559,7 @@ def _class_counts_from_raster(src, geom: dict) -> dict[str, int]:
             counts[klass] += int(count)
         return counts
 
-    band = np.asarray(clipped[0].filled(np.nan), dtype=float)
+    band = np.asarray(clipped[0].filled(0), dtype=float)
     valid_vals = band[np.isfinite(band)]
     if valid_vals.size == 0:
         return counts
@@ -585,7 +585,10 @@ def extract_lulc_percentages(villages: gpd.GeoDataFrame, lulc_zip: Path) -> pd.D
                 villages_proj = villages[["Village_ID", "geometry"]].to_crs(src.crs or DEFAULT_CRS)
                 rows = []
                 for _, village in villages_proj.iterrows():
-                    counts = _class_counts_from_raster(src, village.geometry.__geo_interface__)
+                    try:
+                        counts = _class_counts_from_raster(src, village.geometry.__geo_interface__)
+                    except ValueError:
+                        counts = {klass: 0 for klass in ALL_LULC_CLASSES}
                     clean_total = sum(v for k, v in counts.items() if k not in NOISE_CLASSES)
                     row = {"Village_ID": int(village["Village_ID"]), "year": year}
                     for klass in ALL_LULC_CLASSES:

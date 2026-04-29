@@ -807,149 +807,13 @@ function DraggableInsightsShellLegacy({ children }) {
 }
 
 function DraggableInsightsShell({ children }) {
-  const panelRef = useRef(null);
-  const dragStateRef = useRef({ offsetX: 0, offsetY: 0 });
-  const resizeStateRef = useRef({ startX: 0, startWidth: 0, startLeft: 0 });
-  const hasInitialPosition = useRef(false);
-  const [position, setPosition] = useState({ x: 0, y: 96 });
-  const [panelWidth, setPanelWidth] = useState(380);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [isCompactViewport, setIsCompactViewport] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth <= 1100;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined" || hasInitialPosition.current) return;
-    hasInitialPosition.current = true;
-    const initialWidth = Math.min(380, Math.max(window.innerWidth * 0.28, 320));
-    setPosition({
-      x: Math.max(window.innerWidth - initialWidth - 24, 16),
-      y: Math.max(Math.min(96, window.innerHeight - 180), 16)
-    });
-    setPanelWidth(initialWidth);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-    const updateViewportMode = () => setIsCompactViewport(window.innerWidth <= 1100);
-    updateViewportMode();
-    window.addEventListener("resize", updateViewportMode);
-    return () => window.removeEventListener("resize", updateViewportMode);
-  }, []);
-
-  useEffect(() => {
-    if ((!isDragging && !isResizing) || typeof window === "undefined") return undefined;
-
-    const handlePointerMove = (event) => {
-      const panel = panelRef.current;
-      if (!panel) return;
-      const rect = panel.getBoundingClientRect();
-      if (isDragging) {
-        const nextX = event.clientX - dragStateRef.current.offsetX;
-        const nextY = event.clientY - dragStateRef.current.offsetY;
-        const maxX = Math.max(window.innerWidth - rect.width - 12, 12);
-        const maxY = Math.max(window.innerHeight - rect.height - 12, 12);
-        setPosition({
-          x: Math.min(Math.max(nextX, 12), maxX),
-          y: Math.min(Math.max(nextY, 12), maxY)
-        });
-      }
-      if (isResizing) {
-        const minWidth = 300;
-        const nextWidth = Math.max(
-          minWidth,
-          resizeStateRef.current.startWidth + (resizeStateRef.current.startX - event.clientX)
-        );
-        const maxWidth = Math.max(window.innerWidth - position.x - 12, minWidth);
-        const clampedWidth = Math.min(nextWidth, maxWidth);
-        const nextX = resizeStateRef.current.startLeft + (resizeStateRef.current.startWidth - clampedWidth);
-        setPanelWidth(clampedWidth);
-        setPosition((prev) => ({
-          ...prev,
-          x: Math.min(Math.max(nextX, 12), Math.max(window.innerWidth - clampedWidth - 12, 12))
-        }));
-      }
-    };
-
-    const handlePointerUp = () => {
-      setIsDragging(false);
-      setIsResizing(false);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-    };
-  }, [isDragging, isResizing, position.x]);
-
-  const beginDrag = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isResizing || isCompactViewport) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    const rect = panel.getBoundingClientRect();
-    dragStateRef.current = {
-      offsetX: event.clientX - rect.left,
-      offsetY: event.clientY - rect.top
-    };
-    setIsDragging(true);
-    event.preventDefault();
-  };
-
-  const beginResize = (event) => {
-    if (typeof window === "undefined" || event.button !== 0 || isDragging || isCompactViewport) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    const rect = panel.getBoundingClientRect();
-    resizeStateRef.current = {
-      startX: event.clientX,
-      startWidth: rect.width,
-      startLeft: rect.left
-    };
-    setIsResizing(true);
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  const resetPosition = () => {
-    if (typeof window === "undefined") return;
-    const initialWidth = Math.min(380, Math.max(window.innerWidth * 0.28, 320));
-    setPosition({
-      x: Math.max(window.innerWidth - initialWidth - 24, 16),
-      y: 96
-    });
-    setPanelWidth(initialWidth);
-  };
-
   return (
-    <aside
-      ref={panelRef}
-      className={`insights-panel ${isCompactViewport ? "insights-panel-fluid" : ""}`}
-      style={
-        isCompactViewport
-          ? {
-              position: "relative",
-              left: "auto",
-              top: "auto",
-              width: "100%",
-              maxWidth: "100%",
-              height: "auto"
-            }
-          : { left: `${position.x}px`, top: `${position.y}px`, width: `${panelWidth}px` }
-      }
-    >
-
-
+    <aside className="insights-panel">
       {children}
     </aside>
   );
 }
+
 
 function ChartCard({ title, subtitle, children }) {
   return (
@@ -1078,6 +942,7 @@ function SummaryBars({ data }) {
   );
 }
 
+
 export function DashboardTopBar({
   monthIndex,
   setMonthIndex,
@@ -1093,53 +958,44 @@ export function DashboardTopBar({
   const titleScope = scopeLabel || "All Villages";
 
   return (
-    <div className="dashboard-top-bar dashboard-top-bar-main">
-      <div className="topbar-title topbar-title-main">
-        <span className="topbar-kicker">Dashboard</span>
-        <strong>{titleScope}</strong>
-        <span>{month} {year}</span>
-      </div>
-      <div className="topbar-center-controls">
-        <div className="topbar-time topbar-time-main">
-          <label htmlFor="year-slider">Year-wise timeline</label>
-          <input
-            id="year-slider"
-            type="range"
-            min="0"
-            max="23"
-            value={monthIndex}
-            onChange={(event) => setMonthIndex(Number(event.target.value))}
-          />
+    <header className="dashboard-top-bar dashboard-top-bar-main">
+      <div className="topbar-main-row">
+        <div className="topbar-identity">
+          <span className="topbar-kicker">AP Water Resources Department</span>
+          <strong>{titleScope}</strong>
+          <span className="insight-muted">{month} {year}</span>
         </div>
-        <label className="ai-toggle ai-toggle-main">
-          <input
-            type="checkbox"
-            checked={aiPredictionEnabled}
-            onChange={() => setAiPredictionEnabled(!aiPredictionEnabled)}
-          />
-          <span>AI Prediction {aiPredictionEnabled ? "ON" : "OFF"}</span>
-        </label>
-      </div>
-      <div className="topbar-actions">
-        <button type="button" className="dashboard-toggle dashboard-toggle-main" onClick={onToggleFullDashboard}>
-          {isFullDashboardOpen ? "Close Dashboard" : "Open Dashboard"}
-        </button>
-        <div className="topbar-stats topbar-stats-main">
-          <div>
-            <small>Safe</small>
-            <strong>{stats.safe}</strong>
-          </div>
-          <div>
-            <small>Warning</small>
-            <strong>{stats.warning}</strong>
-          </div>
-          <div>
-            <small>Critical</small>
-            <strong>{stats.critical}</strong>
+
+        <div className="topbar-center-controls">
+          <div className="topbar-time topbar-time-main">
+            <label htmlFor="year-slider">Timeline</label>
+            <input
+              id="year-slider"
+              type="range"
+              min="0"
+              max="23"
+              value={monthIndex}
+              onChange={(event) => setMonthIndex(Number(event.target.value))}
+            />
           </div>
         </div>
+
+        <div className="topbar-actions">
+          <label className="ai-toggle ai-toggle-main" style={{ marginRight: '16px' }}>
+            <input
+              type="checkbox"
+              checked={aiPredictionEnabled}
+              onChange={() => setAiPredictionEnabled(!aiPredictionEnabled)}
+            />
+            <span>AI Prediction</span>
+          </label>
+          <button type="button" className="dashboard-toggle dashboard-toggle-main" onClick={onToggleFullDashboard}>
+            {isFullDashboardOpen ? "Close Analytics" : "Open Analytics"}
+          </button>
+        </div>
       </div>
-    </div>
+
+    </header>
   );
 }
 

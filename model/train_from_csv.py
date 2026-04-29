@@ -368,8 +368,13 @@ def train_from_dataset(dataset_csv: Path, data_dir: Path, repo_root: Path, krigi
     payload["recharge_potential"] = "medium"
     payload["Village_ID"] = pd.to_numeric(payload["Village_ID"], errors="coerce").fillna(0).astype(int)
     payload["Village_Name"] = payload["Village_Name"].fillna("").astype(str).str.strip()
+    payload["village_name_norm"] = payload["Village_Name"].str.lower().str.replace(" ", "")
 
-    merged = villages_base.merge(payload, on=["Village_ID", "Village_Name"], how="left")
+    villages_base["village_name_norm"] = villages_base["Village_Name"].str.lower().str.replace(" ", "")
+    payload_to_merge = payload.drop(columns=["Village_ID", "Village_Name"], errors="ignore")
+    merged = villages_base.merge(payload_to_merge, on="village_name_norm", how="left")
+    merged = merged.drop(columns=["village_name_norm"], errors="ignore")
+
     merged = merged.rename(
         columns={
             "Village_ID": "village_id",

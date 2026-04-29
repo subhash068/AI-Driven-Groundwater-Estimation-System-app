@@ -459,6 +459,37 @@ function RegionalLabels({ filters }) {
   );
 }
 
+function RiskLegend({ riskFilters, setRiskFilters }) {
+  const options = [
+    { id: 'safe', label: 'Low', className: 'low' },
+    { id: 'warning', label: 'Medium', className: 'medium' },
+    { id: 'critical', label: 'High', className: 'high' },
+  ];
+
+  const toggleFilter = (id) => {
+    setRiskFilters(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  return (
+    <div className="map-risk-legend">
+      <h4>Risk Level</h4>
+      {options.map((opt) => (
+        <div 
+          key={opt.id} 
+          className="risk-legend-item"
+          onClick={() => toggleFilter(opt.id)}
+        >
+          <div className={`risk-checkbox ${opt.className} ${riskFilters[opt.id] ? 'active' : ''}`} />
+          <span>{opt.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MapView({ 
   filteredGeojson, 
   monthIndex, 
@@ -484,7 +515,9 @@ export function MapView({
   datasetRowsByLocation,
   anomalies,
   rechargeZones,
-  selectedDistrict
+  selectedDistrict,
+  riskFilters,
+  setRiskFilters
 }) {
   const [hoverBadge, setHoverBadge] = useState(null);
   const [hoveredDistrictName, setHoveredDistrictName] = useState(null);
@@ -680,11 +713,29 @@ export function MapView({
     };
   }, [selectedDistrict, selectedDistrictNorm]);
 
-
+  const visibleFeatures = useMemo(() => {
+    if (!filteredGeojson?.features) return null;
+    return {
+      ...filteredGeojson,
+      features: filteredGeojson.features.filter(feature => {
+        const props = feature.properties || {};
+        const depth = Number(
+          props.groundwater_estimate ??
+          props.predicted_groundwater_level ??
+          props.estimated_groundwater_depth ??
+          props.actual_last_month ??
+          props.depth ??
+          0
+        );
+        const normalized = normalizeRiskLevel(props.risk_level, depth);
+        return riskFilters[normalized];
+      })
+    };
+  }, [filteredGeojson, riskFilters]);
 
   const extrusionGeojson = useMemo(() => {
-    if (!filteredGeojson || !is3D) return null;
-    const features = filteredGeojson.features
+    if (!visibleFeatures || !is3D) return null;
+    const features = visibleFeatures.features
       .filter((f) => !isPointGeometry(f))
       .map((f) => {
         const weathered = Number(f.properties?.weathered_rock || 0);
@@ -697,7 +748,7 @@ export function MapView({
       })
       .filter((f) => f.geometry);
     return { type: "FeatureCollection", features };
-  }, [filteredGeojson, is3D]);
+  }, [visibleFeatures, is3D]);
 
   const groundwaterStyle = (feature) => {
     const isSelected = isSelectedVillageFeature(feature);
@@ -842,7 +893,7 @@ export function MapView({
     if (!anomalies || !isValidGeoJSON(anomalies)) return null;
     const selected = Array.isArray(selectedAnomalyTypes) ? selectedAnomalyTypes : [];
     const allowedVillageIds = new Set(
-      (filteredGeojson?.features || [])
+      (visibleFeatures?.features || [])
         .map((feature) => Number(feature?.properties?.village_id))
         .filter((value) => Number.isFinite(value))
     );
@@ -859,10 +910,10 @@ export function MapView({
         return selected.includes(anomalyMeta(feature).label) && districtMatch && villageMatch;
       })
     };
-  }, [anomalies, selectedAnomalyTypes, selectedDistrictNorm, filteredGeojson]);
+  }, [anomalies, selectedAnomalyTypes, selectedDistrictNorm, visibleFeatures]);
 
   const severeAnomalyHighlightGeojson = useMemo(() => {
-    if (!filteredGeojson?.features?.length || !visibleAnomalies?.features?.length) return null;
+    if (!visibleFeatures?.features?.length || !visibleAnomalies?.features?.length) return null;
     const severeSelected = Array.isArray(selectedAnomalyTypes) && selectedAnomalyTypes.includes("Severe drop");
     if (!severeSelected) return null;
     const severeVillageIds = new Set(
@@ -872,23 +923,23 @@ export function MapView({
         .filter((value) => Number.isFinite(value))
     );
     if (!severeVillageIds.size) return null;
-    const features = filteredGeojson.features.filter((feature) => severeVillageIds.has(Number(feature?.properties?.village_id)));
+    const features = visibleFeatures.features.filter((feature) => severeVillageIds.has(Number(feature?.properties?.village_id)));
     if (!features.length) return null;
     return { type: "FeatureCollection", features };
-  }, [filteredGeojson, selectedAnomalyTypes, visibleAnomalies]);
+  }, [visibleFeatures, selectedAnomalyTypes, visibleAnomalies]);
 
   const anomalyEmptyState = Boolean(anomalies && isValidGeoJSON(anomalies) && Array.isArray(selectedAnomalyTypes) && selectedAnomalyTypes.length === 0);
 
   const lulcGeojson = useMemo(() => {
-    if (!showLulc || !filteredGeojson?.features?.length) return null;
+    if (!showLulc || !visibleFeatures?.features?.length) return null;
     const selected = (selectedLulcClasses || []).map((item) => String(item));
     const selectedSet = new Set(selected);
     if (selectedSet.size === 0) {
-      return { ...filteredGeojson, features: [] };
+      return { ...visibleFeatures, features: [] };
     }
     return {
-      ...filteredGeojson,
-      features: filteredGeojson.features
+      ...visibleFeatures,
+      features: visibleFeatures.features
         .map((feature) => {
           const props = feature?.properties || {};
           const byPct = resolveLulcCategoryFromPercentages(props, selected);
@@ -909,7 +960,7 @@ export function MapView({
         })
         .filter((feature) => Boolean(feature?.properties?.__lulcSelectedCoverage))
     };
-  }, [filteredGeojson, showLulc, selectedLulcClasses]);
+  }, [visibleFeatures, showLulc, selectedLulcClasses]);
 
   const lulc3DGeojson = useMemo(() => {
     if (!is3D || !lulcGeojson?.features?.length) return null;
@@ -988,8 +1039,8 @@ export function MapView({
   };
 
   const wellsGeojson = useMemo(() => {
-    if (!showWells || !filteredGeojson?.features?.length) return null;
-    const features = filteredGeojson.features.map((feature) => {
+    if (!showWells || !visibleFeatures?.features?.length) return null;
+    const features = visibleFeatures.features.map((feature) => {
       const props = feature?.properties || {};
       const key = buildLocationKey(props.district, props.mandal, props.village_name);
       
@@ -1035,7 +1086,7 @@ export function MapView({
     }).filter(Boolean);
     
     return { type: "FeatureCollection", features };
-  }, [showWells, filteredGeojson, datasetRowsByLocation, datasetRowsById]);
+  }, [showWells, visibleFeatures, datasetRowsByLocation, datasetRowsById]);
 
   const districtNote = useMemo(() => {
     if (selectedDistrictNorm === "NTR") {
@@ -1051,7 +1102,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   return (
     <>
-      {!filteredGeojson?.features?.length && (
+      {!visibleFeatures?.features?.length && (
         <div
           style={{
             position: "absolute",
@@ -1098,9 +1149,9 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         <TileLayer attribution={baseTileAttribution} url={baseTileUrl} />
 
         {extrusionGeojson && <GeoJSON data={extrusionGeojson} style={extrusionStyle} interactive={false} />}
-        {filteredGeojson && (
+        {visibleFeatures && (
           <GeoJSON
-            data={filteredGeojson}
+            data={visibleFeatures}
             style={(feature) => {
               if (isSelectedVillageFeature(feature)) {
                 return selectedVillageStyle(feature);
@@ -1141,9 +1192,9 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             }}
           />
         )}
-        {showDistrictBoundaries && filteredGeojson && (
+        {showDistrictBoundaries && visibleFeatures && (
           <GeoJSON
-            data={filteredGeojson}
+            data={visibleFeatures}
             style={(feature) => {
               const district = String(feature?.properties?.district || "District");
               const color = boundaryColorFromText(district);
@@ -1159,9 +1210,9 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             interactive={false}
           />
         )}
-        {showMandalBoundaries && filteredGeojson && (
+        {showMandalBoundaries && visibleFeatures && (
           <GeoJSON
-            data={filteredGeojson}
+            data={visibleFeatures}
             style={(feature) => {
               const mandal = String(feature?.properties?.mandal || "Mandal");
               const color = boundaryColorFromText(mandal);
@@ -1274,7 +1325,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
                 const anomalyKey = buildLocationKey(anomalyDistrict, anomalyMandal, anomalyVillage);
                 let matched = null;
                 if (anomalyKey) {
-                  matched = (filteredGeojson?.features || []).find((item) => {
+                  matched = (visibleFeatures?.features || []).find((item) => {
                     const itemKey = buildLocationKey(
                       item?.properties?.district,
                       item?.properties?.mandal,
@@ -1284,7 +1335,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
                   });
                 }
                 if (!matched && Number.isFinite(villageId)) {
-                  matched = (filteredGeojson?.features || []).find((item) => Number(item?.properties?.village_id) === villageId);
+                  matched = (visibleFeatures?.features || []).find((item) => Number(item?.properties?.village_id) === villageId);
                 }
                 if (matched) {
                   onVillageClick(matched);
@@ -1442,19 +1493,20 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
         <RegionalLabels filters={filters} />
         <NtrVillageClickFallback
-          filteredGeojson={filteredGeojson}
+          filteredGeojson={visibleFeatures}
           selectedDistrictNorm={selectedDistrictNorm}
           onVillageClick={onVillageClick}
         />
         <FlyToSelection popupLngLat={popupLngLat} selectedFeature={selectedFeature} filters={filters} />
-        <FitToFilterSelection filteredGeojson={filteredGeojson} filters={filters} />
-      <MapLegend
-        showGroundwaterLevels={showGroundwaterLevels}
-        showPiezometers={showPiezometers}
-        showWells={showWells}
-        showAnomalies={Boolean(anomalies && isValidGeoJSON(anomalies))}
-        districtNote={districtNote}
-      />
+        <FitToFilterSelection filteredGeojson={visibleFeatures} filters={filters} />
+        <RiskLegend riskFilters={riskFilters} setRiskFilters={setRiskFilters} />
+        <MapLegend
+          showGroundwaterLevels={showGroundwaterLevels}
+          showPiezometers={showPiezometers}
+          showWells={showWells}
+          showAnomalies={Boolean(anomalies && isValidGeoJSON(anomalies))}
+          districtNote={districtNote}
+        />
       </MapContainer>
 
       {hoverBadge && (

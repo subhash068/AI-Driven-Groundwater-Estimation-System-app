@@ -301,6 +301,13 @@ export default function App({ navigate, pathname }) {
     villageName: ""
   });
 
+  const [activeLayer, setActiveLayer] = useState(1);
+  const [riskFilters, setRiskFilters] = useState({
+    safe: true,
+    warning: true,
+    critical: true
+  });
+
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [popupLngLat, setPopupLngLat] = useState(null);
   const [hoveredDistrict, setHoveredDistrict] = useState(null);
@@ -335,6 +342,7 @@ export default function App({ navigate, pathname }) {
     sourcePath: datasetSource,
     integritySummary: datasetIntegritySummary
   } = useGroundwaterDataset();
+
 
   useEffect(() => {
     if (aiPredictionEnabled && showAnomalies && !anomalies) {
@@ -1091,17 +1099,11 @@ export default function App({ navigate, pathname }) {
                 anomalies={aiPredictionEnabled && showAnomalies ? anomalies : null}
                 rechargeZones={aiPredictionEnabled && showRecharge ? rechargeZones : null}
                 selectedDistrict={filters.district}
+                riskFilters={riskFilters}
+                setRiskFilters={setRiskFilters}
               />
             </main>
             <div className={`insights-dock ${isInsightsOpen ? "open" : "closed"}`}>
-              <button
-                type="button"
-                className="insights-toggle"
-                aria-label={isInsightsOpen ? "Close village insights panel" : "Open village insights panel"}
-                onClick={() => setIsInsightsOpen((prev) => !prev)}
-              >
-                {isInsightsOpen ? ">" : "<"}
-              </button>
               {isInsightsOpen && (
                 <>
                   <VillageInsightsPanel
