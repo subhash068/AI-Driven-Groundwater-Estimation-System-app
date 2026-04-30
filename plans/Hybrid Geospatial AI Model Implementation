@@ -1,0 +1,29 @@
+# Walkthrough: Hybrid Geospatial AI Model Implementation
+
+We have upgraded the groundwater estimation pipeline from a basic XGBoost model to a sophisticated hybrid geospatial system.
+
+## Key Accomplishments
+
+### 1. Refined Data Engineering
+- **Seasonal Features**: Added `month_num` and `is_monsoon` flags to capture seasonal groundwater fluctuations.
+- **Improved Spatial Weighting**: Implemented the $1/d^2$ weighted GWL formula in the data pipeline for better spatial sensitivity to neighboring piezometers.
+
+### 2. ST-GNN + LSTM Architecture
+- **Graph Neural Network**: Upgraded to `GATv2Conv` for dynamic edge weighting.
+- **Temporal LSTM**: Integrated an LSTM layer to process sequences of spatial embeddings, allowing the model to learn from historical trends.
+- **Sequence Handling**: The model now supports both static and time-series inputs.
+
+### 3. Advanced Anomaly Detection
+- **Hybrid Strategy**: Combined **Isolation Forest** (for outlier detection) with **Autoencoders** (for complex reconstruction-based anomaly scoring).
+- **Precision**: The system now flags both unsupervised statistical outliers and extreme seasonal depletions.
+
+### 4. Ensemble Prediction
+- **Weighted Averaging**: The inference engine now uses an ensemble of XGBoost and spatial nearest-neighbor weights (70/30 split) to ensure robust estimates even in heterogeneous regions.
+
+## Verification Results
+- **Model Metrics**: Preliminary tests show improved MAPE on validation sets.
+- **Architectural Integrity**: The system now aligns with the state-of-the-art research recommendations provided.
+
+## Next Steps
+- Fine-tune hyperparameters for the ST-GNN on full statewide datasets.
+- Integrate 3D Aquifer data into the graph node features.

@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import 'react-leaflet-cluster/dist/assets/MarkerCluster.css';
+import 'react-leaflet-cluster/dist/assets/MarkerCluster.Default.css';
 import { Marker } from 'react-leaflet';
 import L from 'leaflet';
 

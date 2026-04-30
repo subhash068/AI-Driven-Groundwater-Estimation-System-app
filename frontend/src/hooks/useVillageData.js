@@ -9,6 +9,7 @@ const EXCLUDED_DISTRICTS = new Set([
 ]);
 
 const DISTRICT_VILLAGE_DATASET_CANDIDATES = [
+  "/data/villages_with_sensors.geojson",
   "/data/village_boundaries_imputed.geojson",
   "/data/village_boundaries.geojson",
   "/data/villages.geojson",

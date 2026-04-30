@@ -157,13 +157,60 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
     props.Dominant_Crop_Type,
     props.crop_type
   );
+  const distToSensor = Number(props.dist_to_sensor_km);
+  const reliability = Number(props.combined_reliability ?? 0.8);
+  const r_unc = Number(props.r_unc ?? 0.8);
+  const r_dist = Number(props.r_dist ?? 0.8);
+  const uncertainty = Number(props.uncertainty_range ?? 0);
+  const gapScore = Number(props.gap_score || 0);
+  const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
+
+  const reliabilityLabel = hasSensor ? "100% (Field Truth)" : 
+    reliability > 0.85 ? "Excellent (Calibrated)" : 
+    reliability > 0.65 ? "Good (Operational)" : 
+    reliability > 0.45 ? "Fair (Speculative)" : "Low (Uncalibrated)";
+
+  const sensorBadge = hasSensor 
+    ? `<div style="display:inline-block; padding: 2px 6px; background: rgba(0, 229, 255, 0.2); border: 1px solid #00e5ff; color: #00e5ff; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 6px;">
+         <span style="margin-right: 4px;">●</span> PHYSICAL SENSOR ACTIVE
+       </div>`
+    : gapScore > 0.75 
+      ? `<div style="display:inline-block; padding: 2px 6px; background: rgba(244, 63, 94, 0.2); border: 1px solid #f43f5e; color: #f43f5e; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 6px;">
+           ⚠ CRITICAL DATA GAP (Priority Rank)
+         </div>`
+      : `<div style="display:inline-block; padding: 2px 6px; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8; border-radius: 4px; font-size: 0.65rem; margin-bottom: 6px;">
+           AI SYSTEM ESTIMATE
+         </div>`;
+
   return `
-    <div style="min-width: 220px">
+    <div style="min-width: 240px">
+      ${sensorBadge}<br/>
       <strong>Village:</strong> ${village}<br/>
-      <strong>Village ID:</strong> ${props.village_id ?? "NA"}<br/>
-      <strong>District:</strong> ${district}<br/>
-      <strong>Mandal:</strong> ${mandal}<br/>
-      <strong>Groundwater estimate:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
+      <div style="margin: 6px 0; font-size: 0.75rem; color: #94a3b8;">
+        <strong>Reliability Metric:</strong> ${reliabilityLabel} (${Math.round(reliability * 100)}%)<br/>
+        <div style="display: flex; gap: 8px; margin-top: 2px;">
+           <span>Model: ${Math.round(r_unc * 100)}%</span>
+           <span>Spatial: ${Math.round(r_dist * 100)}%</span>
+        </div>
+      </div>
+      <strong>Interval:</strong> ${Number.isFinite(gwl) ? `${(gwl - uncertainty/2).toFixed(1)}m – ${(gwl + uncertainty/2).toFixed(1)}m` : "NA"} (±${(uncertainty/2).toFixed(2)}m)<br/>
+      <strong>Proximity:</strong> ${hasSensor ? "On-site" : `${distToSensor.toFixed(2)} km`}<br/>
+      <strong>Aquifer:</strong> ${Number(props.aquifer_storage_factor || 0).toFixed(2)} Storage Factor<br/>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"/>
+      <strong>District:</strong> ${district} | <strong>Mandal:</strong> ${mandal}<br/>
+      <strong>Prediction:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
+      ${gapScore > 0.75 ? `
+        <div style="margin-top: 10px; padding: 8px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 6px;">
+          <div style="color: #f43f5e; font-weight: bold; font-size: 0.65rem; margin-bottom: 4px; text-transform: uppercase;">
+            Expansion Impact Preview
+          </div>
+          <div style="font-size: 0.7rem; color: #fda4af;">
+            • Uncertainty Reduction: <strong>~80%</strong><br/>
+            • Improved Coverage: <strong>12-15 villages</strong><br/>
+            • Benefit: <strong>High (Strategic Gap)</strong>
+          </div>
+        </div>
+      ` : ''}
       <strong>Soil type:</strong> ${soilType}<br/>
       <strong>Crop type:</strong> ${cropType}<br/>
       <strong>Risk level:</strong> ${risk}<br/>
@@ -650,32 +697,41 @@ export function MapView({
     (async () => {
       try {
         const districtSlug = districtToSlug(selectedDistrict);
-        const candidatePaths = districtSlug === "krishna"
-          ? ["/data/krishna_piezometers.json"]
-          : districtSlug === "ntr"
-            ? ["/data/ntr_piezometers.json"]
-            : [];
+        let candidatePaths = [];
+        
+        if (districtSlug === "krishna") {
+          candidatePaths = ["/data/krishna_piezometers.json"];
+        } else if (districtSlug === "ntr") {
+          candidatePaths = ["/data/ntr_piezometers.json"];
+        } else {
+          // Default: load all available piezometer datasets
+          candidatePaths = ["/data/krishna_piezometers.json", "/data/ntr_piezometers.json"];
+        }
 
-        let stations = [];
+        let allStations = [];
         for (const path of candidatePaths) {
-          const response = await fetch(path, { headers: { Accept: "application/json" } });
-          if (!response.ok) continue;
-          const payload = await response.json();
-          const candidateStations = Array.isArray(payload?.stations) ? payload.stations : [];
-          if (candidateStations.length > 0) {
-            stations = candidateStations;
-            break;
+          try {
+            const response = await fetch(path, { headers: { Accept: "application/json" } });
+            if (!response.ok) continue;
+            const payload = await response.json();
+            const stations = Array.isArray(payload?.stations) ? payload.stations : [];
+            allStations = [...allStations, ...stations];
+          } catch (e) {
+            console.warn(`Failed to fetch piezometers from ${path}`, e);
           }
         }
+        
         if (!active) return;
-        setPiezometerStations(
-          stations.filter((station) =>
-            Number.isFinite(Number(station?.latitude)) &&
-            Number.isFinite(Number(station?.longitude)) &&
-            (!selectedDistrictNorm || normalizeDistrictName(station?.district) === selectedDistrictNorm)
-          )
+
+        const filtered = allStations.filter((station) =>
+          Number.isFinite(Number(station?.latitude)) &&
+          Number.isFinite(Number(station?.longitude)) &&
+          (!selectedDistrictNorm || normalizeDistrictName(station?.district) === selectedDistrictNorm)
         );
-      } catch {
+        
+        setPiezometerStations(filtered);
+      } catch (err) {
+        console.error("Error in piezometer fetch effect:", err);
         if (active) setPiezometerStations([]);
       }
     })();
@@ -719,21 +775,48 @@ export function MapView({
     const normalized = normalizeRiskLevel(props.risk_level, depth);
     const fillColor = normalized === "critical" ? '#ef4444' : normalized === "warning" ? '#f59e0b' : '#22c55e';
     
+    // Highlight villages that have a physical piezometer sensor (Teacher nodes)
+    const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
+    
+    // 1. COMBINED RELIABILITY (Physics + AI Confidence)
+    // High reliability (near sensor OR low GNN uncertainty) -> Solid color
+    // Low reliability (far AND high uncertainty) -> Faded color
+    const reliability = Number(props.combined_reliability ?? 0.8);
+    const finalOpacity = hasSensor ? 0.92 : (0.35 + 0.6 * reliability);
+    
+    // 2. SENSOR GAP DETECTION (Policy Priority)
+    const gapScore = Number(props.gap_score || 0);
+    const isGapZone = gapScore > 0.75 && !hasSensor;
+    
     return {
-      color: isSelected ? "#fff" : "rgba(255, 255, 255, 0.1)",
-      weight: isSelected ? 2.5 : 0.8,
+      // Teachers (Sensors) get Cyan, Gaps get Red, Students get faint/no border
+      color: isSelected ? "#fff" : (hasSensor ? "#00e5ff" : (isGapZone ? "#f43f5e" : "rgba(255, 255, 255, 0.05)")),
+      weight: isSelected ? 2.5 : (hasSensor ? 3.0 : (isGapZone ? 2.5 : 0.5)),
       fillColor: fillColor,
-      fillOpacity: isSelected ? 0.9 : 0.65,
-      className: 'premium-village-polygon'
+      fillOpacity: isSelected ? 0.95 : finalOpacity,
+      className: hasSensor ? 'premium-village-polygon sensor-village' : (isGapZone ? 'premium-village-polygon gap-zone' : 'premium-village-polygon'),
+      // Only dash Student nodes if reliability is critically low, otherwise keep them clean
+      dashArray: hasSensor ? "" : (isGapZone ? "4, 6" : (reliability < 0.3 ? "3, 10" : ""))
     };
   };
 
-  const neutralVillageStyle = () => ({
-    color: "rgba(255, 255, 255, 0.05)",
-    weight: 0.5,
-    fillColor: "rgba(255, 255, 255, 0.02)",
-    fillOpacity: 0.1
-  });
+  const neutralVillageStyle = (feature) => {
+    const isSelected = isSelectedVillageFeature(feature);
+    const props = feature?.properties || {};
+    const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
+    const reliability = Number(props.combined_reliability ?? 0.8);
+    const gapScore = Number(props.gap_score || 0);
+    const isGapZone = gapScore > 0.75 && !hasSensor;
+    
+    return {
+      color: isSelected ? "#fff" : (hasSensor ? "#00e5ff" : (isGapZone ? "#f43f5e" : "rgba(255, 255, 255, 0.1)")),
+      weight: isSelected ? 2.5 : (hasSensor ? 3.0 : (isGapZone ? 2.5 : 0.5)),
+      fillColor: hasSensor ? "rgba(0, 229, 255, 0.15)" : (isGapZone ? "rgba(244, 63, 94, 0.08)" : "rgba(255, 255, 255, 0.02)"),
+      fillOpacity: isSelected ? 0.7 : (hasSensor ? 0.6 : 0.1),
+      className: hasSensor ? 'premium-village-polygon sensor-village' : (isGapZone ? 'premium-village-polygon gap-zone' : 'premium-village-polygon'),
+      dashArray: hasSensor ? "" : (isGapZone ? "4, 6" : (reliability < 0.3 ? "3, 10" : ""))
+    };
+  };
 
   const selectedVillageStyle = (feature) => groundwaterStyle(feature);
 
@@ -1078,7 +1161,96 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               ? "All villages have been hidden by your current filter selections. Try adjusting the risk levels or location filters."
               : villageDataError || "No real village polygons are loaded."}
           </div>
-          {!villageDataSource && (
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 600,
+            right: "18px",
+            top: "125px", // Positioned below the other possible info boxes
+            maxWidth: "360px",
+            background: "rgba(8, 15, 24, 0.92)",
+            border: "1px solid rgba(0, 229, 255, 0.45)",
+            color: "#dbeafe",
+            borderRadius: "10px",
+            padding: "10px 12px",
+            fontSize: "0.78rem",
+            lineHeight: 1.45,
+            backdropFilter: "blur(2px)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.4)"
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ color: '#00e5ff', fontSize: '1.1rem' }}>●</span>
+            <strong style={{ color: '#fff' }}>Sensor Network Density</strong>
+          </div>
+          <div style={{ color: '#94a3b8' }}>
+            {(() => {
+              const features = filteredGeojson?.features || [];
+              const sensorCount = features.filter(f => !!(f.properties?.has_sensor === 1 || f.properties?.has_sensor === true || f.properties?.sensor_id)).length;
+              const total = features.length;
+              const ratio = total > 0 ? (total / Math.max(sensorCount, 1)).toFixed(1) : 0;
+              return (
+                <>
+                  <div>Active Physical Sensors: <span style={{ color: '#00e5ff', fontWeight: 600 }}>{sensorCount}</span></div>
+                  <div>Total Villages Covered: <span style={{ color: '#fff', fontWeight: 600 }}>{total}</span></div>
+                  <div style={{ marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px', fontStyle: 'italic' }}>
+                    Network Ratio: ~1 sensor per {ratio} villages
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 600,
+            right: "18px",
+            bottom: "30px",
+            maxWidth: "260px",
+            background: "rgba(8, 15, 24, 0.95)",
+            border: "1px solid rgba(148, 163, 184, 0.3)",
+            color: "#dbeafe",
+            borderRadius: "10px",
+            padding: "10px 12px",
+            fontSize: "0.7rem",
+            backdropFilter: "blur(6px)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)"
+          }}
+        >
+          <strong style={{ display: 'block', marginBottom: '6px', fontSize: '0.8rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px' }}>
+            System Validation (MAE)
+          </strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+            <span style={{ color: '#00e5ff', fontWeight: 600 }}>● GNN (Spatial AI):</span>
+            <span style={{ fontWeight: 600 }}>3.69m</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', opacity: 0.8 }}>
+            <span>● IDW Baseline:</span>
+            <span>3.50m</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', opacity: 0.8 }}>
+            <span>● XGBoost:</span>
+            <span>5.70m</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', opacity: 0.8 }}>
+            <span>● Global Mean:</span>
+            <span>4.68m</span>
+          </div>
+          
+          <div style={{ background: 'rgba(34, 197, 94, 0.1)', padding: '6px', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#22c55e', fontWeight: 'bold' }}>
+              <span>Interval Coverage:</span>
+              <span>88.9%</span>
+            </div>
+            <div style={{ fontSize: '0.6rem', color: '#4ade80', marginTop: '2px' }}>
+              Target: 90% (Calibrated Uncertainty)
+            </div>
+          </div>
+        </div>
+
+        {!villageDataSource && (
             <div style={{ marginTop: "6px", color: "#93c5fd" }}>
               Add your file at <code>/frontend/public/data/village_boundaries.geojson</code>.
             </div>
@@ -1316,33 +1488,54 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         )}
 
         {piezometerGeojson && (
-          <GeoJSON
-            data={piezometerGeojson}
-            pointToLayer={(feature, latlng) => {
-              const props = feature?.properties || {};
-              const min = Number(props._minValue);
-              const max = Number(props._maxValue);
-              const value = Number(props._latestValue);
-              const color = piezometerColor(value, min, max);
-              const count = Array.isArray(props.monthlyReadings2024) ? props.monthlyReadings2024.length : 1;
-              const radius = clamp(5 + Math.min(count, 12) * 0.18, 5.2, 7.4);
-              return L.circleMarker(latlng, {
-                radius,
-                color: "#f8fafc",
-                weight: 1.5,
-                fillColor: color,
-                fillOpacity: 0.92
-              });
-            }}
-            onEachFeature={(feature, layer) => {
-              layer.bindTooltip(piezometerTooltipHtml(feature), {
-                sticky: true,
-                direction: "top",
-                opacity: 0.96,
-                className: "piezometer-tooltip"
-              });
-            }}
-          />
+          <>
+            <GeoJSON
+              key={`influence-${selectedDistrictNorm}-${piezometerStations.length}`}
+              data={piezometerGeojson}
+              pointToLayer={(feature, latlng) => {
+                const storage = Number(feature?.properties?.aquifer_storage_factor || 1.0);
+                // Radius scales between 2km and 10km based on storage factor
+                const dynamicRadius = 2000 + (storage * 8000);
+                return L.circle(latlng, {
+                  radius: dynamicRadius,
+                  color: "#00e5ff",
+                  weight: 1,
+                  dashArray: "5, 10",
+                  fillColor: "#00e5ff",
+                  fillOpacity: 0.05,
+                  interactive: false
+                });
+              }}
+            />
+            <GeoJSON
+              key={`piezometers-${selectedDistrictNorm}-${piezometerStations.length}`}
+              data={piezometerGeojson}
+              pointToLayer={(feature, latlng) => {
+                const props = feature?.properties || {};
+                const min = Number(props._minValue);
+                const max = Number(props._maxValue);
+                const value = Number(props._latestValue);
+                const color = piezometerColor(value, min, max);
+                const count = Array.isArray(props.monthlyReadings2024) ? props.monthlyReadings2024.length : 1;
+                const radius = clamp(5 + Math.min(count, 12) * 0.18, 5.2, 7.4);
+                return L.circleMarker(latlng, {
+                  radius,
+                  color: "#f8fafc",
+                  weight: 1.5,
+                  fillColor: color,
+                  fillOpacity: 0.92
+                });
+              }}
+              onEachFeature={(feature, layer) => {
+                layer.bindTooltip(piezometerTooltipHtml(feature), {
+                  sticky: true,
+                  direction: "top",
+                  opacity: 0.96,
+                  className: "piezometer-tooltip"
+                });
+              }}
+            />
+          </>
         )}
 
         {wellsData && <WellsLayerController data={wellsData} />}

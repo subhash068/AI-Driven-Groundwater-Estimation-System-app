@@ -499,7 +499,15 @@ def _load_excel_features(raw_dir: Path, villages: gpd.GeoDataFrame) -> pd.DataFr
             zdf.columns = [str(c).strip().lower() for c in zdf.columns]
             id_col = _pick_col(list(zdf.columns), ["village_id", "villageid", "id"])
             village_col = _pick_col(list(zdf.columns), ["village", "location", "name"])
-            level_col = _pick_col(list(zdf.columns), ["water level", "groundwater", "depth", "wl"])
+            import re
+            dt_cols = [c for c in zdf.columns if re.match(r'^\d{4}-\d{2}-\d{2}', str(c))]
+            if dt_cols:
+                # Use the latest 12 months of valid readings
+                zdf["groundwater_level"] = zdf[dt_cols[-12:]].apply(pd.to_numeric, errors="coerce").mean(axis=1)
+                level_col = "groundwater_level"
+            else:
+                level_col = _pick_col(list(zdf.columns), ["water level", "groundwater", "depth", "wl"])
+                
             if level_col:
                 fields = [level_col]
                 if id_col:
@@ -526,9 +534,9 @@ def _load_excel_features(raw_dir: Path, villages: gpd.GeoDataFrame) -> pd.DataFr
         pz_df, on="village_id", how="left"
     )
     pump_med = merged["pumping_rate"].median()
-    gw_med = merged["groundwater_level"].median()
     merged["pumping_rate"] = merged["pumping_rate"].fillna(0.0 if pd.isna(pump_med) else float(pump_med))
-    merged["groundwater_level"] = merged["groundwater_level"].fillna(10.0 if pd.isna(gw_med) else float(gw_med))
+    merged["has_sensor"] = merged["groundwater_level"].notna().astype(int)
+    # Do NOT fill groundwater_level with 10.0; we want NaNs for unmeasured villages
     return merged
 
 
@@ -671,8 +679,8 @@ def ensure_training_schema(frame: pd.DataFrame) -> pd.DataFrame:
     gw_level = _series_or_default(train_df, "GW_Level", default=np.nan)
     gw_level = gw_level.fillna(_series_or_default(train_df, "groundwater_level", default=np.nan))
     gw_level = gw_level.fillna(_series_or_default(train_df, "depth", default=np.nan))
-    gw_median = float(gw_level.median()) if gw_level.notna().any() else 10.0
-    train_df["GW_Level"] = gw_level.fillna(gw_median if np.isfinite(gw_median) else 10.0)
+    # Keep as NaN so downstream models know which nodes are unmeasured
+    train_df["GW_Level"] = gw_level
 
     elevation = _series_or_default(train_df, "Elevation", default=np.nan)
     elevation = elevation.fillna(_series_or_default(train_df, "obs_elevation_msl_mean", default=np.nan))

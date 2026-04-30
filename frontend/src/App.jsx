@@ -1106,6 +1106,7 @@ export default function App({ navigate, pathname }) {
                     aiPredictionEnabled={aiPredictionEnabled}
                     aquiferAnalytics={aquiferAnalytics}
                     datasetAnalytics={datasetAnalytics}
+                    showPiezometers={showPiezometers}
                   />
                   <VillageActionPanel
                     selectedFeature={selectedVillageFeature}

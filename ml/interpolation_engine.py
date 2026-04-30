@@ -114,60 +114,65 @@ def train_models(df: pd.DataFrame, random_state: int = 42) -> ModelArtifacts:
     feature_means = X_train.mean()
     feature_stds = X_train.std().replace(0, 1.0).fillna(1.0)
 
-    metrics = {
-        "mae": mae,
-        "mape": mape,
-        "target_error_within_5pct": mape <= 0.05,
-        "model_type": "XGBoost-Enhanced"
-    }
-    return ModelArtifacts(
-        regressor=regressor,
-        anomaly_model=anomaly_model,
-        residual_std=residual_std,
-        feature_means=feature_means,
-        feature_stds=feature_stds,
-        metrics=metrics,
-    )
+class GatingNetwork(nn.Module):
+    def __init__(self, input_dim: int):
+        super(GatingNetwork, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 8),
+            nn.ReLU(),
+            nn.Linear(8, 1),
+            nn.Sigmoid() # Output alpha between 0 and 1
+        )
 
+    def forward(self, x):
+        return self.net(x)
 
-def ensemble_predict(df: pd.DataFrame, artifacts: ModelArtifacts) -> np.ndarray:
+def dynamic_ensemble_predict(df: pd.DataFrame, artifacts: ModelArtifacts, gnn_preds: np.ndarray = None) -> tuple:
     """
-    Combines XGBoost with a spatial factor (weighted GWL from nearest stations).
-    In a full implementation, this would also call the Torch-based ST-GNN.
+    Final Prediction = alpha(x) * GNN + (1 - alpha(x)) * XGBoost
+    alpha depends on local context: distance to stations, elevation, etc.
     """
     xgb_pred = artifacts.regressor.predict(df[FEATURE_COLUMNS])
     
-    # If the dataset has weighted_sensor_depth, we use it for a spatial ensemble
-    if "weighted_sensor_depth" in df.columns:
-        # 70% XGBoost, 30% Spatial Nearest Neighbor
-        return 0.7 * xgb_pred + 0.3 * df["weighted_sensor_depth"].fillna(xgb_pred)
+    # Simple Gating Logic (can be replaced by a trained GatingNetwork)
+    # alpha -> weight for GNN. If we are near a sensor, GNN (spatial) is more reliable.
+    # If we are in a sparse area, XGBoost (feature-based) might be more robust.
     
-    return xgb_pred
+    # Feature for gating: proximity to sensors (already in FEATURE_COLUMNS as proximity_rivers_tanks_km but we need sensors)
+    # For now, we'll use 'has_sensor' and 'elevation_dem' to simulate terrain complexity
+    dist_factor = df['proximity_rivers_tanks_km'].fillna(10).values
+    alpha = np.clip(1.0 / (dist_factor + 1.0), 0.1, 0.9) # Range [0.1, 0.9]
+    
+    if gnn_preds is not None:
+        # If GNN preds (median) are provided, blend them
+        final_pred = alpha * gnn_preds + (1 - alpha) * xgb_pred
+    else:
+        # Fallback to spatial weighted if GNN model is not loaded
+        spatial_ref = df["weighted_sensor_depth"].fillna(xgb_pred).values if "weighted_sensor_depth" in df.columns else xgb_pred
+        final_pred = alpha * spatial_ref + (1 - alpha) * xgb_pred
+        
+    return final_pred, alpha
 
 
 def infer(df: pd.DataFrame, artifacts: ModelArtifacts) -> pd.DataFrame:
     prepared = prepare_features(df)
     output = prepared.copy()
     
-    # Use ensemble prediction logic
-    y_hat = ensemble_predict(output, artifacts)
+    # 1. Dynamic Ensemble Prediction
+    y_hat, alpha_weights = dynamic_ensemble_predict(output, artifacts)
     output["estimated_groundwater_depth"] = y_hat
+    output["gnn_weight_alpha"] = alpha_weights
 
-    # Uncertainty estimation based on feature distance
-    z_scores = (
-        output[FEATURE_COLUMNS].sub(artifacts.feature_means, axis=1)
-        .abs()
-        .div(artifacts.feature_stds, axis=1)
-    )
-    mean_feature_distance = z_scores.mean(axis=1).to_numpy()
-    normalized_uncertainty = np.clip(mean_feature_distance + artifacts.residual_std, 0, 6)
-    output["confidence_score"] = np.round((1 - (normalized_uncertainty / 6.0)) * 100, 2)
+    # 2. Uncertainty Estimation (Quantile-based)
+    # In a full run, these would come from SpatioTemporalTransformerGNN.predict_with_uncertainty
+    # Here we simulate the bounds using the residual_std for the PoC
+    output["uncertainty_lower"] = np.round(y_hat - (1.96 * artifacts.residual_std), 2)
+    output["uncertainty_upper"] = np.round(y_hat + (1.96 * artifacts.residual_std), 2)
+    output["confidence_score"] = np.round((1 - (np.clip(artifacts.residual_std, 0, 3) / 3.0)) * 100, 2)
 
-    # Anomaly detection
+    # 3. Anomaly detection
     anomaly_raw = artifacts.anomaly_model.predict(output[FEATURE_COLUMNS])
     output["anomaly_unsupervised"] = np.where(anomaly_raw == -1, 1, 0)
-    
-    # We use a combined anomaly flag: Unsupervised + Extreme Depletion (>10% drop)
     output["anomaly_flag"] = output["anomaly_unsupervised"]
 
     return output
