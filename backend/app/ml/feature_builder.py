@@ -490,6 +490,14 @@ async def build_features(
         (db_row or {}).get("elevation_dem"),
         default=0.0,
     )
+    surface_water_proximity = _first_number(
+        (local_row or {}).get("proximity_surface_water_km"),
+        (local_row or {}).get("distance_to_nearest_tank_km"),
+        (local_feature or {}).get("proximity_surface_water_km"),
+        (local_feature or {}).get("distance_to_nearest_tank_km"),
+        (db_row or {}).get("proximity_rivers_tanks_km"),
+        default=0.0,
+    )
     tank_count = _first_number((local_row or {}).get("tank_count"), default=0.0)
     wells_total = _first_number((local_row or {}).get("wells_total"), default=0.0)
     flooded_vegetation_pct = _first_number(
@@ -587,6 +595,7 @@ async def build_features(
         "pumping_functioning_wells": float(pumping_functioning_wells),
         "pumping_monsoon_draft_ha_m": float(pumping_monsoon_draft),
         "Elevation": float(elevation),
+        "proximity_surface_water_km": float(surface_water_proximity),
         "infiltration_score": float(infiltration_score),
         "recharge_factor": float(recharge_factor),
         "groundwater_stress": float(groundwater_stress),
@@ -630,6 +639,7 @@ async def build_features(
             "rainfall_30d_avg": float(rainfall.get("rainfall_30d_avg", 0.0)),
             "soil_type": soil_value,
             "aquifer_type": aquifer_type,
+            "proximity_surface_water_km": float(surface_water_proximity),
             "source_location_key": location_key,
         },
     )

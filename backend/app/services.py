@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import csv
 from datetime import UTC, date, datetime
 from functools import lru_cache
 from pathlib import Path
@@ -17,6 +18,7 @@ from .utils.key import build_location_key
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "frontend" / "public" / "data"
+OUTPUT_DIR = PROJECT_ROOT / "output"
 LOGGER = logging.getLogger(__name__)
 
 
@@ -364,6 +366,7 @@ def _reconciled_map_geojson() -> dict:
         merged_props = {
             **base_props,
             **map_props,
+            **{str(k): v for k, v in row.items() if k not in {"Village_ID", "Village_Name", "District", "Mandal", "State"}},
             "village_id": base_props.get("village_id"),
             "village_name": base_props.get("village_name"),
             "district": base_props.get("district"),
@@ -374,6 +377,7 @@ def _reconciled_map_geojson() -> dict:
             or row.get("state")
             or "Andhra Pradesh",
             "location_key": key,
+
             "soil": _first_text_value(
                 base_props.get("soil"),
                 row.get("soil"),
@@ -686,7 +690,31 @@ def _standardize_village_payload(payload: dict) -> dict:
     if risk_level:
         anomaly_flags.append(f"Risk level: {risk_level.title()}")
 
-    return {
+    result = payload.copy()
+    
+    # Calculate wells metrics with fallbacks and derived values
+    wells_total = _to_float(payload.get("wells_total") or payload.get("num_wells"))
+    functioning_wells = _to_float(
+        payload.get("pumping_functioning_wells") 
+        or payload.get("functioning_wells") 
+        or payload.get("wells_working")
+        or payload.get("num_functioning_wells")
+        or payload.get("functioning_pump_wells")
+    )
+
+    
+    if functioning_wells is None and wells_total is not None:
+        working_pct = _to_float(payload.get("wells_working_pct"))
+        if working_pct is not None:
+            functioning_wells = (wells_total * working_pct) / 100.0
+    
+    # Final normalization
+    wells_total = wells_total or functioning_wells or 0.0
+    functioning_wells = functioning_wells or 0.0
+    if functioning_wells > wells_total:
+        wells_total = functioning_wells
+
+    result.update({
         "village_id": village_id,
         "village_name": village_name,
         "district": district,
@@ -695,6 +723,7 @@ def _standardize_village_payload(payload: dict) -> dict:
         "current_depth": current_depth,
         "predicted_groundwater_level": _to_float(
             payload.get("predicted_groundwater_level")
+            or payload.get("groundwater_estimate")
             or payload.get("estimated_groundwater_depth")
             or payload.get("groundwater_depth")
             or current_depth
@@ -708,7 +737,14 @@ def _standardize_village_payload(payload: dict) -> dict:
         "forecast_3_month": forecast_series,
         "forecast_yearly": forecast_yearly,
         "recommended_actions": recommendations,
-    }
+        # Ensure critical dashboard fields are present
+        "wells_total": wells_total,
+        "pumping_functioning_wells": functioning_wells,
+        "dist_to_sensor_km": _to_float(payload.get("dist_to_sensor_km") or payload.get("nearest_distance_km") or payload.get("nearest_piezometer_distance_km") or payload.get("dist_to_sensor")),
+        "nearest_distance_km": _to_float(payload.get("dist_to_sensor_km") or payload.get("nearest_distance_km") or payload.get("nearest_piezometer_distance_km") or payload.get("dist_to_sensor")),
+        "has_sensor": bool(payload.get("has_sensor") or payload.get("sensor_id") or payload.get("has_piezometer")),
+    })
+    return result
 
 
 def _representative_point(geometry: dict | None) -> tuple[float, float] | None:
@@ -764,24 +800,14 @@ async def fetch_map_data(db: AsyncSession) -> dict:
     try:
         query = text(
             """
-            SELECT
-                village_id,
-                village_name,
-                district,
-                mandal,
-                geometry,
-                estimated_groundwater_depth,
-                confidence_score,
-                risk_level,
-                anomaly_flag,
-                max_anomaly_score,
-                anomaly_count_90d,
-                forecast_3_month
+            SELECT *
             FROM groundwater.village_dashboard
             ORDER BY village_id
             """
         )
         rows = (await db.execute(query)).mappings().all()
+        row_by_key = _final_lookup_by_key()
+        
         if rows:
             features: list[dict] = []
             for row in rows:
@@ -791,33 +817,27 @@ async def fetch_map_data(db: AsyncSession) -> dict:
                         raw_geom = json.loads(raw_geom)
                     except json.JSONDecodeError:
                         raw_geom = None
-                payload = _standardize_village_payload(
-                    {
-                        "village_id": row.get("village_id"),
-                        "village_name": row.get("village_name"),
-                        "district": row.get("district"),
-                        "mandal": row.get("mandal"),
-                        "estimated_groundwater_depth": row.get("estimated_groundwater_depth"),
-                        "confidence_score": row.get("confidence_score"),
-                        "risk_level": row.get("risk_level"),
-                        "anomaly_flag": row.get("anomaly_flag"),
-                        "max_anomaly_score": row.get("max_anomaly_score"),
-                        "anomaly_count_90d": row.get("anomaly_count_90d"),
-                        "forecast_3_month": row.get("forecast_3_month") or [],
-                    }
-                )
-                payload.update(
-                    {
-                        "draft_index": _to_float(row.get("draft_index"), 0.0),
-                        "anomaly_count_90d": int(_to_float(row.get("anomaly_count_90d"), 0.0) or 0),
-                        "geometry": raw_geom,
-                    }
-                )
+                
+                # Merge DB row with static dataset row if available
+                payload = dict(row)
+                district = payload.get("district")
+                mandal = payload.get("mandal")
+                village_name = payload.get("village_name")
+                key = build_location_key(district, mandal, village_name)
+                
+                if key in row_by_key:
+                    final_row = row_by_key[key]
+                    for k, v in final_row.items():
+                        if k not in payload or payload[k] is None:
+                            payload[k] = v
+
+                standardized = _standardize_village_payload(payload)
+                
                 features.append(
                     {
                         "type": "Feature",
                         "geometry": raw_geom,
-                        "properties": payload,
+                        "properties": standardized,
                     }
                 )
             return {"type": "FeatureCollection", "features": features}
@@ -918,113 +938,68 @@ async def fetch_predict_live(
 
 
 async def fetch_village_status(db: AsyncSession, village_id: int) -> dict:
+    row = None
     try:
         query = text(
             """
-            SELECT
-                village_id,
-                village_name,
-                district,
-                mandal,
-                estimated_groundwater_depth AS current_depth,
-                confidence_score,
-                anomaly_flag,
-                risk_level,
-                max_anomaly_score,
-                anomaly_count_90d,
-                forecast_3_month
+            SELECT *
             FROM groundwater.village_dashboard
             WHERE village_id = :village_id
             LIMIT 1
             """
         )
         row = (await db.execute(query, {"village_id": village_id})).mappings().first()
-        if row:
-            payload = _standardize_village_payload(
-                {
-                    "village_id": row.get("village_id"),
-                    "village_name": row.get("village_name"),
-                    "district": row.get("district"),
-                    "mandal": row.get("mandal"),
-                    "current_depth": row.get("current_depth"),
-                    "confidence_score": row.get("confidence_score"),
-                    "anomaly_flag": row.get("anomaly_flag"),
-                    "risk_level": row.get("risk_level"),
-                    "max_anomaly_score": row.get("max_anomaly_score"),
-                    "anomaly_count_90d": row.get("anomaly_count_90d"),
-                    "forecast_3_month": row.get("forecast_3_month") or [],
-                }
-            )
-            return {
-                "village_id": payload["village_id"],
-                "current_depth": payload["current_depth"],
-                "forecast_3_month": payload["forecast_3_month"],
-                "forecast_yearly": payload["forecast_yearly"],
-                "anomaly_flags": payload["anomaly_flags"],
-                "confidence_score": payload["confidence_score"],
-                "risk_level": payload["risk_level"],
-                "alert_status": payload["alert_status"],
-                "trend_direction": payload["trend_direction"],
-                "recommended_actions": payload["recommended_actions"],
-            }
     except Exception:
         pass
 
-    final_row = _final_lookup().get(village_id, {})
-    lookup_key = _row_location_key(final_row) if final_row else ""
-    map_feature = (_map_lookup_by_key().get(lookup_key) if lookup_key else None) or _map_lookup().get(village_id, {})
-    village_feature = (_village_lookup_by_key().get(lookup_key) if lookup_key else None) or _village_lookup().get(village_id, {})
-    village_props = village_feature.get("properties", {}) if village_feature else {}
-    map_props = map_feature.get("properties", {}) if map_feature else {}
+    # Start with an empty dict or row data
+    payload = dict(row) if row else {"village_id": village_id}
 
-    current_depth = _to_float(final_row.get("actual_last_month"))
-    if current_depth is None:
-        current_depth = _to_float(final_row.get("GW_Level"))
-    if current_depth is None:
-        current_depth = _to_float(village_props.get("actual_last_month"))
-    if current_depth is None:
-        current_depth = _to_float(village_props.get("depth"))
-    predicted_depth = _to_float(
-        map_props.get("predicted_groundwater_level")
-        or map_props.get("estimated_groundwater_depth")
-    )
-    observed_series = _observed_series_from_payload(village_props or final_row, limit=6)
-    forecast = _forecast_from_anchor(current_depth, predicted_depth, months=3)
-    anomaly_flags: list[str] = []
-    long_term_avg = _to_float(final_row.get("long_term_avg"))
-    if current_depth is not None and long_term_avg is not None:
-        delta = current_depth - long_term_avg
-        if delta > 2:
-            anomaly_flags.append("Severe drop")
-        elif delta > 1:
-            anomaly_flags.append("Moderate drop")
-        elif delta < -1:
-            anomaly_flags.append("Rise")
-        else:
-            anomaly_flags.append("Normal")
-    risk_level = _normalize_risk_level(map_props.get("risk_level") or village_props.get("risk_level"), current_depth)
-    if risk_level:
-        anomaly_flags.append(f"Risk level: {risk_level.title()}")
-    anomaly_flag = bool(map_props.get("anomaly_flag") or village_props.get("anomaly_flag"))
-    alert_status = _alert_status_from_risk(risk_level, anomaly_flag)
-    recommendations = _recommendations_from_context(
-        risk_level,
-        anomaly_flag=anomaly_flag,
-        anomaly_score=_to_float(map_props.get("max_anomaly_score") or village_props.get("max_anomaly_score")),
-    )
-    return {
-        "village_id": village_id,
-        "current_depth": current_depth,
-        "forecast_3_month": forecast,
-        "forecast_yearly": _forecast_yearly_from_anchor(current_depth, predicted_depth, years=2),
-        "observed_series": observed_series,
-        "anomaly_flags": anomaly_flags,
-        "confidence_score": _to_float(map_props.get("confidence") or village_props.get("confidence"), 0.0),
-        "risk_level": risk_level.title(),
-        "alert_status": alert_status,
-        "trend_direction": _trend_direction_from_series(observed_series or forecast),
-        "recommended_actions": recommendations,
-    }
+    # Merge with static/reconciled data if available
+    final_row = _final_lookup().get(village_id)
+    if final_row:
+        # Avoid overwriting ID/Location from final_row if DB had it
+        for k, v in final_row.items():
+            if k not in payload or payload[k] is None:
+                payload[k] = v
+    
+    # Merge with Map GeoJSON properties
+    feature = _map_lookup().get(village_id)
+    if feature:
+        props = feature.get("properties", {}) or {}
+        for k, v in props.items():
+            if k not in payload or payload[k] is None:
+                payload[k] = v
+
+    # Merge with Village GeoJSON properties
+    village_feat = _village_lookup().get(village_id)
+    if village_feat:
+        props = village_feat.get("properties", {}) or {}
+        for k, v in props.items():
+            if k not in payload or payload[k] is None:
+                payload[k] = v
+
+    standardized = _standardize_village_payload(payload)
+    
+    # Add extra fields that frontend UI.jsx expects
+    standardized.update({
+        "wells_total": _to_float(payload.get("wells_total")),
+        "pumping_functioning_wells": _to_float(payload.get("pumping_functioning_wells") or payload.get("functioning_wells")),
+        "avg_bore_depth_m": _to_float(payload.get("avg_bore_depth_m")),
+        "dominant_irrigation": payload.get("dominant_irrigation"),
+        "obs_station_count": _to_float(payload.get("obs_station_count")),
+        "trend_slope": _to_float(payload.get("trend_slope")),
+        "combined_reliability": _to_float(payload.get("combined_reliability")),
+        "r_unc": _to_float(payload.get("r_unc")),
+        "r_dist": _to_float(payload.get("r_dist")),
+        "uncertainty_range": _to_float(payload.get("uncertainty_range")),
+        "gap_score": _to_float(payload.get("gap_score")),
+        "dist_to_sensor_km": _to_float(payload.get("dist_to_sensor_km") or payload.get("nearest_distance_km")),
+        "nearest_distance_km": _to_float(payload.get("dist_to_sensor_km") or payload.get("nearest_distance_km")),
+    })
+
+    return standardized
+
 
 
 async def fetch_village_forecast_lstm(db: AsyncSession, village_id: int) -> dict:
@@ -1452,3 +1427,78 @@ async def upsert_village_estimate(
         await db.commit()
     except Exception:
         await db.rollback()
+
+
+def _read_csv_rows(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    try:
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            return [dict(row) for row in reader]
+    except Exception:
+        return []
+
+
+def _to_num(value: Any) -> float | None:
+    try:
+        out = float(value)
+        if out != out:
+            return None
+        return out
+    except Exception:
+        return None
+
+
+async def fetch_model_upgrade_summary() -> dict:
+    validation_rows = _read_csv_rows(OUTPUT_DIR / "validation_report.csv")
+    method_rows = _read_csv_rows(OUTPUT_DIR / "method_comparison.csv")
+    importance_rows = _read_csv_rows(OUTPUT_DIR / "feature_importance_top10.csv")
+    metrics_rows = _read_csv_rows(OUTPUT_DIR / "groundwater_model_metrics.csv")
+
+    top_features = [
+        {
+            "feature": row.get("feature"),
+            "importance": _to_num(row.get("importance")),
+        }
+        for row in importance_rows
+        if row.get("feature")
+    ]
+
+    validations = []
+    for row in validation_rows:
+        validations.append(
+            {
+                "split": row.get("split"),
+                "xgb_rmse": _to_num(row.get("xgb_rmse")),
+                "idw_rmse": _to_num(row.get("idw_rmse")),
+                "xgb_mae": _to_num(row.get("xgb_mae")),
+                "xgb_r2": _to_num(row.get("xgb_r2")),
+                "xgb_mape": _to_num(row.get("xgb_mape")),
+                "improvement_pct_vs_idw": _to_num(row.get("xgb_rmse_improvement_pct_vs_idw")),
+            }
+        )
+
+    overall = metrics_rows[0] if metrics_rows else {}
+
+    return {
+        "generated_at": _iso_now(),
+        "overall_metrics": {
+            "mae": _to_num(overall.get("mae")),
+            "rmse": _to_num(overall.get("rmse")),
+            "r2": _to_num(overall.get("r2")),
+            "mape": _to_num(overall.get("mape")),
+            "lag_leakage_rows": int(_to_num(overall.get("lag_leakage_rows")) or 0),
+        },
+        "validation_report": validations,
+        "method_comparison": [
+            {
+                "split": row.get("split"),
+                "idw_rmse": _to_num(row.get("idw_rmse")),
+                "xgb_rmse": _to_num(row.get("xgb_rmse")),
+                "improvement_pct_vs_idw": _to_num(row.get("xgb_rmse_improvement_pct_vs_idw")),
+            }
+            for row in method_rows
+        ],
+        "top_feature_importance": top_features,
+    }

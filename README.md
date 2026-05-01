@@ -30,6 +30,7 @@ Government-grade starter platform for village-level groundwater estimation, fore
   - `elevation_dem`
   - `slope_deg`
   - `proximity_rivers_tanks_km`
+  - `proximity_surface_water_km` from RTGS canals, streams, drainage, and MI tanks
   - `soil_permeability`
   - `rainfall_variability`
   - `rainfall_lag_1m`
@@ -292,4 +293,27 @@ Environment variables:
 - `DATA_VERSION` (optional)
 
 Compose runs the bootstrap as a one-shot `bootstrap` service before backend startup.
+
+---
+
+## Geospatial Groundwater Prediction Pipeline
+
+This repo includes a modular village-level geospatial prediction workflow under `groundwater_pipeline/`:
+
+- `groundwater_pipeline/data/`: file loading and normalization (`geopandas` + `pandas`)
+- `groundwater_pipeline/processing/`: village mapping and feature engineering
+- `groundwater_pipeline/models/`: XGBoost model and IDW interpolation baseline
+- `groundwater_pipeline/visualization/`: Folium map and time slider export
+
+Run:
+
+```bash
+python -m groundwater_pipeline.run_pipeline --raw-dir data/raw --predictions-out output/groundwater_predictions.csv --map-out output/groundwater_map.html
+```
+
+Outputs:
+
+- `output/groundwater_predictions.csv`
+- `output/groundwater_model_metrics.csv`
+- `output/groundwater_map.html`
 

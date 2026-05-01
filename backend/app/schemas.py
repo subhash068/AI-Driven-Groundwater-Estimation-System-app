@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class VillageStatusResponse(BaseModel):
     village_id: int
     current_depth: float | None = Field(default=None)
+    predicted_groundwater_level: float | None = Field(default=None)
+    nearest_distance_km: float | None = Field(default=None)
     forecast_3_month: list[dict]
     forecast_yearly: list[dict] = Field(default_factory=list)
     anomaly_flags: list[str]

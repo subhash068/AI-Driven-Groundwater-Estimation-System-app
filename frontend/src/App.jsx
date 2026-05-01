@@ -277,8 +277,10 @@ export default function App({ navigate, pathname }) {
   const [showConfidenceIntervals, setShowConfidenceIntervals] = useState(false);
   const [showDistrictBoundaries, setShowDistrictBoundaries] = useState(false);
   const [showMandalBoundaries, setShowMandalBoundaries] = useState(false);
-  const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(ANOMALY_TYPE_OPTIONS);
+  const [showStateBoundary, setShowStateBoundary] = useState(true);
+  const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(["Severe drop", "Moderate drop"]);
   const [selectedLulcClasses, setSelectedLulcClasses] = useState(LULC_CLASS_KEYS);
+  const [baseMapTheme, setBaseMapTheme] = useState("satellite");
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -294,11 +296,15 @@ export default function App({ navigate, pathname }) {
   const [simulationLoading, setSimulationLoading] = useState(false);
   const [simulationError, setSimulationError] = useState(null);
   
-  const [filters, setFilters] = useState({
-    state: "",
-    district: "",
-    mandal: "",
-    villageName: ""
+  const [filters, setFilters] = useState(() => {
+    if (typeof window === "undefined") return { state: "", district: "", mandal: "", villageName: "" };
+    const params = new URLSearchParams(window.location.search);
+    return {
+      state: params.get("state") || "",
+      district: params.get("district") || "",
+      mandal: params.get("mandal") || "",
+      villageName: params.get("village") || ""
+    };
   });
 
   const [activeLayer, setActiveLayer] = useState(1);
@@ -311,10 +317,16 @@ export default function App({ navigate, pathname }) {
   const [anomalies, setAnomalies] = useState(null);
   const [rechargeZones, setRechargeZones] = useState(null);
   const [aquiferLayer, setAquiferLayer] = useState(null);
+  const [stateBoundaryLayer, setStateBoundaryLayer] = useState(null);
   const [dashboardMapData, setDashboardMapData] = useState(null);
   const [showAnomalies, setShowAnomalies] = useState(false);
   const [showRecharge, setShowRecharge] = useState(false);
+  const [showAquifer, setShowAquifer] = useState(false);
+  const [showSoil, setShowSoil] = useState(false);
+  const [showModelIdwDiff, setShowModelIdwDiff] = useState(false);
+  const [showErrorMap, setShowErrorMap] = useState(false);
   const [apiStatus, setApiStatus] = useState(() => getApiStatusSummary());
+  const [modelUpgradeSummary, setModelUpgradeSummary] = useState(null);
 
   const { 
     villages, 
@@ -369,11 +381,33 @@ export default function App({ navigate, pathname }) {
   }, [pathname]);
 
   useEffect(() => {
+    if (pathname !== "/dashboard") return;
+    let active = true;
+    (async () => {
+      try {
+        const payload = await api.getModelUpgradeSummary();
+        if (!active) return;
+        setModelUpgradeSummary(payload);
+      } catch {
+        if (!active) return;
+        setModelUpgradeSummary(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
     let active = true;
     (async () => {
       const data = await readGeoJsonIfValid("/data/aquifers_krishna.geojson");
       if (active && data) {
         setAquiferLayer(data);
+      }
+      const stateData = await readGeoJsonIfValid("/data/ap_state_boundary.geojson");
+      if (active && stateData) {
+        setStateBoundaryLayer(stateData);
       }
     })();
     return () => {
@@ -712,10 +746,54 @@ export default function App({ navigate, pathname }) {
     let active = true;
     const timer = window.setTimeout(() => {
       setSimulationLoading(true);
-      if (!active) return;
-      setSimulation(simulateFromFeature(feature, simulationInputs));
-      setSimulationError(null);
-      setSimulationLoading(false);
+      (async () => {
+        if (!active) return;
+        try {
+          if (aiPredictionEnabled) {
+            const payload = await api.simulateGroundwater({
+              rainfall_delta_pct: Number(simulationInputs?.rainfall ?? 0),
+              extraction_delta_pct: Number(simulationInputs?.draft ?? 0)
+            });
+            const featureRows = Array.isArray(payload?.features) ? payload.features : [];
+            const match = featureRows.find(
+              (item) => Number(item?.properties?.village_id) === Number(simulatorVillageId)
+            );
+            if (match?.properties) {
+              const props = match.properties;
+              const base = Number(props.groundwater_level ?? feature?.properties?.predicted_groundwater_level ?? 0);
+              const simulated = Number(props.simulated_groundwater_level ?? base);
+              setSimulation({
+                village_id: Number(props.village_id),
+                village_name: String(props.village_name || feature?.properties?.village_name || ""),
+                district: String(props.district || feature?.properties?.district || ""),
+                mandal: String(props.mandal || feature?.properties?.mandal || ""),
+                base_groundwater_level: base,
+                predicted_groundwater_level: simulated,
+                impact_delta: simulated - base,
+                impact_label:
+                  Math.abs(simulated - base) < 0.05
+                    ? "Stable"
+                    : simulated > base
+                      ? `Groundwater drops by ${(simulated - base).toFixed(2)} m`
+                      : `Groundwater rises by ${Math.abs(simulated - base).toFixed(2)} m`,
+                risk_level: String(props.trend || "Stable"),
+                risk_score: Math.round(simulated * 5),
+                warning: props.advisory || null
+              });
+            } else {
+              setSimulation(simulateFromFeature(feature, simulationInputs));
+            }
+          } else {
+            setSimulation(simulateFromFeature(feature, simulationInputs));
+          }
+          setSimulationError(null);
+        } catch (err) {
+          setSimulation(simulateFromFeature(feature, simulationInputs));
+          setSimulationError(err?.message || null);
+        } finally {
+          if (active) setSimulationLoading(false);
+        }
+      })();
     }, 220);
     return () => {
       active = false;
@@ -899,9 +977,13 @@ export default function App({ navigate, pathname }) {
   ]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !villages || villages.features.length === 0) return;
     setFilters((prev) => {
       const next = { ...prev };
+      
+      // Only validate if we actually have filters set
+      if (!prev.district) return prev;
+
       const hasDistrict = districtOptions.some(
         (item) => String(item).toLowerCase() === String(prev.district || "").toLowerCase()
       );
@@ -927,9 +1009,10 @@ export default function App({ navigate, pathname }) {
         changed = true;
       }
 
-      return changed ? next : prev;
+      if (changed) return next;
+      return prev;
     });
-  }, [districtOptions, mandalOptions, villageOptions]);
+  }, [loading, villages, districtOptions, mandalOptions, villageOptions]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1020,6 +1103,8 @@ export default function App({ navigate, pathname }) {
           setShowDistrictBoundaries={setShowDistrictBoundaries}
           showMandalBoundaries={showMandalBoundaries}
           setShowMandalBoundaries={setShowMandalBoundaries}
+          showStateBoundary={showStateBoundary}
+          setShowStateBoundary={setShowStateBoundary}
           selectedLulcClasses={selectedLulcClasses}
           setSelectedLulcClasses={setSelectedLulcClasses}
           highRiskOnly={highRiskOnly}
@@ -1030,6 +1115,14 @@ export default function App({ navigate, pathname }) {
           setShowAnomalies={setShowAnomalies}
           showRecharge={showRecharge}
           setShowRecharge={setShowRecharge}
+          showAquifer={showAquifer}
+          setShowAquifer={setShowAquifer}
+          showSoil={showSoil}
+          setShowSoil={setShowSoil}
+          showModelIdwDiff={showModelIdwDiff}
+          setShowModelIdwDiff={setShowModelIdwDiff}
+          showErrorMap={showErrorMap}
+          setShowErrorMap={setShowErrorMap}
           onNavigateHome={() => typeof navigate === "function" && navigate("/")}
           loading={loading}
           districtHoverData={districtHoverData}
@@ -1042,6 +1135,8 @@ export default function App({ navigate, pathname }) {
           simulationLoading={simulationLoading}
           simulationError={simulationError}
           isOpen={isSidebarOpen}
+          baseMapTheme={baseMapTheme}
+          setBaseMapTheme={setBaseMapTheme}
         />
 
         <section className="geo-workspace">
@@ -1064,6 +1159,7 @@ export default function App({ navigate, pathname }) {
             <DashboardAnalyticsPanel
               datasetAnalytics={datasetAnalytics}
               selectedFeature={selectedVillageFeature}
+              modelUpgradeSummary={modelUpgradeSummary}
               onClose={() => setIsFullDashboardOpen(false)}
             />
           )}
@@ -1086,8 +1182,14 @@ export default function App({ navigate, pathname }) {
                 selectedAnomalyTypes={selectedAnomalyTypes}
                 showDistrictBoundaries={showDistrictBoundaries}
                 showMandalBoundaries={showMandalBoundaries}
+                showStateBoundary={showStateBoundary}
+                stateBoundaryLayer={stateBoundaryLayer}
                 selectedLulcClasses={selectedLulcClasses}
                 showRecharge={showRecharge}
+                showAquifer={showAquifer}
+                showSoil={showSoil}
+                showModelIdwDiff={showModelIdwDiff}
+                showErrorMap={showErrorMap}
                 villageDataError={error}
                 villageDataSource={dataSource}
                 datasetRowsById={datasetRowsById}
@@ -1095,6 +1197,7 @@ export default function App({ navigate, pathname }) {
                 anomalies={aiPredictionEnabled && showAnomalies ? anomalies : null}
                 rechargeZones={aiPredictionEnabled && showRecharge ? rechargeZones : null}
                 selectedDistrict={filters.district}
+                baseMapTheme={baseMapTheme}
               />
             </main>
             <div className={`insights-dock ${isInsightsOpen ? "open" : "closed"}`}>

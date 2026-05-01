@@ -157,13 +157,20 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
     props.Dominant_Crop_Type,
     props.crop_type
   );
-  const distToSensor = Number(props.dist_to_sensor_km);
+  const distToSensor = Number(props.dist_to_sensor_km ?? props.nearest_distance_km ?? props.nearest_piezometer_distance_km);
   const reliability = Number(props.combined_reliability ?? 0.8);
   const r_unc = Number(props.r_unc ?? 0.8);
   const r_dist = Number(props.r_dist ?? 0.8);
   const uncertainty = Number(props.uncertainty_range ?? 0);
   const gapScore = Number(props.gap_score || 0);
-  const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
+  const hasSensor = !!(
+    props.has_sensor === 1 || 
+    props.has_sensor === true || 
+    props.has_piezometer === 1 || 
+    props.has_piezometer === true || 
+    props.sensor_id ||
+    props.station_id
+  );
 
   const reliabilityLabel = hasSensor ? "100% (Field Truth)" : 
     reliability > 0.85 ? "Excellent (Calibrated)" : 
@@ -194,7 +201,7 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
         </div>
       </div>
       <strong>Interval:</strong> ${Number.isFinite(gwl) ? `${(gwl - uncertainty/2).toFixed(1)}m – ${(gwl + uncertainty/2).toFixed(1)}m` : "NA"} (±${(uncertainty/2).toFixed(2)}m)<br/>
-      <strong>Proximity:</strong> ${hasSensor ? "On-site" : `${distToSensor.toFixed(2)} km`}<br/>
+      <strong>Proximity:</strong> ${hasSensor ? "On-site" : (Number.isFinite(distToSensor) ? `${distToSensor.toFixed(2)} km` : "NA")}<br/>
       <strong>Aquifer:</strong> ${Number(props.aquifer_storage_factor || 0).toFixed(2)} Storage Factor<br/>
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"/>
       <strong>District:</strong> ${district} | <strong>Mandal:</strong> ${mandal}<br/>
@@ -426,10 +433,12 @@ function FitToFilterSelection({ filteredGeojson, filters }) {
 function NtrVillageClickFallback({ filteredGeojson, selectedDistrictNorm, onVillageClick }) {
   useMapEvents({
     click(event) {
+      console.log("Map click detected in NTR district fallback", { selectedDistrictNorm });
       if (selectedDistrictNorm !== "NTR") return;
       const pointFeatures = (filteredGeojson?.features || []).filter(
         (feature) => String(feature?.geometry?.type || "").toLowerCase() === "point"
       );
+      console.log(`Found ${pointFeatures.length} point features in NTR district`);
       if (!pointFeatures.length) return;
 
       let nearestFeature = null;
@@ -448,6 +457,7 @@ function NtrVillageClickFallback({ filteredGeojson, selectedDistrictNorm, onVill
       });
 
       if (nearestFeature) {
+        console.log("Nearest feature found:", nearestFeature.properties?.village_name);
         onVillageClick(nearestFeature);
       }
     }
@@ -723,11 +733,21 @@ export function MapView({
         
         if (!active) return;
 
-        const filtered = allStations.filter((station) =>
-          Number.isFinite(Number(station?.latitude)) &&
-          Number.isFinite(Number(station?.longitude)) &&
-          (!selectedDistrictNorm || normalizeDistrictName(station?.district) === selectedDistrictNorm)
-        );
+        const filtered = allStations.filter((station) => {
+          const lat = Number(station?.latitude ?? station?.lat);
+          const lon = Number(station?.longitude ?? station?.lon ?? station?.lng);
+          const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+          if (!hasCoords) return false;
+          
+          // If a specific district is selected, filter by it. 
+          // "ANDHRA PRADESH" or empty string means "show all for the state"
+          const sDist = normalizeDistrictName(selectedDistrict);
+          if (sDist && sDist !== "ANDHRA PRADESH" && sDist !== "AP") {
+            const stationDist = normalizeDistrictName(station?.district);
+            return stationDist === sDist;
+          }
+          return true;
+        });
         
         setPiezometerStations(filtered);
       } catch (err) {
@@ -1043,7 +1063,10 @@ export function MapView({
         type: "Feature",
         geometry: {
           type: "Point",
-          coordinates: [Number(station.longitude), Number(station.latitude)]
+          coordinates: [
+            Number(station.longitude ?? station.lon ?? station.lng), 
+            Number(station.latitude ?? station.lat)
+          ]
         },
         properties: {
           ...station,

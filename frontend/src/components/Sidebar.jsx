@@ -36,6 +36,8 @@ export function Sidebar({
   setShowDistrictBoundaries,
   showMandalBoundaries,
   setShowMandalBoundaries,
+  showStateBoundary,
+  setShowStateBoundary,
   selectedLulcClasses,
   setSelectedLulcClasses,
   highRiskOnly,
@@ -48,6 +50,14 @@ export function Sidebar({
   setShowAnomalies,
   showRecharge,
   setShowRecharge,
+  showAquifer,
+  setShowAquifer,
+  showSoil,
+  setShowSoil,
+  showModelIdwDiff,
+  setShowModelIdwDiff,
+  showErrorMap,
+  setShowErrorMap,
   districtHoverData,
   trendHighlights,
   simulatorVillageId,
@@ -57,7 +67,9 @@ export function Sidebar({
   simulation,
   simulationLoading,
   simulationError,
-  isOpen
+  isOpen,
+  baseMapTheme,
+  setBaseMapTheme
 }) {
   const { state, district, mandal, villageName } = filters;
   const { stateOptions, districtOptions, mandalOptions, villageOptions } = options;
@@ -155,6 +167,20 @@ export function Sidebar({
           </CollapsiblePanel>
 
           <CollapsiblePanel title="Layer Toggles" defaultOpen={true} key={`layers-${panelKey}`}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+              Base Map Theme
+              <select
+                value={baseMapTheme}
+                onChange={(e) => setBaseMapTheme(e.target.value)}
+                style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}
+              >
+                <option value="satellite">Satellite (Esri Imagery)</option>
+                <option value="street">Street Map (OSM)</option>
+                <option value="voyager">Voyager (Carto Light)</option>
+                <option value="dark">Dark Theme (Carto Dark)</option>
+              </select>
+            </label>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '12px 0' }}></div>
             <label className="toggle">
               <input type="checkbox" checked={is3D} onChange={() => setIs3D(!is3D)} />
               3D View
@@ -248,7 +274,45 @@ export function Sidebar({
                 checked={showRecharge}
                 onChange={() => setShowRecharge(!showRecharge)}
               />
-              Aquifer
+              AI Recharge Recommendation
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showAquifer}
+                onChange={() => setShowAquifer(!showAquifer)}
+              />
+              Aquifer (Geological)
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showSoil}
+                onChange={() => setShowSoil(!showSoil)}
+              />
+              Soil Types
+            </label>
+            <label className="toggle" title="Difference between Model and IDW baseline">
+              <input
+                type="checkbox"
+                checked={showModelIdwDiff}
+                onChange={() => {
+                  setShowModelIdwDiff(!showModelIdwDiff);
+                  if (!showModelIdwDiff) setShowErrorMap(false);
+                }}
+              />
+              Model vs IDW (Delta)
+            </label>
+            <label className="toggle" title="Spatial error map for observed villages">
+              <input
+                type="checkbox"
+                checked={showErrorMap}
+                onChange={() => {
+                  setShowErrorMap(!showErrorMap);
+                  if (!showErrorMap) setShowModelIdwDiff(false);
+                }}
+              />
+              Error Map (Observed)
             </label>
             <label className="toggle">
               <input
@@ -265,6 +329,14 @@ export function Sidebar({
                 onChange={() => setShowWells(!showWells)}
               />
               Wells
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showStateBoundary}
+                onChange={() => setShowStateBoundary(!showStateBoundary)}
+              />
+              State Boundary
             </label>
             <label className="toggle">
               <input

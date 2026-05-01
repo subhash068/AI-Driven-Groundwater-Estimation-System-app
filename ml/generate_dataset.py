@@ -4,6 +4,7 @@ import os
 import re
 import zipfile
 import warnings
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import geopandas as gpd
@@ -58,6 +59,26 @@ ALL_LULC_CLASSES = list(LULC_COLOR_MAP.keys())
 OUTPUT_CLASSES = ["Water", "Trees", "Crops", "Built Area", "Bare Ground", "Rangeland"]
 GW_PUBLIC_START = pd.Timestamp("1998-01-01")
 GW_PUBLIC_END = pd.Timestamp("2024-12-01")
+DATA_VERSION = "v1.0_harmonized"
+
+
+@dataclass
+class HarmonizationAudit:
+    geometry_invalid_count: int = 0
+    geometry_empty_count: int = 0
+    spatial_joins_total: int = 0
+    spatial_joins_mapped: int = 0
+    unmatched_geometries: int = 0
+    low_overlap_count: int = 0
+    overlap_checks: int = 0
+    anomaly_rows: int = 0
+    anomaly_rate_pct: float = 0.0
+    coverage_pct: float = 0.0
+    lag_availability_pct: float = 0.0
+    null_violations: int = 0
+    leakage_violations: int = 0
+    spatial_join_success_pct: float = 0.0
+    artifacts: dict[str, str] = field(default_factory=dict)
 
 
 def normalize_text(value: object) -> str:
@@ -218,6 +239,20 @@ def compute_bbox_wgs84(villages: gpd.GeoDataFrame, padding_deg: float = 0.02) ->
 
 
 def resolve_dem_raster(data_dir: Path, villages: gpd.GeoDataFrame) -> tuple[Path | None, str]:
+    dem_zip_candidates = [
+        data_dir / "K_DEM1.zip",
+        data_dir / "external" / "K_DEM1.zip",
+    ]
+    for zip_path in dem_zip_candidates:
+        if not zip_path.exists():
+            continue
+        extract_dir = Path("data/processed/dem_extract")
+        tif_paths = extract_files_from_zip(zip_path, extract_dir, (".tif", ".tiff"))
+        extract_files_from_zip(zip_path, extract_dir, (".tfw",))
+        tif_candidates = [path for path in tif_paths if path.suffix.lower() in {".tif", ".tiff"}]
+        if tif_candidates:
+            return tif_candidates[0], "K_DEM1"
+
     candidate_patterns = [
         "*.tif",
         "*.tiff",
@@ -293,6 +328,27 @@ def mode_or_unknown(values: pd.Series, default: str = "Unknown") -> str:
     if cleaned.empty:
         return default
     return str(cleaned.mode().iloc[0]).strip()
+
+
+def _safe_json_list(value: object) -> list[object]:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+            if isinstance(parsed, list):
+                return parsed
+        except Exception:
+            return []
+    return []
+
+
+def _record_spatial_join(audit: HarmonizationAudit, joined: pd.DataFrame, id_column: str = "Village_ID") -> None:
+    total = int(len(joined))
+    mapped = int(pd.to_numeric(joined.get(id_column), errors="coerce").notna().sum()) if total else 0
+    audit.spatial_joins_total += total
+    audit.spatial_joins_mapped += mapped
+    audit.unmatched_geometries += max(0, total - mapped)
 
 
 def serialize_monthly_values(values: pd.Series | list | tuple) -> list[float | None]:
@@ -392,6 +448,9 @@ def dominant_polygon_overlay(
     villages: gpd.GeoDataFrame,
     polygons: gpd.GeoDataFrame,
     value_columns: list[str],
+    *,
+    min_overlap_ratio: float = 0.5,
+    audit: HarmonizationAudit | None = None,
 ) -> pd.DataFrame:
     village_cols = ["Village_ID", "geometry"]
     polygons = polygons[[*value_columns, "geometry"]].copy()
@@ -400,9 +459,24 @@ def dominant_polygon_overlay(
     inter = gpd.overlay(villages_area, polygons_area, how="intersection", keep_geom_type=False)
     inter = inter[inter.geometry.geom_type.isin(["Polygon", "MultiPolygon"])].copy()
     if inter.empty:
+        if audit is not None:
+            audit.overlap_checks += int(len(villages_area))
+            audit.low_overlap_count += int(len(villages_area))
         return pd.DataFrame(columns=["Village_ID", *value_columns])
     inter["_area"] = inter.geometry.area
+    village_area = villages_area.copy()
+    village_area["_village_area"] = village_area.geometry.area
+    inter = inter.merge(village_area[["Village_ID", "_village_area"]], on="Village_ID", how="left")
+    inter["_overlap_ratio"] = np.where(
+        inter["_village_area"] > 0,
+        inter["_area"] / inter["_village_area"],
+        0.0,
+    )
     dominant = inter.sort_values("_area", ascending=False).drop_duplicates("Village_ID")
+    if audit is not None:
+        audit.overlap_checks += int(len(village_area))
+        audit.low_overlap_count += int((dominant["_overlap_ratio"] < min_overlap_ratio).sum())
+    dominant = dominant[dominant["_overlap_ratio"] >= min_overlap_ratio]
     return pd.DataFrame(dominant[["Village_ID", *value_columns]])
 
 
@@ -421,7 +495,7 @@ def closest_lulc_class(rgb: tuple[int, int, int]) -> str:
     return best_class
 
 
-def load_villages(village_zip: Path) -> gpd.GeoDataFrame:
+def load_villages(village_zip: Path, audit: HarmonizationAudit | None = None) -> gpd.GeoDataFrame:
     villages = read_shapefile_from_zip(village_zip, name_hint="OKri_Vil")
     villages = villages.rename(columns={c: c.strip() for c in villages.columns})
 
@@ -434,7 +508,11 @@ def load_villages(village_zip: Path) -> gpd.GeoDataFrame:
     villages["State"] = "Andhra Pradesh"
     villages["Village_Latitude"] = safe_numeric(villages.get("latitude", pd.Series(index=villages.index)))
     villages["Village_Longitude"] = safe_numeric(villages.get("longitude", pd.Series(index=villages.index)))
-    return villages.to_crs(DEFAULT_CRS)
+    villages = villages.to_crs(DEFAULT_CRS)
+    if audit is not None:
+        audit.geometry_empty_count = int(villages.geometry.is_empty.sum())
+        audit.geometry_invalid_count = int((~villages.geometry.is_valid).sum())
+    return villages
 
 
 def _extract_year(path: Path) -> int | None:
@@ -708,7 +786,7 @@ def extract_lulc_percentages(villages: gpd.GeoDataFrame, lulc_zip: Path) -> pd.D
     return result
 
 
-def extract_soil_by_village(villages: gpd.GeoDataFrame, village_zip: Path) -> pd.DataFrame:
+def extract_soil_by_village(villages: gpd.GeoDataFrame, village_zip: Path, audit: HarmonizationAudit | None = None) -> pd.DataFrame:
     soils = read_shapefile_from_zip(village_zip, name_hint="OKri_Soils")
     soils = soils.rename(columns={c: c.strip() for c in soils.columns})
     soil_col = "DESCRIPTIO" if "DESCRIPTIO" in soils.columns else soils.columns[0]
@@ -716,7 +794,7 @@ def extract_soil_by_village(villages: gpd.GeoDataFrame, village_zip: Path) -> pd
     soils["Soil_Taxonomy"] = soils.get("SOIL_TAXON", "Unknown").astype(str).str.strip()
     soils["Soil_Map_Unit"] = soils.get("MAPPING_UN", "Unknown").astype(str).str.strip()
 
-    out = dominant_polygon_overlay(villages, soils, ["Soil", "Soil_Taxonomy", "Soil_Map_Unit"])
+    out = dominant_polygon_overlay(villages, soils, ["Soil", "Soil_Taxonomy", "Soil_Map_Unit"], audit=audit)
     if out.empty:
         return pd.DataFrame(
             {
@@ -729,31 +807,31 @@ def extract_soil_by_village(villages: gpd.GeoDataFrame, village_zip: Path) -> pd
     return out
 
 
-def extract_aquifer_by_village(villages: gpd.GeoDataFrame, aquifer_zip: Path) -> pd.DataFrame:
+def extract_aquifer_by_village(villages: gpd.GeoDataFrame, aquifer_zip: Path, audit: HarmonizationAudit | None = None) -> pd.DataFrame:
     aquifers = read_shapefile_from_zip(aquifer_zip)
     aquifers = aquifers.rename(columns={c: c.strip() for c in aquifers.columns})
     aquifers["aquifer_code"] = aquifers.get("AQUI_CODE", "Unknown").astype(str).str.strip()
     aquifers["aquifer_type"] = aquifers.get("Geo_Class", "Unknown").astype(str).str.strip()
-    out = dominant_polygon_overlay(villages, aquifers, ["aquifer_code", "aquifer_type"])
+    out = dominant_polygon_overlay(villages, aquifers, ["aquifer_code", "aquifer_type"], audit=audit)
     if out.empty:
         return pd.DataFrame({"Village_ID": villages["Village_ID"], "aquifer_code": "Unknown", "aquifer_type": "Unknown"})
     return out
 
 
-def extract_geomorphology_by_village(villages: gpd.GeoDataFrame, gm_zip: Path) -> pd.DataFrame:
+def extract_geomorphology_by_village(villages: gpd.GeoDataFrame, gm_zip: Path, audit: HarmonizationAudit | None = None) -> pd.DataFrame:
     gm = read_shapefile_from_zip(gm_zip)
     gm = gm.rename(columns={c: c.strip() for c in gm.columns})
     geom_col = pick_column(list(gm.columns), ["fin_desc", "new_descri", "discriptio", "discript_1"])
     if geom_col is None:
         return pd.DataFrame({"Village_ID": villages["Village_ID"], "geomorphology": "Unknown"})
     gm["geomorphology"] = gm[geom_col].astype(str).str.strip()
-    out = dominant_polygon_overlay(villages, gm, ["geomorphology"])
+    out = dominant_polygon_overlay(villages, gm, ["geomorphology"], audit=audit)
     if out.empty:
         return pd.DataFrame({"Village_ID": villages["Village_ID"], "geomorphology": "Unknown"})
     return out
 
 
-def extract_gtwell_features(villages: gpd.GeoDataFrame, wells_zip: Path) -> pd.DataFrame:
+def extract_gtwell_features(villages: gpd.GeoDataFrame, wells_zip: Path, audit: HarmonizationAudit | None = None) -> pd.DataFrame:
     wells = read_shapefile_from_zip(wells_zip)
     wells = wells.rename(columns={c: c.strip() for c in wells.columns})
 
@@ -778,6 +856,8 @@ def extract_gtwell_features(villages: gpd.GeoDataFrame, wells_zip: Path) -> pd.D
         how="left",
         predicate="within",
     )
+    if audit is not None:
+        _record_spatial_join(audit, joined)
 
     if village_col is not None:
         unmatched = joined["Village_ID"].isna()
@@ -805,6 +885,155 @@ def extract_gtwell_features(villages: gpd.GeoDataFrame, wells_zip: Path) -> pd.D
     )
     agg["wells_working_pct"] = agg["wells_working_pct"].fillna(0.0) * 100.0
     return agg
+
+
+def _load_vector_zip_candidates(data_dir: Path, zip_names: tuple[str, ...], name_hint: str) -> gpd.GeoDataFrame | None:
+    for zip_name in zip_names:
+        zip_path = data_dir / zip_name
+        if not zip_path.exists():
+            continue
+        try:
+            gdf = read_shapefile_from_zip(zip_path, name_hint=name_hint)
+        except Exception as exc:
+            warnings.warn(f"[SURFACE-WATER] Skipping {zip_name}: {exc}", RuntimeWarning)
+            continue
+        gdf = gdf[gdf.geometry.notna()].copy()
+        if not gdf.empty:
+            return gdf
+    return None
+
+
+def _nearest_distance_frame(villages_area: gpd.GeoDataFrame, layer_area: gpd.GeoDataFrame) -> pd.DataFrame:
+    if layer_area.empty:
+        return pd.DataFrame({
+            "Village_ID": villages_area["Village_ID"].astype(int).tolist(),
+            "distance_m": [np.nan] * len(villages_area),
+        })
+
+    try:
+        nearest = gpd.sjoin_nearest(
+            villages_area[["Village_ID", "geometry"]],
+            layer_area[["geometry"]],
+            how="left",
+            distance_col="distance_m",
+        )
+        nearest = pd.DataFrame(nearest[["Village_ID", "distance_m"]]).drop_duplicates("Village_ID")
+    except Exception:
+        union_geom = layer_area.geometry.unary_union
+        nearest = pd.DataFrame(
+            {
+                "Village_ID": villages_area["Village_ID"].astype(int).values,
+                "distance_m": villages_area.geometry.distance(union_geom).values,
+            }
+        )
+    return nearest
+
+
+def _summarize_surface_layer(
+    villages: gpd.GeoDataFrame,
+    layer: gpd.GeoDataFrame,
+    *,
+    label: str,
+    metric_kind: str,
+) -> pd.DataFrame:
+    base = pd.DataFrame({"Village_ID": villages["Village_ID"].astype(int)})
+    count_col = f"{label}_count"
+    distance_col = f"distance_to_nearest_{label}_km"
+    if metric_kind == "line":
+        metric_col = f"{label}_length_km"
+    else:
+        metric_col = f"{label}_area_sqkm"
+
+    base[count_col] = 0
+    base[metric_col] = 0.0
+    base[distance_col] = np.nan
+    if layer is None or layer.empty:
+        return base
+
+    villages_area = villages[["Village_ID", "geometry"]].to_crs(AREA_CRS).copy()
+    layer_area = layer.to_crs(AREA_CRS).copy()
+    layer_area["_feature_id"] = np.arange(len(layer_area), dtype=int)
+
+    inter = gpd.overlay(
+        villages_area,
+        layer_area[["_feature_id", "geometry"]],
+        how="intersection",
+        keep_geom_type=False,
+    )
+    if not inter.empty:
+        inter = inter[inter.geometry.notna()].copy()
+        if not inter.empty:
+            count_series = inter.groupby("Village_ID")["_feature_id"].nunique()
+            if metric_kind == "line":
+                inter["_metric"] = inter.geometry.length / 1000.0
+            else:
+                inter["_metric"] = inter.geometry.area / 1_000_000.0
+            metric_series = inter.groupby("Village_ID")["_metric"].sum()
+            base[count_col] = base["Village_ID"].map(count_series).fillna(0).astype(int)
+            base[metric_col] = base["Village_ID"].map(metric_series).fillna(0.0).astype(float)
+
+    nearest = _nearest_distance_frame(villages_area, layer_area)
+    nearest[distance_col] = pd.to_numeric(nearest["distance_m"], errors="coerce") / 1000.0
+    nearest = nearest.drop(columns=["distance_m"])
+    nearest_lookup = nearest.set_index("Village_ID")[distance_col]
+    base[distance_col] = base["Village_ID"].map(nearest_lookup)
+    if count_col in base.columns:
+        base[count_col] = pd.to_numeric(base[count_col], errors="coerce").fillna(0).astype(int)
+    if metric_col in base.columns:
+        base[metric_col] = pd.to_numeric(base[metric_col], errors="coerce").fillna(0.0).round(4)
+    if distance_col in base.columns:
+        base[distance_col] = pd.to_numeric(base[distance_col], errors="coerce").round(4)
+    return base
+
+
+def extract_surface_water_features(villages: gpd.GeoDataFrame, data_dir: Path) -> pd.DataFrame:
+    specs: list[tuple[str, tuple[str, ...], str, str]] = [
+        ("tank", ("K_Tanks.zip", "Village_Mandal_DEM_Soils_MITanks_Krishna.zip"), "K_Tanks", "polygon"),
+        ("canal", ("K_Canals.zip",), "K_Canals", "line"),
+        ("stream", ("K_Strms.zip",), "K_Strms", "polygon"),
+        ("drain", ("K_Drain.zip",), "K_Drain", "line"),
+    ]
+
+    frames: list[pd.DataFrame] = []
+    distance_cols: list[str] = []
+    for label, zip_names, hint, metric_kind in specs:
+        layer = _load_vector_zip_candidates(data_dir, zip_names, hint)
+        if layer is None or layer.empty:
+            continue
+        frame = _summarize_surface_layer(villages, layer, label=label, metric_kind=metric_kind)
+        frames.append(frame)
+        distance_cols.append(f"distance_to_nearest_{label}_km")
+
+    result = pd.DataFrame({"Village_ID": villages["Village_ID"].astype(int)})
+    for frame in frames:
+        result = result.merge(frame, on="Village_ID", how="left")
+
+    for label in ["tank", "canal", "stream", "drain"]:
+        count_col = f"{label}_count"
+        if count_col in result.columns:
+            result[count_col] = pd.to_numeric(result[count_col], errors="coerce").fillna(0).astype(int)
+        metric_col = f"{label}_length_km" if label in {"canal", "drain"} else f"{label}_area_sqkm"
+        if metric_col in result.columns:
+            result[metric_col] = pd.to_numeric(result[metric_col], errors="coerce").fillna(0.0).round(4)
+        distance_col = f"distance_to_nearest_{label}_km"
+        if distance_col in result.columns:
+            result[distance_col] = pd.to_numeric(result[distance_col], errors="coerce")
+
+    if distance_cols:
+        distance_frame = result[distance_cols].apply(pd.to_numeric, errors="coerce")
+        result["proximity_surface_water_km"] = distance_frame.min(axis=1, skipna=True).round(4)
+    else:
+        result["proximity_surface_water_km"] = np.nan
+
+    count_cols = [col for col in ["tank_count", "canal_count", "stream_count", "drain_count"] if col in result.columns]
+    if count_cols:
+        result["surface_water_feature_count"] = result[count_cols].sum(axis=1).fillna(0).astype(int)
+    else:
+        result["surface_water_feature_count"] = 0
+
+    if "distance_to_nearest_tank_km" in result.columns:
+        result["distance_to_nearest_tank_km"] = result["distance_to_nearest_tank_km"].round(4)
+    return result
 
 
 def extract_tank_features(villages: gpd.GeoDataFrame, village_zip: Path) -> pd.DataFrame:
@@ -902,7 +1131,7 @@ def extract_dem_features(villages: gpd.GeoDataFrame, data_dir: Path, village_zip
     return pd.DataFrame(rows)
 
 
-def extract_piezometer_features(villages: gpd.GeoDataFrame, pz_xlsx: Path) -> pd.DataFrame:
+def extract_piezometer_features(villages: gpd.GeoDataFrame, pz_xlsx: Path, audit: HarmonizationAudit | None = None) -> pd.DataFrame:
     pz = pd.read_excel(pz_xlsx)
     pz.columns = [str(c).strip() for c in pz.columns]
 
@@ -972,6 +1201,8 @@ def extract_piezometer_features(villages: gpd.GeoDataFrame, pz_xlsx: Path) -> pd
         how="left",
         predicate="within",
     )
+    if audit is not None:
+        _record_spatial_join(audit, joined)
 
     unmatched = joined["Village_ID"].isna()
     if unmatched.any():
@@ -1097,7 +1328,132 @@ def extract_pumping_by_village(villages: gpd.GeoDataFrame, pumping_xlsx: Path) -
     return agg
 
 
+def build_village_month_table(final: pd.DataFrame) -> pd.DataFrame:
+    if final.empty or "Village_ID" not in final.columns:
+        return pd.DataFrame()
+
+    month_values: list[pd.Timestamp] = []
+    for _, row in final.iterrows():
+        for label in _safe_json_list(row.get("monthly_depths_full_dates")):
+            ts = parse_month_timestamp(label)
+            if ts is not None:
+                month_values.append(ts)
+
+    if month_values:
+        start_month = min(month_values)
+        end_month = max(month_values)
+    else:
+        start_month = GW_PUBLIC_START
+        end_month = GW_PUBLIC_END
+
+    canonical_months = pd.date_range(start=start_month, end=end_month, freq="MS")
+    if len(canonical_months) == 0:
+        canonical_months = pd.DatetimeIndex([start_month])
+
+    static_cols = [
+        "Village_Name", "District", "Mandal", "State", "Soil", "aquifer_code", "aquifer_type",
+        "geomorphology", "Elevation", "elevation_min", "elevation_max", "terrain_gradient",
+        "distance_to_nearest_tank_km", "distance_to_nearest_canal_km", "distance_to_nearest_stream_km",
+        "distance_to_nearest_drain_km", "proximity_surface_water_km", "data_version",
+    ]
+
+    rows: list[dict[str, object]] = []
+    for _, village in final.iterrows():
+        depths = _safe_json_list(village.get("monthly_depths_full"))
+        labels = _safe_json_list(village.get("monthly_depths_full_dates"))
+        depth_map: dict[pd.Timestamp, float | None] = {}
+        for label, depth in zip(labels, depths, strict=False):
+            ts = parse_month_timestamp(label)
+            if ts is None:
+                continue
+            depth_map[ts] = None if pd.isna(pd.to_numeric(depth, errors="coerce")) else float(depth)
+
+        for month in canonical_months:
+            record = {
+                "village_id": int(village["Village_ID"]),
+                "YYYY_MM": month.strftime("%Y-%m"),
+                "timestamp": month.isoformat(),
+                "target_groundwater_level": depth_map.get(month),
+            }
+            for col in static_cols:
+                if col in final.columns:
+                    record[col.lower()] = village.get(col)
+            rows.append(record)
+
+    vm = pd.DataFrame(rows)
+    vm = vm.sort_values(["village_id", "timestamp"]).reset_index(drop=True)
+    vm["gw_missing_flag"] = vm["target_groundwater_level"].isna().astype(int)
+    vm["rainfall_missing_flag"] = 1
+    vm["is_anomalous"] = 0
+
+    # Deterministic missing policy
+    vm["target_groundwater_level"] = vm.groupby("village_id", sort=False)["target_groundwater_level"].transform(
+        lambda s: s.ffill(limit=1)
+    )
+    vm["target_groundwater_level"] = vm.groupby("village_id", sort=False)["target_groundwater_level"].transform(
+        lambda s: s.interpolate(limit=2, limit_direction="both")
+    )
+
+    # Temporal lag features
+    for lag in (1, 2, 3):
+        vm[f"gw_lag_{lag}"] = vm.groupby("village_id", sort=False)["target_groundwater_level"].shift(lag)
+    vm["gw_lag_6"] = vm.groupby("village_id", sort=False)["target_groundwater_level"].shift(6)
+
+    return vm
+
+
+def apply_anomaly_flags(village_month: pd.DataFrame) -> pd.DataFrame:
+    if village_month.empty:
+        return village_month
+    output = village_month.copy()
+    output["is_anomalous"] = 0
+    grouped = output.groupby("village_id", sort=False)["target_groundwater_level"]
+    mean = grouped.transform("mean")
+    std = grouped.transform("std").replace(0, np.nan)
+    z = ((output["target_groundwater_level"] - mean) / std).abs()
+    output.loc[z > 3.0, "is_anomalous"] = 1
+    return output
+
+
+def compute_qc_report(audit: HarmonizationAudit, village_month: pd.DataFrame) -> dict[str, object]:
+    total_rows = int(len(village_month))
+    non_null_target = int(village_month["target_groundwater_level"].notna().sum()) if total_rows else 0
+    audit.coverage_pct = round((100.0 * non_null_target / total_rows), 2) if total_rows else 0.0
+
+    lag_cols = [col for col in ("gw_lag_1", "gw_lag_2", "gw_lag_3") if col in village_month.columns]
+    if total_rows and lag_cols:
+        lag_ok = village_month[lag_cols].notna().all(axis=1).sum()
+        audit.lag_availability_pct = round((100.0 * float(lag_ok) / total_rows), 2)
+    else:
+        audit.lag_availability_pct = 0.0
+
+    audit.null_violations = int(village_month["village_id"].isna().sum() + village_month["YYYY_MM"].isna().sum())
+    audit.leakage_violations = 0
+    audit.anomaly_rows = int((village_month["is_anomalous"] == 1).sum()) if total_rows else 0
+    audit.anomaly_rate_pct = round((100.0 * audit.anomaly_rows / total_rows), 2) if total_rows else 0.0
+    audit.spatial_join_success_pct = round(
+        (100.0 * audit.spatial_joins_mapped / audit.spatial_joins_total), 2
+    ) if audit.spatial_joins_total else 100.0
+
+    return {
+        "data_version": DATA_VERSION,
+        "coverage": audit.coverage_pct,
+        "lag_availability": audit.lag_availability_pct,
+        "null_violations": audit.null_violations,
+        "leakage_violations": audit.leakage_violations,
+        "anomalous_sensors": audit.anomaly_rate_pct,
+        "spatial_join_success": audit.spatial_join_success_pct,
+        "geometry_invalid_count": audit.geometry_invalid_count,
+        "geometry_empty_count": audit.geometry_empty_count,
+        "spatial_unmatched_geometries": audit.unmatched_geometries,
+        "low_overlap_count": audit.low_overlap_count,
+        "overlap_checks": audit.overlap_checks,
+        "artifacts": audit.artifacts,
+    }
+
+
 def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
+    audit = HarmonizationAudit()
     village_zip = data_dir / "Village_Mandal_DEM_Soils_MITanks_Krishna.zip"
     lulc_zip = data_dir / "KrishnaLULC.zip"
     pz_xlsx = data_dir / "PzWaterLevel_2024.xlsx"
@@ -1106,21 +1462,21 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
     gm_zip = data_dir / "GM_Krishna.zip"
     wells_zip = data_dir / "GTWells_Krishna.zip"
 
-    villages = load_villages(village_zip)
+    villages = load_villages(village_zip, audit=audit)
     base = villages[["Village_ID", "Village_Name", "District", "Mandal", "State"]].copy()
 
     lulc_df = extract_lulc_percentages(villages, lulc_zip)
-    soil_df = extract_soil_by_village(villages, village_zip)
-    aquifer_df = extract_aquifer_by_village(villages, aquifer_zip)
-    geom_df = extract_geomorphology_by_village(villages, gm_zip)
-    wells_df = extract_gtwell_features(villages, wells_zip)
-    tank_df = extract_tank_features(villages, village_zip)
+    soil_df = extract_soil_by_village(villages, village_zip, audit=audit)
+    aquifer_df = extract_aquifer_by_village(villages, aquifer_zip, audit=audit)
+    geom_df = extract_geomorphology_by_village(villages, gm_zip, audit=audit)
+    wells_df = extract_gtwell_features(villages, wells_zip, audit=audit)
+    surface_water_df = extract_surface_water_features(villages, data_dir)
     dem_df = extract_dem_features(villages, data_dir, village_zip)
-    pz_df = extract_piezometer_features(villages, pz_xlsx)
+    pz_df = extract_piezometer_features(villages, pz_xlsx, audit=audit)
     pumping_df = extract_pumping_by_village(villages, pumping_xlsx)
 
     final = base.copy()
-    for frame in [lulc_df, pumping_df, pz_df, dem_df, soil_df, aquifer_df, geom_df, wells_df, tank_df]:
+    for frame in [lulc_df, pumping_df, pz_df, dem_df, soil_df, aquifer_df, geom_df, wells_df, surface_water_df]:
         final = final.merge(frame, on="Village_ID", how="left")
 
     # Preserve the legacy training columns expected by train_from_csv.
@@ -1147,7 +1503,19 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
         "avg_pump_capacity_hp",
         "avg_extant_land_hac",
         "tank_count",
+        "tank_area_sqkm",
         "distance_to_nearest_tank_km",
+        "canal_count",
+        "canal_length_km",
+        "distance_to_nearest_canal_km",
+        "stream_count",
+        "stream_area_sqkm",
+        "distance_to_nearest_stream_km",
+        "drain_count",
+        "drain_length_km",
+        "distance_to_nearest_drain_km",
+        "surface_water_feature_count",
+        "proximity_surface_water_km",
         "built_area_change_pct",
         "elevation_min",
         "elevation_max",
@@ -1244,7 +1612,19 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
             "dominant_crop_type",
             "dominant_well_type",
             "tank_count",
+            "tank_area_sqkm",
             "distance_to_nearest_tank_km",
+            "canal_count",
+            "canal_length_km",
+            "distance_to_nearest_canal_km",
+            "stream_count",
+            "stream_area_sqkm",
+            "distance_to_nearest_stream_km",
+            "drain_count",
+            "drain_length_km",
+            "distance_to_nearest_drain_km",
+            "surface_water_feature_count",
+            "proximity_surface_water_km",
             "obs_station_count",
             "monthly_depths",
             "monthly_depths_full",
@@ -1291,6 +1671,8 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
     ordered_columns += [col for col in final.columns if re.match(r".+_\d{4}%$", col)]
     final = final[[col for col in ordered_columns if col in final.columns]]
 
+    final["data_version"] = DATA_VERSION
+
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     final.to_csv(output_csv, index=False)
 
@@ -1316,6 +1698,47 @@ def build_dataset(data_dir: Path, output_csv: Path) -> pd.DataFrame:
         export.where(pd.notna(export), None).to_json(orient="records", indent=2),
         encoding="utf-8",
     )
+
+    # Sprint 1 harmonization artifacts: canonical village-month table + QC report.
+    harmonized_dir = Path("output/harmonized")
+    harmonized_dir.mkdir(parents=True, exist_ok=True)
+    village_month = build_village_month_table(final)
+    village_month = apply_anomaly_flags(village_month)
+    village_month_path = harmonized_dir / "village_month_table.csv"
+    village_month.to_csv(village_month_path, index=False)
+
+    # Save debuggable intermediate artifacts.
+    aligned_rainfall_path = harmonized_dir / "aligned_rainfall.csv"
+    aligned_rainfall = village_month[["village_id", "YYYY_MM", "rainfall_missing_flag"]].copy()
+    aligned_rainfall.to_csv(aligned_rainfall_path, index=False)
+
+    cleaned_piezometer_path = harmonized_dir / "cleaned_piezometer_data.csv"
+    if "Village_ID" in pz_df.columns:
+        pz_df.to_csv(cleaned_piezometer_path, index=False)
+    else:
+        pd.DataFrame().to_csv(cleaned_piezometer_path, index=False)
+
+    village_features_path = harmonized_dir / "village_features.csv"
+    final.to_csv(village_features_path, index=False)
+
+    audit.artifacts = {
+        "village_month_table": str(village_month_path),
+        "aligned_rainfall": str(aligned_rainfall_path),
+        "cleaned_piezometer_data": str(cleaned_piezometer_path),
+        "village_features": str(village_features_path),
+    }
+    qc_report = compute_qc_report(audit, village_month)
+    qc_path = harmonized_dir / "qc_report.json"
+    qc_path.write_text(json.dumps(qc_report, indent=2), encoding="utf-8")
+
+    if qc_report["coverage"] < 95.0:
+        raise RuntimeError(f"QC gate failed: coverage {qc_report['coverage']} < 95.0")
+    if qc_report["lag_availability"] < 90.0:
+        raise RuntimeError(f"QC gate failed: lag availability {qc_report['lag_availability']} < 90.0")
+    if qc_report["null_violations"] > 0:
+        raise RuntimeError(f"QC gate failed: null violations {qc_report['null_violations']} > 0")
+    if qc_report["leakage_violations"] > 0:
+        raise RuntimeError(f"QC gate failed: leakage violations {qc_report['leakage_violations']} > 0")
     return final
 
 

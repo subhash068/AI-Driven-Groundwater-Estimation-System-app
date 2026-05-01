@@ -16,6 +16,7 @@
   "draft_per_well",
   "recharge_index",
   "extraction_stress",
+  "proximity_surface_water_km",
   "terrain_gradient",
   "aquifer_storage_factor",
   "obs_station_count",

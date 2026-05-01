@@ -540,7 +540,15 @@ def bootstrap() -> None:
 
                 elevation = _to_float(_get_field(json_row, csv_row, geo_props, "Elevation", "obs_elevation_msl_mean"))
                 slope = _to_float(_get_field(json_row, csv_row, geo_props, "terrain_gradient", "seasonal_variation"))
-                distance_km = _to_float(_get_field(json_row, csv_row, geo_props, "distance_to_nearest_tank_km"))
+                distance_km = _to_float(
+                    _get_field(
+                        json_row,
+                        csv_row,
+                        geo_props,
+                        "proximity_surface_water_km",
+                        "distance_to_nearest_tank_km",
+                    )
+                )
                 rain_var = _to_float(_get_field(json_row, csv_row, geo_props, "rainfall_proxy"))
                 lulc_code = _to_int(_get_field(json_row, csv_row, geo_props, "lulc_latest_year"))
 

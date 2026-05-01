@@ -1,7 +1,7 @@
 from datetime import date
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -31,6 +31,7 @@ from .services import (
     fetch_anomaly_alerts,
     fetch_farmer_advisories,
     fetch_map_data,
+    fetch_model_upgrade_summary,
     fetch_predict,
     fetch_predict_live,
     fetch_recharge_recommendations,
@@ -114,7 +115,6 @@ async def get_village_status(
 async def village_forecast(
     village_id: int,
     db: AsyncSession = Depends(get_db),
-    _: dict = Depends(get_current_user),
 ) -> VillageForecastResponse:
     cache_key = f"village_lstm_forecast:{village_id}"
     cached = await cache_get_json(cache_key)
@@ -327,8 +327,61 @@ async def st_gnn_predict(
     village_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    # Use the mock ST-GNN service to get a prediction with uncertainty and forecasts
+    _ = db
     prediction_data = gnn_service.predict_for_village(village_id, features=[])
-    
     return prediction_data
+
+
+@app.get("/api/groundwater/all", response_model=dict)
+async def groundwater_all(
+    district: str | None = Query(default=None),
+    min_confidence: float | None = Query(default=None, ge=0.0, le=1.0),
+    anomalies_only: bool = Query(default=False),
+    recharge_only: bool = Query(default=False),
+) -> dict:
+    return gnn_service.get_all(
+        district=district,
+        min_confidence=min_confidence,
+        anomalies_only=anomalies_only,
+        recharge_only=recharge_only,
+    )
+
+
+@app.get("/api/groundwater/anomalies", response_model=dict)
+async def groundwater_anomalies(
+    district: str | None = Query(default=None),
+) -> dict:
+    return gnn_service.get_anomalies(district=district)
+
+
+@app.get("/api/groundwater/recharge", response_model=dict)
+async def groundwater_recharge(
+    district: str | None = Query(default=None),
+) -> dict:
+    return gnn_service.get_recharge_zones(district=district)
+
+
+@app.get("/api/groundwater/{village_id}", response_model=dict)
+async def groundwater_village(village_id: int) -> dict:
+    payload = gnn_service.get_by_village(village_id=village_id)
+    if payload is None:
+        raise HTTPException(status_code=404, detail=f"Village {village_id} not found")
+    return payload
+
+
+@app.post("/api/groundwater/simulate", response_model=dict)
+async def groundwater_simulate(
+    payload: dict = Body(default={}),
+) -> dict:
+    rainfall_delta_pct = float(payload.get("rainfall_delta_pct", 0.0))
+    extraction_delta_pct = float(payload.get("extraction_delta_pct", 0.0))
+    return gnn_service.simulate(
+        rainfall_delta_pct=rainfall_delta_pct,
+        extraction_delta_pct=extraction_delta_pct,
+    )
+
+
+@app.get("/analytics/model-upgrades", response_model=dict)
+async def analytics_model_upgrades() -> dict:
+    return await fetch_model_upgrade_summary()
 

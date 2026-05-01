@@ -6,9 +6,14 @@ TARGET_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
 
 FILE_NAMES = [
     "Aquifers_Krishna.zip",
+    "K_Canals.zip",
+    "K_DEM1.zip",
+    "K_Drain.zip",
     "GM_Krishna.zip",
     "GTWells_Krishna.zip",
     "KrishnaLULC.zip",
+    "K_Strms.zip",
+    "K_Tanks.zip",
     "Pumping Data.xlsx",
     "PzWaterLevel_2024.xlsx",
     "Village_Mandal_DEM_Soils_MITanks_Krishna.zip",

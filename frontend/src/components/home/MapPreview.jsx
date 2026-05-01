@@ -45,7 +45,9 @@ function buildPiezometerPoints(features) {
       const props = feature?.properties || {};
       const lat = Number(props.centroid_lat);
       const lon = Number(props.centroid_lon);
-      const count = Number(props.obs_station_count);
+      // Support multiple possible keys for station count
+      const count = Number(props.obs_station_count ?? props.nearby_piezometer_count_10km ?? (props.has_piezometer ? 1 : 0));
+      
       if (!Number.isFinite(lat) || !Number.isFinite(lon) || count <= 0) return null;
       return {
         id: props.village_id || `${lat}-${lon}`,

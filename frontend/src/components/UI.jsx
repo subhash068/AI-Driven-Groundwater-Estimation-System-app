@@ -1012,6 +1012,12 @@ export function MapLegend({
   showPiezometers = false,
   showWells = false,
   showAnomalies = false,
+  showRecharge = false,
+  showAquifer = false,
+  showSoil = false,
+  showModelIdwDiff = false,
+  showErrorMap = false,
+  aquiferLayer = false,
   districtNote = null
 }) {
   return (
@@ -1072,6 +1078,63 @@ export function MapLegend({
           </div>
         </>
       )}
+      {showRecharge && (
+        <>
+          <div className="legend-divider" />
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#00e5ff', width: '10px', height: '10px', borderRadius: '50%' }}></div>
+            <span>AI Recharge Recommendation</span>
+          </div>
+        </>
+      )}
+      {showAquifer && (
+        <>
+          <div className="legend-divider" />
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid #475569' }}></div>
+            <span>Geological Unit (Aquifer)</span>
+          </div>
+        </>
+      )}
+      {showSoil && (
+        <>
+          <div className="legend-divider" />
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#92400e' }}></div>
+            <span>Clay Soils</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#065f46' }}></div>
+            <span>Loam Soils</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#b45309' }}></div>
+            <span>Sandy Soils</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: '#111827' }}></div>
+            <span>Black / Vertisols</span>
+          </div>
+        </>
+      )}
+      {showModelIdwDiff && (
+        <>
+          <div className="legend-divider" />
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: 'linear-gradient(90deg, #16a34a 0%, #eab308 50%, #dc2626 100%)' }}></div>
+            <span>Model vs IDW (Green: shallower, Red: deeper)</span>
+          </div>
+        </>
+      )}
+      {showErrorMap && (
+        <>
+          <div className="legend-divider" />
+          <div className="legend-item">
+            <div className="legend-color" style={{ background: 'linear-gradient(90deg, #16a34a 0%, #eab308 30%, #f97316 60%, #dc2626 100%)' }}></div>
+            <span>Error Map (Green: {"<"}1m, Red: {">"}4m)</span>
+          </div>
+        </>
+      )}
       {districtNote && (
         <>
           <div className="legend-divider" />
@@ -1085,9 +1148,6 @@ export function MapLegend({
   );
 }
 
-function VillageInsightsPanelContent(props) {
-  return <VillageInsightsPanelContentImpl {...props} />;
-}
 
 export function VillageInsightsPanel({
   selectedFeature,
@@ -1145,341 +1205,13 @@ export function VillageInsightsPanel({
   }
 
   return (
-    <VillageInsightsPanelContent
+    <VillageInsightsPanelContentImpl
       selectedFeature={selectedFeature}
       monthIndex={monthIndex}
       aiPredictionEnabled={aiPredictionEnabled}
       aquiferAnalytics={aquiferAnalytics}
       showPiezometers={showPiezometers}
     />
-  );
-
-  const monthlyDepths = useMemo(
-    () => parseSeriesArray(props.monthly_depths),
-    [props.monthly_depths]
-  );
-  const monthlyDepthsFull = useMemo(
-    () => parseSeriesArray(props.monthly_depths_full ?? props.monthly_depths_history),
-    [props.monthly_depths_full, props.monthly_depths_history]
-  );
-  const monthlyDepthDates = useMemo(
-    () => parseLabelArray(props.monthly_depths_full_dates ?? props.monthly_depths_dates),
-    [props.monthly_depths_full_dates, props.monthly_depths_dates]
-  );
-  const trendYearOptions = useMemo(
-    () => buildTrendYearOptions(monthlyDepthDates, 1998),
-    [monthlyDepthDates]
-  );
-  const defaultTrendYear = useMemo(
-    () => trendYearOptions[trendYearOptions.length - 1] || (1998 + Math.floor(monthIndex / 12)),
-    [trendYearOptions, monthIndex]
-  );
-  const [trendYear, setTrendYear] = useState(defaultTrendYear);
-  const backendDepth = Number(props.current_depth);
-  const actualLastMonth = Number.isFinite(Number(props.actual_last_month))
-    ? Number(props.actual_last_month)
-    : Number.isFinite(Number(props.target_last_month))
-      ? Number(props.target_last_month)
-      : monthlyDepthsFull.slice().reverse().find((value) => Number.isFinite(Number(value))) ?? null;
-  const depthFromMonthly = monthlyDepths[monthIndex];
-  const depthFromSingle = props.depth;
-  const currentDepth = Number.isFinite(Number(actualLastMonth))
-    ? Number(actualLastMonth)
-    : Number.isFinite(backendDepth)
-      ? backendDepth
-    : Number.isFinite(Number(depthFromMonthly))
-      ? Number(depthFromMonthly)
-      : Number.isFinite(Number(depthFromSingle))
-        ? Number(depthFromSingle)
-        : null;
-  const predictedDepth = Number.isFinite(Number(props.predicted_groundwater_level))
-    ? Number(props.predicted_groundwater_level)
-    : null;
-  const depthDifference = currentDepth !== null && predictedDepth !== null
-    ? Number((currentDepth - predictedDepth).toFixed(2))
-    : null;
-  const depthError = depthDifference !== null ? Math.abs(depthDifference) : null;
-  const depthErrorBadge = depthError === null
-    ? { label: "Unknown", className: "error-unknown" }
-    : depthError <= 0.5
-      ? { label: "Low error", className: "error-low" }
-      : depthError <= 1.5
-        ? { label: "Moderate error", className: "error-medium" }
-        : { label: "High error", className: "error-high" };
-  const risk = normalizeRiskLabel(props.risk_level, predictedDepth ?? currentDepth);
-  useEffect(() => {
-    setTrendYear(defaultTrendYear);
-  }, [defaultTrendYear, props.village_id, props.village_name]);
-  const safeTrendYear = trendYearOptions.includes(trendYear)
-    ? trendYear
-    : defaultTrendYear;
-  const trendSourceSeries = monthlyDepthsFull.length ? monthlyDepthsFull : monthlyDepths;
-  const trendSourceLabels = monthlyDepthDates.length ? monthlyDepthDates : [];
-  const trendPoints = buildYearlyTrendPoints(trendSourceSeries, safeTrendYear, trendSourceLabels, 1998);
-  const trendValues = trendPoints.map((point) => point.value);
-  const trendDirection = buildTrendDirection(trendValues);
-  const trendAverage = trendValues.length
-    ? Number((trendValues.reduce((sum, value) => sum + value, 0) / trendValues.length).toFixed(2))
-    : null;
-  const groundwaterHistory = useMemo(() => {
-    const values = monthlyDepthsFull.length ? monthlyDepthsFull : monthlyDepths;
-    const labels = monthlyDepthDates.length ? monthlyDepthDates : values.map((_, index) => `Month ${index + 1}`);
-    const actualSeries = labels.map((label, index) => {
-      const depth = Number(values[index]);
-      return {
-        date: String(label || ""),
-        depth: Number.isFinite(depth) ? depth : null
-      };
-    });
-    return {
-      actual_series: actualSeries,
-      available_years: trendYearOptions
-    };
-  }, [monthlyDepthsFull, monthlyDepths, monthlyDepthDates, trendYearOptions]);
-  const groundwaterInsights = useMemo(() => ({
-    predicted_gwl: predictedDepth,
-    actual_last_month: actualLastMonth,
-    error: depthDifference,
-    obs_station_count: Number(props.obs_station_count ?? 0),
-    trend_slope: Number.isFinite(Number(props.trend_slope)) ? Number(props.trend_slope) : null,
-  }), [predictedDepth, actualLastMonth, depthDifference, props.obs_station_count, props.trend_slope]);
-  const groundwaterHistoryLoading = false;
-  const groundwaterHistoryError = null;
-  const [groundwaterYear, setGroundwaterYear] = useState(defaultTrendYear);
-
-  useEffect(() => {
-    setGroundwaterYear(defaultTrendYear);
-  }, [defaultTrendYear, props.village_id]);
-
-  const groundwaterPoints = (groundwaterHistory?.actual_series || [])
-    .map((point) => ({
-      label: String(point?.date || ""),
-      value: Number(point?.depth),
-    }))
-    .filter((point) => Number.isFinite(point.value))
-    .filter((point) => !Number.isFinite(Number(groundwaterYear)) || point.label.startsWith(`${Number(groundwaterYear)}-`));
-  const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0;
-  const groundwaterPredicted = Number.isFinite(Number(groundwaterInsights?.predicted_gwl))
-    ? Number(groundwaterInsights.predicted_gwl)
-    : predictedDepth;
-  const groundwaterActualLast = Number.isFinite(Number(groundwaterInsights?.actual_last_month))
-    ? Number(groundwaterInsights.actual_last_month)
-    : actualLastMonth;
-  const groundwaterError = Number.isFinite(Number(groundwaterInsights?.error))
-    ? Number(groundwaterInsights.error)
-    : depthDifference;
-
-  let rechargeSuggestion = "No groundwater data available for this village.";
-  if (currentDepth !== null) {
-    rechargeSuggestion = "Maintain current extraction and protect village recharge structures.";
-    if (risk === "Warning") {
-      rechargeSuggestion = "Adopt staggered pumping and prioritize farm-pond recharge before peak summer.";
-    }
-    if (risk === "Critical") {
-      rechargeSuggestion = "Restrict borewell extraction and activate artificial recharge interventions immediately.";
-    }
-  }
-
-  return (
-    <DraggableInsightsShell>
-      <h2>Village Insights</h2>
-      <div className="insight-location">
-        <strong>{props.village_name || "Selected Village"}</strong>
-        <span>{props.mandal || "Mandal"}, {props.district || "District"}</span>
-      </div>
-
-      <div className="insight-metric-grid">
-        <div>
-          <small>Actual Groundwater</small>
-          <strong>{formatDepth(currentDepth)}</strong>
-        </div>
-        <div>
-          <small>Groundwater Estimate</small>
-          <strong>{formatEstimatedDepth(props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.estimated_groundwater_depth)}</strong>
-        </div>
-        <div>
-          <small>Risk Status</small>
-          <strong className={currentDepth !== null ? riskClassName(risk) : ""}>{currentDepth !== null ? risk : "NA"}</strong>
-        </div>
-        <div>
-          <small>Total Wells</small>
-          <strong>{Number(props.wells_total || 0).toFixed(0)}</strong>
-        </div>
-        <div>
-          <small>Functioning Pump Wells</small>
-          <strong>{Number(props.pumping_functioning_wells ?? props.functioning_wells ?? 0).toFixed(0)}</strong>
-        </div>
-        <div>
-          <small>Avg Bore Depth</small>
-          <strong>{Number(props.avg_bore_depth_m || 0) > 0 ? `${Number(props.avg_bore_depth_m).toFixed(2)} m` : "NA"}</strong>
-        </div>
-        <div>
-          <small>Irrigation</small>
-          <strong>{props.dominant_irrigation || "Unknown"}</strong>
-        </div>
-      </div>
-
-      <div className="insight-comparison">
-        <div className="insight-section-heading">
-          <small>Actual vs Predicted</small>
-          <span>{predictedDepth !== null ? "Model validation" : "Prediction unavailable"}</span>
-        </div>
-        <div className="insight-comparison-grid">
-          <div className="comparison-card actual">
-            <small>Actual</small>
-            <strong>{formatDepth(currentDepth)}</strong>
-          </div>
-          <div className="comparison-card predicted">
-            <small>Predicted</small>
-            <strong>{formatDepth(predictedDepth)}</strong>
-          </div>
-          <div className={`comparison-card delta ${depthDifference === null ? "" : depthDifference > 0 ? "is-critical" : depthDifference < 0 ? "is-safe" : ""}`}>
-            <small>Difference</small>
-            <strong>
-              {depthDifference === null
-                ? "NA"
-                : `${depthDifference > 0 ? "+" : ""}${depthDifference.toFixed(2)} m`}
-            </strong>
-          </div>
-          <div className="comparison-card meta">
-            <small>Trend</small>
-            <strong>{trendDirection}</strong>
-          </div>
-        </div>
-        <div className={`error-badge ${depthErrorBadge.className}`}>
-          <span>{depthErrorBadge.label}</span>
-          <strong>{depthError !== null ? `${depthError.toFixed(2)} m error` : "No comparison yet"}</strong>
-        </div>
-        <p className="insight-muted" style={{ marginTop: '8px' }}>
-          Positive difference means the observed water table is deeper than the model estimate.
-        </p>
-      </div>
-
-      {hasMonthlySeries && (
-      <div className="insight-trend">
-        <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
-          <small>Groundwater Level Graph</small>
-          <label
-            htmlFor="trend-year-filter"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <span>Year</span>
-            <select
-              id="trend-year-filter"
-              value={safeTrendYear}
-              onChange={(event) => setTrendYear(Number(event.target.value))}
-            >
-              {trendYearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <WaterTrendChart points={trendPoints} predictedValue={predictedDepth} actualLabel="Actual" predictedLabel="Predicted" />
-        <p className="insight-muted" style={{ marginTop: '8px' }}>
-          Average: {trendAverage !== null ? `${trendAverage.toFixed(2)} m` : "NA"} · Direction: {trendDirection}
-        </p>
-      </div>
-      )}
-
-      <div className="insight-trend">
-        <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
-          <small>Groundwater History</small>
-          <label
-            htmlFor="history-year-filter"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <span>Year</span>
-            <select
-              id="history-year-filter"
-              value={Number.isFinite(Number(groundwaterYear)) ? groundwaterYear : ""}
-              onChange={(event) => setGroundwaterYear(Number(event.target.value))}
-            >
-              {(groundwaterHistory?.available_years?.length ? groundwaterHistory.available_years : trendYearOptions).map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {groundwaterHistoryLoading && <p className="insight-muted">Loading groundwater history...</p>}
-        {!groundwaterHistoryLoading && (
-          <>
-            <WaterTrendChart points={groundwaterPoints} predictedValue={groundwaterPredicted} actualLabel="Actual" predictedLabel="Predicted" />
-            <div className="insight-comparison-grid" style={{ marginTop: '8px' }}>
-              <div className="comparison-card actual">
-                <small>Actual Last Month</small>
-                <strong>{formatDepth(groundwaterActualLast)}</strong>
-              </div>
-              <div className="comparison-card predicted">
-                <small>Prediction Error</small>
-                <strong>{Number.isFinite(groundwaterError) ? `${groundwaterError > 0 ? "+" : ""}${groundwaterError.toFixed(2)} m` : "NA"}</strong>
-              </div>
-              <div className="comparison-card meta">
-                <small>Stations</small>
-                <strong>{Number(groundwaterInsights?.obs_station_count ?? props.obs_station_count ?? 0).toFixed(0)}</strong>
-              </div>
-              <div className="comparison-card meta">
-                <small>Trend Slope</small>
-                <strong>{Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) ? Number(groundwaterInsights?.trend_slope ?? props.trend_slope).toFixed(4) : "NA"}</strong>
-                {Number.isFinite(Number(groundwaterInsights?.trend_slope ?? props.trend_slope)) && (
-                  <div className={`trend-badge-mini ${getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).tone}`}>
-                    {getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).icon} {getTrendClassification(groundwaterInsights?.trend_slope ?? props.trend_slope).label}
-                  </div>
-                )}
-                <div className="trend-info-bubble">i
-                  <span className="trend-info-text">Annual groundwater change rate. Near-zero values indicate stability. Positive values show depletion; negative values indicate recharge.</span>
-                </div>
-              </div>
-            </div>
-            <p className="insight-muted" style={{ marginTop: '8px' }}>
-              Derived from historical groundwater observations (1998–2024) using trend analysis.
-            </p>
-          </>
-        )}
-      </div>
-
-      <div className="insight-recharge">
-        <p>{rechargeSuggestion}</p>
-      </div>
-
-      {aquiferAnalytics && (
-        <div className="insight-aquifer">
-          <small>Aquifer Analytics</small>
-          <div className="insight-metric-grid">
-            <div>
-              <small>Units Loaded</small>
-              <strong>{aquiferAnalytics.totalPolygons}</strong>
-            </div>
-            <div>
-              <small>Total Aquifer Area</small>
-              <strong>{aquiferAnalytics.totalAreaKm2.toFixed(2)} km²</strong>
-            </div>
-            <div>
-              <small>Dominant Aquifer Class</small>
-              <strong>{aquiferAnalytics.dominantClass?.name || "NA"}</strong>
-            </div>
-            <div>
-              <small>Selected Village Aquifer</small>
-              <strong>{aquiferAnalytics.selectedVillageAquifer?.name || "No overlap"}</strong>
-            </div>
-          </div>
-          {aquiferAnalytics.filteredVillageDominantAquifer && (
-            <p className="insight-muted" style={{ marginTop: '8px' }}>
-              Active filter dominant aquifer: {aquiferAnalytics.filteredVillageDominantAquifer.name} (
-              {aquiferAnalytics.filteredVillageDominantAquifer.villageCount} villages)
-            </p>
-          )}
-        </div>
-      )}
-
-      <p className="insight-muted">
-        AI Prediction: {aiPredictionEnabled ? "Enabled" : "Disabled"}.
-      </p>
-    </DraggableInsightsShell>
   );
 }
 
@@ -1529,10 +1261,18 @@ function VillageInsightsPanelContentImpl({
         ? Number(depthFromMonthly)
         : Number.isFinite(Number(depthFromSingle))
           ? Number(depthFromSingle)
-          : null;
-  const predictedDepth = Number.isFinite(Number(props.predicted_groundwater_level))
-    ? Number(props.predicted_groundwater_level)
-    : null;
+          : Number.isFinite(Number(props.gw_level))
+            ? Number(props.gw_level)
+            : Number.isFinite(Number(props.GW_Level))
+              ? Number(props.GW_Level)
+              : null;
+  const predictedDepth = Number.isFinite(Number(props.groundwater_estimate))
+    ? Number(props.groundwater_estimate)
+    : Number.isFinite(Number(props.predicted_groundwater_level))
+      ? Number(props.predicted_groundwater_level)
+      : Number.isFinite(Number(props.gw_level))
+        ? Number(props.gw_level)
+        : null;
   const depthDifference = currentDepth !== null && predictedDepth !== null
     ? Number((currentDepth - predictedDepth).toFixed(2))
     : null;
@@ -1655,6 +1395,14 @@ function VillageInsightsPanelContentImpl({
         <div>
           <small>Risk Status</small>
           <strong className={riskClassName(risk)}>{risk}</strong>
+        </div>
+        <div>
+          <small>Proximity</small>
+          <strong>{
+            Number.isFinite(Number(props.nearest_distance_km ?? props.dist_to_sensor_km ?? props.nearest_piezometer_distance_km)) 
+              ? `${Number(props.nearest_distance_km ?? props.dist_to_sensor_km ?? props.nearest_piezometer_distance_km).toFixed(2)} km` 
+              : ((props.has_sensor || props.has_piezometer) ? "On-site" : "NA")
+          }</strong>
         </div>
         <div>
           <small>Total Wells</small>
@@ -1932,6 +1680,7 @@ function VillageInsightsPanelContentImpl({
 export function DashboardAnalyticsPanel({
   datasetAnalytics,
   selectedFeature,
+  modelUpgradeSummary,
   onClose
 }) {
   const scopeLabel = datasetAnalytics?.scopeLabel || "Dataset overview";
@@ -1964,6 +1713,16 @@ export function DashboardAnalyticsPanel({
   const dashboardTrendCoverage = dashboardTrendPoints.length
     ? `${dashboardTrendPoints[0].label} - ${dashboardTrendPoints[dashboardTrendPoints.length - 1].label}`
     : "NA";
+  const upgradeOverall = modelUpgradeSummary?.overall_metrics || null;
+  const upgradeValidation = Array.isArray(modelUpgradeSummary?.validation_report)
+    ? modelUpgradeSummary.validation_report
+    : [];
+  const upgradeMethods = Array.isArray(modelUpgradeSummary?.method_comparison)
+    ? modelUpgradeSummary.method_comparison
+    : [];
+  const topFeatures = Array.isArray(modelUpgradeSummary?.top_feature_importance)
+    ? modelUpgradeSummary.top_feature_importance.slice(0, 5)
+    : [];
 
   return (
     <section className="full-dashboard-sheet dashboard-theme-clear" aria-label="Full dashboard analytics">
@@ -2011,6 +1770,78 @@ export function DashboardAnalyticsPanel({
           <strong>{formatNumber(datasetSummary?.terrain_gradient, 2)} m</strong>
         </div>
       </div>
+
+      {(upgradeOverall || upgradeValidation.length || topFeatures.length) && (
+        <section className="meaning-panel">
+          <div className="insight-section-heading">
+            <small>Backend Model Upgrade Summary</small>
+            <span>Live pipeline validation and explainability</span>
+          </div>
+          {upgradeOverall && (
+            <div className="full-dashboard-summary" style={{ marginBottom: "12px" }}>
+              <div className="summary-tile" title="Root Mean Squared Error (Lower is better)">
+                <small>RMSE</small>
+                <strong>{formatNumber(upgradeOverall.rmse, 3)}</strong>
+              </div>
+              <div className="summary-tile" title="Mean Absolute Error (Lower is better)">
+                <small>MAE</small>
+                <strong>{formatNumber(upgradeOverall.mae, 3)}</strong>
+              </div>
+              <div className="summary-tile" title="Robustness Index (Resistance to data loss)">
+                <small>Robustness</small>
+                <strong>{formatNumber(modelUpgradeSummary?.robustness_index ?? 100, 1)}%</strong>
+              </div>
+              <div className="summary-tile" title="Generalization Improvement over IDW baseline">
+                <small>Gen. Gain</small>
+                <strong>+{formatNumber(modelUpgradeSummary?.generalization_improvement_pct ?? 0, 1)}%</strong>
+              </div>
+            </div>
+          )}
+          {modelUpgradeSummary?.final_claim && (
+             <div style={{ 
+               background: 'rgba(56, 189, 248, 0.08)', 
+               borderLeft: '4px solid #0ea5e9', 
+               padding: '12px', 
+               borderRadius: '4px', 
+               marginBottom: '16px',
+               fontSize: '0.85rem',
+               lineHeight: 1.5,
+               color: '#e2e8f0'
+             }}>
+               <div style={{ color: '#0ea5e9', fontWeight: 'bold', fontSize: '0.7rem', textTransform: 'uppercase', marginBottom: '4px' }}>Judge Verdict & Generalization Claim</div>
+               {modelUpgradeSummary.final_claim}
+             </div>
+          )}
+          {upgradeMethods.length > 0 && (
+            <div className="comparison-chart" style={{ marginBottom: "10px" }}>
+              {upgradeMethods.map((row) => (
+                <div key={row.split || "split"} className="comparison-row">
+                  <div className="comparison-label">
+                    <strong>{row.split || "Validation"}</strong>
+                    <span>IDW RMSE {formatNumber(row.idw_rmse, 3)} vs XGB RMSE {formatNumber(row.xgb_rmse, 3)}</span>
+                  </div>
+                  <div className="comparison-values">
+                    <span>Improvement</span>
+                    <span>{formatMaybePercent(row.improvement_pct_vs_idw, 2)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {topFeatures.length > 0 && (
+            <div className="summary-bar-list">
+              {topFeatures.map((item) => (
+                <div key={item.feature} className="summary-bar-row">
+                  <div className="summary-bar-head">
+                    <strong>{item.feature}</strong>
+                    <span>{formatNumber(item.importance, 4)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {selectedProfile && (
         <div className="full-dashboard-profile">
