@@ -4,7 +4,7 @@ import { useVillageData } from "./hooks/useVillageData";
 import { useGroundwaterDataset } from "./hooks/useGroundwaterDataset";
 import { api, getApiStatusSummary, subscribeApiStatus, LOCAL_DATA_ONLY_MODE } from "./services/api";
 import { AQUIFER_COLORS, DISTRICT_HOVER_DATA } from "./constants/data";
-import { buildLocationKey, geometryCenter, pointInGeometry, normalizeLocationName } from "./utils/mapUtils";
+import { buildLocationKey, geometryCenter, pointInGeometry, normalizeLocationName, normalizeVillageProperties } from "./utils/mapUtils";
 import {
   buildLulcBars,
   buildLulcDonut,
@@ -229,10 +229,15 @@ function mergeVillageMapData(baseGeojson, mapData) {
     return true;
   };
 
+  const getFeatureKey = (f) => {
+    const p = f?.properties || {};
+    if (p.village_id) return String(p.village_id);
+    return buildLocationKey(p.district, p.mandal, p.village_name);
+  };
+
   const mapFeaturesByKey = new Map();
   mapData.features.forEach((feature) => {
-    const props = feature?.properties || {};
-    const key = buildLocationKey(props.district, props.mandal, props.village_name);
+    const key = getFeatureKey(feature);
     if (key && !mapFeaturesByKey.has(key)) mapFeaturesByKey.set(key, feature);
   });
 
@@ -240,7 +245,7 @@ function mergeVillageMapData(baseGeojson, mapData) {
     ...baseGeojson,
     features: baseGeojson.features.map((feature) => {
       const props = feature?.properties || {};
-      const key = buildLocationKey(props.district, props.mandal, props.village_name);
+      const key = getFeatureKey(feature);
       const match = key ? mapFeaturesByKey.get(key) : null;
       if (!match) return feature;
       const mapProps = match.properties || {};
@@ -334,6 +339,7 @@ export default function App({ navigate, pathname }) {
   const [showErrorMap, setShowErrorMap] = useState(false);
   const [apiStatus, setApiStatus] = useState(() => getApiStatusSummary());
   const [modelUpgradeSummary, setModelUpgradeSummary] = useState(null);
+  const [isHydrating, setIsHydrating] = useState(false);
 
   const { 
     villages, 
@@ -441,6 +447,8 @@ export default function App({ navigate, pathname }) {
 
   const handleVillageClick = (feature) => {
     setSelectedFeature(feature);
+    setPopupLngLat(null); // Reset popup
+    setIsHydrating(true); // Signal start of hydration
     const center = geometryCenter(feature.geometry);
     setPopupLngLat([center.longitude, center.latitude]);
     setIsInsightsOpen(true);
@@ -697,8 +705,10 @@ export default function App({ navigate, pathname }) {
 
         setSelectedFeature((prev) => {
           if (buildHydratedFeatureSignature(prev) === nextSelectedSignature) {
+            setIsHydrating(false);
             return prev;
           }
+          setIsHydrating(false);
           return nextSelectedFeature;
         });
       } catch (err) {
@@ -1233,6 +1243,7 @@ export default function App({ navigate, pathname }) {
                 <>
                   <VillageInsightsPanel
                     selectedFeature={selectedVillageFeature}
+                    isHydrating={isHydrating}
                     monthIndex={monthIndex}
                     aiPredictionEnabled={aiPredictionEnabled}
                     aquiferAnalytics={aquiferAnalytics}

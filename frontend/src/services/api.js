@@ -205,7 +205,13 @@ export const api = {
         observed_series: Array.isArray(props.observed_series) ? props.observed_series : [],
         trend_direction: props.trend_direction || props.trend || "Stable",
         risk_level: props.risk_level || "warning",
-        recommended_actions: Array.isArray(props.recommended_actions) ? props.recommended_actions : []
+        recommended_actions: Array.isArray(props.recommended_actions) ? props.recommended_actions : [],
+        // Preserve monthly series
+        monthly_rainfall: props.monthly_rainfall || props.normalized_monthly_rainfall || [],
+        monthly_recharge: props.monthly_recharge || props.normalized_monthly_recharge || [],
+        monthly_predicted_gw: props.monthly_predicted_gw || props.normalized_monthly_predicted || [],
+        monthly_actual_gw: props.monthly_actual_gw || props.normalized_monthly_depths || [],
+        monthly_dates: props.monthly_dates || props.normalized_monthly_dates || []
       };
     }
     return requestJson(`/get-village-status/${Number(villageId)}`);

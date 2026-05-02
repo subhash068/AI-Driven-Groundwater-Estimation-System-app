@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { advisoryLabel } from '../utils/mapUtils';
+import { advisoryLabel, normalizeVillageProperties } from '../utils/mapUtils';
 
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -389,277 +389,180 @@ function WaterTrendChart({
   points,
   forecastPoints = [],
   predictedValue = null,
-  actualLabel = "Actual",
-  predictedLabel = "Predicted",
-  yAxisLabel = "Groundwater depth (m below ground)"
+  actualLabel = "Actual average",
+  predictedLabel = "AI yearly forecast",
+  yAxisLabel = "Depth (m below ground)"
 }) {
   const [hoverPoint, setHoverPoint] = useState(null);
-  const observedSeries = Array.isArray(points)
-    ? points
-        .map((point, index) => ({
-          label: formatTrendYearLabel(point?.label, index),
-          value: Number(point?.value),
-          kind: "observed"
-        }))
-        .filter((point) => Number.isFinite(point.value))
-    : [];
-  const normalizedForecast = Array.isArray(forecastPoints)
-    ? forecastPoints
-        .map((point, index) => {
-          const value = Number(point?.value ?? point?.predicted_groundwater_depth ?? point?.groundwater_depth);
-          if (!Number.isFinite(value)) return null;
-          return {
-            label: formatTrendYearLabel(point?.label ?? point?.forecast_date ?? point?.date, index),
-            value,
-            kind: "forecast"
-          };
-        })
-        .filter((point) => point && Number.isFinite(point.value))
-    : [];
-  const fallbackPredicted = normalizedForecast.length
-    ? []
-    : Number.isFinite(Number(predictedValue))
-      ? [{
-          label: "Predicted",
-          value: Number(predictedValue),
-          kind: "forecast"
-        }]
-      : [];
-  const forecastSeries = normalizedForecast.length ? normalizedForecast : fallbackPredicted;
-  const series = [...observedSeries, ...forecastSeries];
-  if (!series.length) {
-    return <p className="insight-muted">No yearly water-level series available.</p>;
-  }
+  
+  const observedSeries = useMemo(() => {
+    if (!Array.isArray(points)) return [];
+    return points
+      .map((p, i) => ({
+        label: String(p?.label || 1998 + i),
+        value: Number(p?.value),
+        kind: "observed"
+      }))
+      .filter(p => Number.isFinite(p.value));
+  }, [points]);
 
-  const width = 100;
-  const height = 78;
-  const plot = { left: 12, right: 8, top: 8, bottom: 18 };
-  const values = series.map((point) => point.value);
+  const forecastSeries = useMemo(() => {
+    if (!Array.isArray(forecastPoints)) return [];
+    return forecastPoints
+      .map((p, i) => ({
+        label: String(p?.label || "Forecast"),
+        value: Number(p?.value ?? p?.predicted_groundwater_depth),
+        kind: "forecast"
+      }))
+      .filter(p => Number.isFinite(p.value));
+  }, [forecastPoints]);
+
+  const series = [...observedSeries, ...forecastSeries];
+  if (series.length === 0) return <p className="insight-muted">No yearly series available.</p>;
+
+  const width = 480;
+  const height = 300;
+  const margin = { top: 50, right: 60, bottom: 60, left: 60 };
+  const innerW = width - margin.left - margin.right;
+  const innerH = height - margin.top - margin.bottom;
+
   const warningThreshold = 20;
   const criticalThreshold = 30;
-  const scaleValues = [
-    ...values,
-    Number(predictedValue),
-    warningThreshold,
+  
+  const maxVal = Math.max(
+    ...series.map(s => s.value),
     criticalThreshold,
-    0
-  ].filter((value) => Number.isFinite(value));
-  const upperBound = Math.max(...scaleValues, 1);
-  const lowerBound = 0;
-  const span = Math.max(upperBound - lowerBound, 1);
-  const plotWidth = width - plot.left - plot.right;
-  const plotHeight = height - plot.top - plot.bottom;
-  const xForIndex = (index) => (
-    series.length === 1
-      ? plot.left + plotWidth / 2
-      : plot.left + (index / (series.length - 1)) * plotWidth
+    10
   );
-  const yForValue = (value) => plot.top + ((value - lowerBound) / span) * plotHeight;
-  const chartPoints = series.map((point, index) => {
-    const x = xForIndex(index);
-    const y = yForValue(point.value);
-    return {
-      ...point,
-      x,
-      y,
-      status: classifyWaterDepth(point.value)
-    };
-  });
-  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const averageY = yForValue(average);
-  const predictedY = normalizedForecast.length === 0 && Number.isFinite(Number(predictedValue))
-    ? yForValue(Number(predictedValue))
-    : null;
-  const trendDirection = buildWaterTrendDirection(values);
-  const xTickStride = series.length > 6 ? Math.ceil(series.length / 6) : 1;
-  const yTickValues = Array.from({ length: 5 }, (_, index) => Number((lowerBound + ((upperBound - lowerBound) * index) / 4).toFixed(1)));
-  const observedPoints = chartPoints.slice(0, observedSeries.length);
-  const forecastPointsPlot = chartPoints.slice(Math.max(observedSeries.length - 1, 0));
-  const forecastPath = forecastPointsPlot.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
-  const hoverLabel = hoverPoint
-    ? `${hoverPoint.kind === "forecast" ? "Forecast" : "Observed"} ${hoverPoint.label}: ${hoverPoint.value.toFixed(2)} m`
-    : "Hover a year";
-  const axisCaption = `X-axis: Year. Y-axis: ${yAxisLabel}. Smaller depth values mean more water.${normalizedForecast.length ? " Dashed segment shows AI yearly forecast." : ""}`;
+  const roundedMax = Math.ceil(maxVal / 10) * 10;
+
+  const getX = (i) => margin.left + (i / (series.length - 1)) * innerW;
+  const getY = (v) => margin.top + (v / roundedMax) * innerH; // 0 at top
+
+  const getStatus = (v) => {
+    if (v >= criticalThreshold) return { label: "Critical", color: "#ef4444" };
+    if (v >= warningThreshold) return { label: "Warning", color: "#f59e0b" };
+    return { label: "Safe", color: "#22c55e" };
+  };
+
+  const getPath = (pts) => {
+    if (pts.length < 2) return "";
+    let d = `M ${getX(0)} ${getY(pts[0].value)}`;
+    for (let i = 1; i < pts.length; i++) {
+      d += ` L ${getX(i)} ${getY(pts[i].value)}`;
+    }
+    return d;
+  };
+
+  const trendDirection = buildWaterTrendDirection(observedSeries.map(s => s.value));
 
   return (
-    <div className="trend-chart-card">
-      <div className="trend-chart-header">
-        <div className="trend-chart-title">
-          <small>Groundwater Trend</small>
-          <strong>{trendDirection.arrow} {trendDirection.label}</strong>
+    <div className="apwrims-hydrograph" style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', position: 'relative', color: '#1e293b', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+           <div style={{ width: '32px', height: '32px', background: '#f0f9ff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0369a1" strokeWidth="2"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
+           </div>
+           <div>
+             <strong style={{ fontSize: '0.95rem', color: '#0f172a', display: 'block' }}>Groundwater Trend</strong>
+             <small style={{ color: '#64748b', fontSize: '0.7rem' }}>Yearly averages & AI forecast</small>
+           </div>
         </div>
-        <div className="trend-chart-note">
-          <span>{yAxisLabel}</span>
-          <span>Lower on the chart means shallower groundwater.</span>
+        <div style={{ textAlign: 'right' }}>
+           <div style={{ fontSize: '0.85rem', fontWeight: '700', color: trendDirection.label.includes('Declin') ? '#ef4444' : '#059669' }}>
+             {trendDirection.arrow} {trendDirection.label}
+           </div>
+           <small style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Long-term trajectory</small>
         </div>
       </div>
-      <div className="trend-chart-wrap">
-        <svg viewBox={`0 0 ${width} ${height}`} className="trend-line-chart" role="img" aria-label="Groundwater trend chart">
-          <defs>
-            <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#67e8f9" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
 
-          <rect x={plot.left} y={plot.top} width={plotWidth} height={plotHeight} rx="6" fill="rgba(15, 23, 42, 0.32)" />
-          {yTickValues.map((tick) => {
-            const y = yForValue(tick);
-            return (
-              <g key={`tick-${tick}`}>
-                <line x1={plot.left} y1={y} x2={width - plot.right} y2={y} className="trend-grid-line" />
-                <text x={plot.left - 1.5} y={y} className="trend-axis-text trend-axis-text-y" textAnchor="end" dominantBaseline="middle">
-                  {tick >= 10 || Number.isInteger(tick) ? `${tick.toFixed(0)} m` : `${tick.toFixed(1)} m`}
-                </text>
-              </g>
-            );
-          })}
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
+        {/* Background Grid & Thresholds */}
+        {[0, 0.25, 0.5, 0.75, 1].map(p => (
+          <g key={p}>
+            <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="#f1f5f9" strokeWidth="1" />
+            <text x={margin.left - 10} y={margin.top + p * innerH} textAnchor="end" fontSize="10" fill="#94a3b8" dominantBaseline="middle">
+              {Math.round(roundedMax * p)}m
+            </text>
+          </g>
+        ))}
 
-          <line
-            x1={plot.left}
-            y1={yForValue(warningThreshold)}
-            x2={width - plot.right}
-            y2={yForValue(warningThreshold)}
-            className="trend-threshold-line trend-threshold-warning"
+        {/* Warning & Critical Zones */}
+        <line x1={margin.left} y1={getY(warningThreshold)} x2={width - margin.right} y2={getY(warningThreshold)} stroke="#f59e0b" strokeWidth="1" strokeDasharray="4,4" opacity="0.4" />
+        <text x={width - margin.right + 5} y={getY(warningThreshold)} fontSize="9" fill="#f59e0b" dominantBaseline="middle" opacity="0.6">Warning</text>
+
+        <line x1={margin.left} y1={getY(criticalThreshold)} x2={width - margin.right} y2={getY(criticalThreshold)} stroke="#ef4444" strokeWidth="1" strokeDasharray="4,4" opacity="0.4" />
+        <text x={width - margin.right + 5} y={getY(criticalThreshold)} fontSize="9" fill="#ef4444" dominantBaseline="middle" opacity="0.6">Critical</text>
+
+        {/* Lines */}
+        {observedSeries.length > 1 && (
+          <path d={getPath(observedSeries)} fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        )}
+        {forecastSeries.length > 0 && (
+          <path 
+            d={`M ${getX(observedSeries.length - 1)} ${getY(observedSeries[observedSeries.length - 1]?.value)} L ${forecastSeries.map((p, i) => `${getX(observedSeries.length + i)},${getY(p.value)}`).join(" ")}`} 
+            fill="none" stroke="#6366f1" strokeWidth="2" strokeDasharray="6,4" strokeLinecap="round" strokeLinejoin="round"
           />
-          <text
-            x={width - plot.right}
-            y={yForValue(warningThreshold) - 1.5}
-            className="trend-axis-text trend-threshold-label trend-threshold-warning"
-            textAnchor="end"
-          >
-            Warning threshold
-          </text>
+        )}
 
-          <line
-            x1={plot.left}
-            y1={yForValue(criticalThreshold)}
-            x2={width - plot.right}
-            y2={yForValue(criticalThreshold)}
-            className="trend-threshold-line trend-threshold-critical"
-          />
-          <text
-            x={width - plot.right}
-            y={yForValue(criticalThreshold) - 1.5}
-            className="trend-axis-text trend-threshold-label trend-threshold-critical"
-            textAnchor="end"
-          >
-            Critical threshold
-          </text>
-
-          {chartPoints.length > 1 && (
-            <polygon
-              points={`${chartPoints.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ")} ${chartPoints[chartPoints.length - 1].x.toFixed(2)},${(plot.top + plotHeight).toFixed(2)} ${chartPoints[0].x.toFixed(2)},${(plot.top + plotHeight).toFixed(2)}`}
-              className="trend-area"
-              fill="url(#trendFill)"
+        {/* Points */}
+        {series.map((p, i) => (
+          <g key={`p-${i}`} onMouseEnter={() => setHoverPoint(p)} onMouseLeave={() => setHoverPoint(null)} style={{ cursor: 'pointer' }}>
+            <circle 
+              cx={getX(i)} 
+              cy={getY(p.value)} 
+              r={hoverPoint === p ? 6 : 4} 
+              fill={getStatus(p.value).color} 
+              stroke="#fff" 
+              strokeWidth="1.5" 
             />
-          )}
+          </g>
+        ))}
 
-          <line x1={plot.left} y1={plot.top + plotHeight} x2={width - plot.right} y2={plot.top + plotHeight} className="trend-axis-baseline" />
-          <line x1={plot.left} y1={plot.top} x2={plot.left} y2={plot.top + plotHeight} className="trend-axis-baseline" />
+        {/* X-Axis */}
+        {series.map((p, i) => {
+          const skip = series.length > 12 ? (i % Math.ceil(series.length / 6) !== 0) : false;
+          if (skip) return null;
+          return (
+            <text key={`x-${i}`} x={getX(i)} y={margin.top + innerH + 20} textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="500">
+              {p.label}
+            </text>
+          );
+        })}
+      </svg>
 
-          <line x1={plot.left} y1={averageY} x2={width - plot.right} y2={averageY} className="trend-average-line" />
-          {predictedY !== null && (
-            <line x1={plot.left} y1={predictedY} x2={width - plot.right} y2={predictedY} className="trend-predicted-line" />
-          )}
-          {forecastSeries.length > 0 && forecastPath && (
-            <polyline points={forecastPath} className="trend-forecast-line" />
-          )}
-
-          {observedPoints.map((point, index) => {
-            if (index === 0) return null;
-            const previous = observedPoints[index - 1];
-            const segmentStatus = classifyWaterDepth((previous.value + point.value) / 2);
-            return (
-              <line
-                key={`segment-${index}`}
-                x1={previous.x}
-                y1={previous.y}
-                x2={point.x}
-                y2={point.y}
-                className="trend-segment"
-                stroke={segmentStatus.color}
-              />
-            );
-          })}
-
-          {chartPoints.map((point, index) => {
-            return (
-              <circle
-                key={`${index}-${point.value}-${point.label}`}
-                cx={point.x}
-                cy={point.y}
-                r="2.7"
-                className={point.kind === "forecast" ? "trend-point trend-point-forecast" : "trend-point"}
-                fill={point.status.color}
-                stroke={point.status.color}
-                onMouseEnter={() => setHoverPoint({
-                  label: point.label,
-                  value: point.value,
-                  kind: point.kind,
-                  x: (point.x / width) * 100,
-                  y: (point.y / height) * 100,
-                  status: point.status
-                })}
-                onMouseLeave={() => setHoverPoint(null)}
-              />
-            );
-          })}
-
-          {chartPoints.map((point, index) => {
-            const showLabel = series.length <= 6 || index === 0 || index === series.length - 1 || index % xTickStride === 0;
-            if (!showLabel) return null;
-            return (
-              <text
-                key={`x-label-${index}`}
-                x={point.x}
-                y={height - 3}
-                className="trend-axis-text trend-axis-text-x"
-                textAnchor="middle"
-              >
-                {point.label}
-              </text>
-            );
-          })}
-
-          {predictedY !== null && (
-            <>
-              <circle
-                cx={width - plot.right - 1.5}
-                cy={predictedY}
-                r="2.5"
-                className="trend-predicted-point"
-              />
-              <text
-                x={width - plot.right}
-                y={predictedY - 1.5}
-                className="trend-axis-text trend-threshold-label"
-                textAnchor="end"
-              >
-                {predictedLabel}
-              </text>
-            </>
-          )}
-        </svg>
-        {hoverPoint && (
-          <div className="trend-tooltip" style={{ left: `${hoverPoint.x}%`, top: `${hoverPoint.y}%` }}>
-            <strong>{hoverLabel}</strong>
-            <span>{`Status: ${hoverPoint.status.label} (${hoverPoint.status.note})`}</span>
-          </div>
-        )}
+      {/* Legend */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px', marginTop: '15px', fontSize: '0.7rem', fontWeight: '600' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%' }}></div>
+          <span style={{ color: '#64748b' }}>Safe</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '8px', height: '8px', background: '#f59e0b', borderRadius: '50%' }}></div>
+          <span style={{ color: '#64748b' }}>Warning</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></div>
+          <span style={{ color: '#64748b' }}>Critical</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+          <div style={{ width: '12px', height: '2px', background: '#0ea5e9' }}></div>
+          <span style={{ color: '#64748b' }}>Observed</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '12px', height: '2px', background: '#6366f1', borderTop: '2px dashed #6366f1' }}></div>
+          <span style={{ color: '#64748b' }}>AI Forecast</span>
+        </div>
       </div>
-      <div className="trend-legend">
-        <span><i className="trend-legend-safe" /> Safe</span>
-        <span><i className="trend-legend-warning" /> Warning</span>
-        <span><i className="trend-legend-critical" /> Critical</span>
-        <span><i className="trend-legend-line" /> {actualLabel}</span>
-        <span><i className="trend-legend-average" /> Average</span>
-        {(Number.isFinite(Number(predictedValue)) || normalizedForecast.length > 0) && (
-          <span><i className="trend-legend-predicted" /> {predictedLabel}</span>
-        )}
-        <span className="trend-legend-direction">{trendDirection.arrow} {trendDirection.label}</span>
-      </div>
-      <p className="trend-axis-caption">{axisCaption}</p>
+
+      {/* Tooltip */}
+      {hoverPoint && (
+        <div style={{ position: 'absolute', top: margin.top, left: '50%', transform: 'translateX(-50%)', background: 'rgba(15, 23, 42, 0.9)', color: '#fff', padding: '8px 12px', borderRadius: '6px', fontSize: '0.75rem', zIndex: 10, pointerEvents: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{hoverPoint.kind === 'forecast' ? 'AI Forecast' : 'Observed'} - {hoverPoint.label}</div>
+          <div>Depth: <strong>{hoverPoint.value.toFixed(2)} m</strong></div>
+          <div style={{ color: getStatus(hoverPoint.value).color, marginTop: '2px', fontWeight: '600' }}>Status: {getStatus(hoverPoint.value).label}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -970,24 +873,44 @@ export function DashboardTopBar({
         </div>
 
         <div className="topbar-center-controls">
-          <div className="topbar-time topbar-time-main">
-            <label htmlFor="year-select" style={{ marginRight: '8px' }}>Timeline</label>
-            <select
-              id="year-select"
-              className="timeline-dropdown"
-              value={monthIndex}
-              onChange={(event) => setMonthIndex(Number(event.target.value))}
-            >
-              {Array.from({ length: 24 }).map((_, i) => {
-                const y = 2023 + Math.floor(i / 12);
-                const m = MONTH_LABELS[i % 12];
-                return (
-                  <option key={i} value={i} className="timeline-option">
-                    {m} {y}
-                  </option>
-                );
-              })}
-            </select>
+          <div className="topbar-time topbar-time-main" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <label htmlFor="year-select" style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Year</label>
+              <select
+                id="year-select"
+                className="timeline-dropdown"
+                value={year}
+                onChange={(e) => {
+                  const newYear = Number(e.target.value);
+                  const currentMonthIdx = monthIndex % 12;
+                  setMonthIndex((newYear - 2023) * 12 + currentMonthIdx);
+                }}
+                style={{ minWidth: '80px' }}
+              >
+                {[2023, 2024].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <label htmlFor="month-select" style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Month</label>
+              <select
+                id="month-select"
+                className="timeline-dropdown"
+                value={monthIndex % 12}
+                onChange={(e) => {
+                  const newMonthIdx = Number(e.target.value);
+                  const currentYear = 2023 + Math.floor(monthIndex / 12);
+                  setMonthIndex((currentYear - 2023) * 12 + newMonthIdx);
+                }}
+                style={{ minWidth: '100px' }}
+              >
+                {MONTH_LABELS.map((m, i) => (
+                  <option key={m} value={i}>{m}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -1212,6 +1135,7 @@ function cleanText(val, fallback = "NA") {
 
 export function VillageInsightsPanel({
   selectedFeature,
+  isHydrating,
   monthIndex,
   aiPredictionEnabled,
   aquiferAnalytics,
@@ -1220,6 +1144,7 @@ export function VillageInsightsPanel({
   datasetRowsById,
   datasetRowsByLocation
 }) {
+  const [showDebug, setShowDebug] = useState(false);
   if (!selectedFeature) {
     return (
       <DraggableInsightsShell>
@@ -1254,7 +1179,22 @@ export function VillageInsightsPanel({
     );
   }
 
+  if (isHydrating) {
+    return (
+      <DraggableInsightsShell>
+        <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '12px', border: '1px dashed rgba(0, 229, 255, 0.2)' }}>
+          <div className="skeleton-pulse" style={{ height: '32px', width: '70%', margin: '0 auto 20px', borderRadius: '4px' }}></div>
+          <div className="skeleton-pulse" style={{ height: '120px', width: '100%', marginBottom: '16px', borderRadius: '8px' }}></div>
+          <div className="skeleton-pulse" style={{ height: '100px', width: '100%', borderRadius: '8px' }}></div>
+          <p style={{ color: '#00e5ff', fontSize: '0.7rem', marginTop: '20px', letterSpacing: '0.1em', fontWeight: 'bold' }}>HYDRATING ANALYTICS...</p>
+        </div>
+      </DraggableInsightsShell>
+    );
+  }
+
   const props = selectedFeature.properties || {};
+  const normalizedProps = normalizeVillageProperties(props);
+
   const isSampleVillage = String(props.village_name || "").trim().toLowerCase() === "sample village";
   if (isSampleVillage) {
     return (
@@ -1274,14 +1214,32 @@ export function VillageInsightsPanel({
     (locationKey && datasetRowsByLocation?.get(locationKey));
 
   return (
-    <VillageInsightsPanelContentImpl
-      selectedFeature={selectedFeature}
-      datasetRow={datasetRow}
-      monthIndex={monthIndex}
-      aiPredictionEnabled={aiPredictionEnabled}
-      aquiferAnalytics={aquiferAnalytics}
-      showPiezometers={showPiezometers}
-    />
+    <DraggableInsightsShell>
+      <div style={{ position: 'relative' }}>
+        <button 
+          onClick={() => setShowDebug(!showDebug)} 
+          style={{ position: 'absolute', top: '-10px', right: '0', background: 'none', border: 'none', color: '#475569', fontSize: '9px', cursor: 'pointer', zIndex: 10, textTransform: 'uppercase' }}
+        >
+          {showDebug ? '[Hide Debug]' : '[Debug Data]'}
+        </button>
+        
+        {showDebug && (
+          <div style={{ padding: '10px', background: '#050b14', color: '#00e5ff', fontSize: '9px', overflowX: 'auto', maxHeight: '200px', marginBottom: '15px', border: '1px solid #00e5ff', borderRadius: '4px', fontFamily: 'monospace' }}>
+            <strong>DEBUG: Hydrated Properties</strong>
+            <pre style={{ marginTop: '5px' }}>{JSON.stringify(normalizedProps, null, 2)}</pre>
+          </div>
+        )}
+
+        <VillageInsightsPanelContentImpl
+          selectedFeature={{ ...selectedFeature, properties: normalizedProps }}
+          datasetRow={datasetRow}
+          monthIndex={monthIndex}
+          aiPredictionEnabled={aiPredictionEnabled}
+          aquiferAnalytics={aquiferAnalytics}
+          showPiezometers={showPiezometers}
+        />
+      </div>
+    </DraggableInsightsShell>
   );
 }
 
@@ -1296,17 +1254,9 @@ function VillageInsightsPanelContentImpl({
   datasetRow
 }) {
   const props = selectedFeature?.properties || {};
-  const monthlyDepths = useMemo(() => parseSeriesArray(props.monthly_depths), [props.monthly_depths]);
-  const monthlyDepthsFull = useMemo(
-    () => parseSeriesArray(props.monthly_depths_full ?? props.monthly_depths_history),
-    [props.monthly_depths_full, props.monthly_depths_history]
-  );
-  const monthlyDepthDates = useMemo(() => {
-    if (monthlyDepthsFull.length > 0) {
-      return parseLabelArray(props.monthly_depths_full_dates);
-    }
-    return parseLabelArray(props.monthly_depths_dates);
-  }, [monthlyDepthsFull.length, props.monthly_depths_full_dates, props.monthly_depths_dates]);
+  const monthlyDepths = useMemo(() => parseSeriesArray(props.normalized_monthly_depths), [props.normalized_monthly_depths]);
+  const monthlyDepthsFull = monthlyDepths;
+  const monthlyDepthDates = useMemo(() => parseLabelArray(props.normalized_monthly_dates), [props.normalized_monthly_dates]);
   const trendYearOptions = useMemo(
     () => buildTrendYearOptions(monthlyDepthDates, 1998),
     [monthlyDepthDates]
@@ -1316,34 +1266,15 @@ function VillageInsightsPanelContentImpl({
     [trendYearOptions, monthIndex]
   );
   const [trendYear, setTrendYear] = useState(defaultTrendYear);
-  const backendDepth = Number(props.current_depth);
-  const actualLastMonth = Number.isFinite(Number(props.actual_last_month))
-    ? Number(props.actual_last_month)
-    : Number.isFinite(Number(props.target_last_month))
-      ? Number(props.target_last_month)
-      : monthlyDepthsFull.slice().reverse().find((value) => Number.isFinite(Number(value))) ?? null;
-  const depthFromMonthly = monthlyDepths[monthIndex];
-  const depthFromSingle = props.depth;
-  const currentDepth = Number.isFinite(Number(actualLastMonth))
-    ? Number(actualLastMonth)
-    : Number.isFinite(backendDepth)
-      ? backendDepth
-      : Number.isFinite(Number(depthFromMonthly))
-        ? Number(depthFromMonthly)
-        : Number.isFinite(Number(depthFromSingle))
-          ? Number(depthFromSingle)
-          : Number.isFinite(Number(props.gw_level))
-            ? Number(props.gw_level)
-            : Number.isFinite(Number(props.GW_Level))
-              ? Number(props.GW_Level)
-              : null;
+  
+  // Use normalized properties calculated in the parent
+  const currentDepth = props.normalized_depth;
   const predictedDepth = Number.isFinite(Number(props.groundwater_estimate))
     ? Number(props.groundwater_estimate)
     : Number.isFinite(Number(props.predicted_groundwater_level))
       ? Number(props.predicted_groundwater_level)
-      : Number.isFinite(Number(props.gw_level))
-        ? Number(props.gw_level)
-        : null;
+      : props.normalized_depth;
+
   const depthDifference = currentDepth !== null && predictedDepth !== null
     ? Number((currentDepth - predictedDepth).toFixed(2))
     : null;
@@ -1405,11 +1336,11 @@ function VillageInsightsPanelContentImpl({
   }, [monthlyDepthsFull, monthlyDepths, monthlyDepthDates, trendYearOptions]);
   const groundwaterInsights = useMemo(() => ({
     predicted_gwl: predictedDepth,
-    actual_last_month: actualLastMonth,
+    actual_last_month: currentDepth,
     error: depthDifference,
     obs_station_count: Number(props.obs_station_count ?? 0),
     trend_slope: Number.isFinite(Number(props.trend_slope)) ? Number(props.trend_slope) : null,
-  }), [predictedDepth, actualLastMonth, depthDifference, props.obs_station_count, props.trend_slope]);
+  }), [predictedDepth, currentDepth, depthDifference, props.obs_station_count, props.trend_slope]);
   
   const parseAgg = (val) => {
     try { return typeof val === 'string' ? JSON.parse(val) : (Array.isArray(val) ? val : []); }
@@ -1417,10 +1348,13 @@ function VillageInsightsPanelContentImpl({
   };
 
   const [groundwaterYear, setGroundwaterYear] = useState(defaultTrendYear);
+  const [groundwaterMonth, setGroundwaterMonth] = useState(monthIndex % 12);
 
   useEffect(() => {
     setGroundwaterYear(defaultTrendYear);
-  }, [defaultTrendYear, props.village_id]);
+    setGroundwaterMonth(monthIndex % 12);
+  }, [defaultTrendYear, monthIndex, props.village_id]);
+
   const groundwaterPoints = useMemo(() => {
     return (groundwaterHistory?.actual_series || [])
       .map((point) => ({
@@ -1428,16 +1362,68 @@ function VillageInsightsPanelContentImpl({
         value: Number(point?.depth),
       }))
       .filter((point) => Number.isFinite(point.value))
-      .filter((point) => !Number.isFinite(Number(groundwaterYear)) || point.label.startsWith(`${Number(groundwaterYear)}-`));
-  }, [groundwaterHistory, groundwaterYear]);
+      .filter((point) => {
+        if (!Number.isFinite(Number(groundwaterYear))) return true;
+        const [y, m] = point.label.split('-');
+        const yearMatch = Number(y) === Number(groundwaterYear);
+        if (!yearMatch) return false;
+        if (!Number.isFinite(Number(groundwaterMonth))) return true;
+        return Number(m) === (Number(groundwaterMonth) + 1);
+      });
+  }, [groundwaterHistory, groundwaterYear, groundwaterMonth]);
 
-  const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0;
+  const filteredHydrographData = useMemo(() => {
+    const dates = props.normalized_monthly_dates || [];
+    const rain = props.normalized_monthly_rainfall || [];
+    const recharge = props.normalized_monthly_recharge || [];
+    const actual = props.normalized_monthly_depths || [];
+    const pred = props.normalized_monthly_predicted || [];
+
+    if (!groundwaterYear) return { dates, rain, recharge, actual, pred };
+
+    const yearStr = String(groundwaterYear);
+    const indices = dates.map((d, i) => String(d).startsWith(yearStr) ? i : -1).filter(i => i !== -1);
+    
+    return {
+      dates: indices.map(i => dates[i]),
+      rain: indices.map(i => rain[i]),
+      recharge: indices.map(i => recharge[i]),
+      actual: indices.map(i => actual[i]),
+      pred: indices.map(i => pred[i])
+    };
+  }, [props.normalized_monthly_dates, props.normalized_monthly_rainfall, props.normalized_monthly_recharge, props.normalized_monthly_depths, props.normalized_monthly_predicted, groundwaterYear]);
+
+  const predictedYearlyPoints = useMemo(() => {
+    const dates = props.normalized_monthly_dates || [];
+    const pred = props.normalized_monthly_predicted || [];
+    if (!dates.length || !pred.length) return [];
+    
+    const yearMap = {};
+    dates.forEach((d, i) => {
+      const year = String(d).split('-')[0];
+      const val = Number(pred[i]);
+      if (Number.isFinite(val)) {
+        if (!yearMap[year]) yearMap[year] = { sum: 0, count: 0 };
+        yearMap[year].sum += val;
+        yearMap[year].count += 1;
+      }
+    });
+    
+    return Object.entries(yearMap)
+      .map(([year, d]) => ({
+        label: year,
+        value: d.sum / d.count
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [props.normalized_monthly_dates, props.normalized_monthly_predicted]);
+
+  const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0 || predictedYearlyPoints.length > 0;
   const groundwaterPredicted = Number.isFinite(Number(groundwaterInsights?.predicted_gwl))
     ? Number(groundwaterInsights.predicted_gwl)
     : predictedDepth;
   const groundwaterActualLast = Number.isFinite(Number(groundwaterInsights?.actual_last_month))
     ? Number(groundwaterInsights.actual_last_month)
-    : actualLastMonth;
+    : currentDepth;
   const groundwaterError = Number.isFinite(Number(groundwaterInsights?.error))
     ? Number(groundwaterInsights.error)
     : depthDifference;
@@ -1571,12 +1557,37 @@ function VillageInsightsPanelContentImpl({
       </div>
       {trendPoints.length > 0 && (
         <div className="insight-trend">
-          <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
-            <small>Groundwater Trend</small>
-            <span>Yearly averages</span>
+          <div className="insight-section-heading" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <small>Groundwater Trend</small>
+              <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>Yearly averages & Hydrograph</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="trend-filter-mini">
+                <select 
+                  value={groundwaterYear} 
+                  onChange={(e) => setGroundwaterYear(e.target.value)}
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.7rem', padding: '2px 4px', borderRadius: '4px' }}
+                >
+                  <option value="">All Years</option>
+                  {trendYearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div className="trend-filter-mini">
+                <select 
+                  value={groundwaterMonth} 
+                  onChange={(e) => setGroundwaterMonth(e.target.value)}
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.7rem', padding: '2px 4px', borderRadius: '4px' }}
+                >
+                  <option value="">All Months</option>
+                  {MONTH_LABELS.map((m, i) => <option key={m} value={i}>{m}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
           <WaterTrendChart
-            points={trendPoints}
+            points={groundwaterPoints.length > 0 ? groundwaterPoints : (trendPoints.length > 0 ? trendPoints : predictedYearlyPoints)}
             forecastPoints={yearlyForecastPoints}
             predictedValue={predictedDepth}
             actualLabel="Actual average"
@@ -1589,26 +1600,19 @@ function VillageInsightsPanelContentImpl({
           </p>
         </div>
       )}
-      <div className="insight-trend" style={{ marginTop: '16px' }}>
-        <div className="insight-section-heading" style={{ marginBottom: '12px' }}>
-          <small>Monthly Hydro-Intelligence</small>
-          <span>APWRIMS Format</span>
-        </div>
+      <div className="insight-trend" style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
         <SmartHydrograph 
-          rainfall={parseAgg(props.monthly_rainfall)}
-          recharge={parseAgg(props.monthly_recharge)}
-          actualGW={parseAgg(props.monthly_actual_gw)}
-          predictedGW={parseAgg(props.monthly_predicted_gw)}
-          dates={parseAgg(props.monthly_dates)}
+          rainfall={filteredHydrographData.rain}
+          recharge={filteredHydrographData.recharge}
+          actualGW={filteredHydrographData.actual}
+          predictedGW={filteredHydrographData.pred}
+          dates={filteredHydrographData.dates}
         />
-        <p className="insight-muted" style={{ marginTop: '10px', fontSize: '0.65rem' }}>
-          “Recharge-driven groundwater modeling (not direct rainfall mapping)”
+        <p className="insight-muted" style={{ marginTop: '10px', fontSize: '0.65rem', fontStyle: 'italic', opacity: 0.7 }}>
+          “Long-term hydro-climatic trend analysis integrating satellite rainfall and sensor observations.”
         </p>
       </div>
-      <div className="insight-recharge">
-        <small>Recharge Suggestion</small>
-        <p>{rechargeSuggestion}</p>
-      </div>
+      
       
       {showPiezometers && (
         <div className="insight-trend" style={{ marginTop: '16px', background: 'rgba(0, 229, 255, 0.04)', border: '1px solid rgba(0, 229, 255, 0.15)', padding: '14px', borderRadius: '10px' }}>
@@ -1719,36 +1723,7 @@ function VillageInsightsPanelContentImpl({
         </div>
       )}
 
-      {props.st_gnn_prediction && (
-        <div className="insight-trend" style={{ marginTop: '16px' }}>
-          <div className="insight-section-heading" style={{ marginBottom: '8px' }}>
-            <small>ST-GNN Advanced Prediction</small>
-            <span>Spatio-Temporal Graph Neural Network</span>
-          </div>
-          <div className="insight-comparison-grid">
-            <div className="comparison-card predicted">
-              <small>Prediction</small>
-              <strong>{formatDepth(props.st_gnn_prediction.prediction)}</strong>
-            </div>
-            <div className="comparison-card meta">
-              <small>95% Confidence Interval</small>
-              <strong>[{formatDepth(props.st_gnn_prediction.confidence_interval?.[0])}, {formatDepth(props.st_gnn_prediction.confidence_interval?.[1])}]</strong>
-            </div>
-          </div>
-          
-          <div className="insight-section-heading" style={{ marginTop: '12px', marginBottom: '8px' }}>
-            <small>Short-term Forecasting (Days)</small>
-          </div>
-          <div className="insight-metric-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {props.st_gnn_prediction.forecasts?.map((f) => (
-               <div key={f.horizon}>
-                 <small>+{f.horizon} Days</small>
-                 <strong>{formatDepth(f.value)}</strong>
-               </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
 
 
       {aquiferAnalytics && (
@@ -2104,9 +2079,9 @@ function SmartHydrograph({
   dates = []
 }) {
   const [hoverIndex, setHoverIndex] = useState(null);
+  const [showFullHistory, setShowFullHistory] = useState(false);
   
   const data = useMemo(() => {
-    // Standardize inputs to arrays
     const parse = (val) => {
       if (Array.isArray(val)) return val;
       if (typeof val === 'string') {
@@ -2117,45 +2092,56 @@ function SmartHydrograph({
 
     const d_dates = parse(dates);
     const d_rain = parse(rainfall);
-    const d_recharge = parse(recharge);
     const d_actual = parse(actualGW);
     const d_pred = parse(predictedGW);
 
-    return d_dates.map((d, i) => ({
-      date: d,
-      rainfall: Number(d_rain[i] || 0),
-      recharge: Number(d_recharge[i] || 0),
-      actual: Number(d_actual[i] || null),
-      predicted: Number(d_pred[i] || null),
-    })).filter(d => d.date).slice(-13);
-  }, [dates, rainfall, recharge, actualGW, predictedGW]);
+    const full = d_dates.map((d, i) => {
+      const rawActual = d_actual[i];
+      const rawPredicted = d_pred[i];
+      
+      const parseVal = (v) => {
+        if (v === null || v === undefined || v === "" || v === "NA") return null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      };
+
+      return {
+        date: d,
+        rainfall: Number(d_rain[i] || 0),
+        actual: parseVal(rawActual),
+        predicted: parseVal(rawPredicted),
+      };
+    }).filter(d => d.date);
+
+    return showFullHistory ? full : full.slice(-13);
+  }, [dates, rainfall, actualGW, predictedGW, showFullHistory]);
 
   if (data.length < 2) return <p className="insight-muted">Insufficient data for hydrograph.</p>;
 
   const width = 480;
-  const height = 280;
-  const margin = { top: 40, right: 60, bottom: 60, left: 60 };
+  const height = 300;
+  const margin = { top: 50, right: 60, bottom: 60, left: 60 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
-  const maxRain = Math.ceil(Math.max(...data.map(d => d.rainfall), 240) / 120) * 120;
-  const maxGW = Math.ceil(Math.max(...data.map(d => Math.max(d.actual, d.predicted)), 12) / 3) * 3;
+  const maxRain = Math.max(Math.ceil(Math.max(...data.map(d => d.rainfall), 100) / 50) * 50, 100);
+  const maxGW = Math.max(Math.ceil(Math.max(...data.map(d => Math.max(d.actual || 0, d.predicted || 0)), 15) / 5) * 5, 15);
   
   const getX = (i) => margin.left + (i / (data.length - 1)) * innerW;
   const getYRain = (v) => margin.top + innerH - (v / maxRain) * innerH; 
-  const getYGW = (v) => margin.top + (v / maxGW) * innerH; // Reversed: 0 at top
+  const getYGW = (v) => margin.top + (v / maxGW) * innerH; // 0 at top, increasing downwards
 
   const getPath = (values, yFunc) => {
-    if (values.length < 2) return "";
-    let d = `M ${getX(0)} ${yFunc(values[0])}`;
-    for (let i = 0; i < values.length - 1; i++) {
-      const x1 = getX(i);
-      const y1 = yFunc(values[i]);
-      const x2 = getX(i + 1);
-      const y2 = yFunc(values[i + 1]);
-      const cx1 = x1 + (x2 - x1) / 2;
-      const cx2 = x1 + (x2 - x1) / 2;
-      d += ` C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`;
+    const validPoints = values.map((v, i) => v !== null ? { x: getX(i), y: yFunc(v) } : null).filter(p => p !== null);
+    if (validPoints.length < 2) return "";
+    
+    let d = `M ${validPoints[0].x} ${validPoints[0].y}`;
+    for (let i = 0; i < validPoints.length - 1; i++) {
+      const p1 = validPoints[i];
+      const p2 = validPoints[i + 1];
+      const cp1x = p1.x + (p2.x - p1.x) / 3;
+      const cp2x = p1.x + (2 * (p2.x - p1.x)) / 3;
+      d += ` C ${cp1x} ${p1.y}, ${cp2x} ${p2.y}, ${p2.x} ${p2.y}`;
     }
     return d;
   };
@@ -2164,58 +2150,103 @@ function SmartHydrograph({
   const predictedPath = getPath(data.map(d => d.predicted), getYGW);
 
   return (
-    <div className="apwrims-hydrograph" style={{ background: '#ffffff', padding: '24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', position: 'relative', color: '#1e293b' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="apwrims-hydrograph" style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', position: 'relative', color: '#1e293b', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-           <div style={{ width: '24px', height: '24px', background: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M3 10h18M8 2v4M16 2v4" /></svg>
+           <div style={{ width: '32px', height: '32px', background: '#ecfdf5', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m8 17 4 4 4-4" /></svg>
            </div>
-           <strong style={{ fontSize: '0.9rem', color: '#334155' }}>Monthly</strong>
+           <div>
+             <strong style={{ fontSize: '0.95rem', color: '#0f172a', display: 'block' }}>Hydro-Climatic Profile</strong>
+             <small style={{ color: '#64748b', fontSize: '0.7rem' }}>Rainfall vs. Groundwater Depth</small>
+           </div>
         </div>
-        <div style={{ color: '#64748b' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
-        </div>
+        <button 
+          onClick={() => setShowFullHistory(!showFullHistory)}
+          style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.7rem', cursor: 'pointer', fontWeight: '600', color: '#475569' }}
+        >
+          {showFullHistory ? "Last 13 Months" : "View Full History"}
+        </button>
       </div>
 
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-        {/* Y-Axis Grid Lines */}
-        {[0, 0.5, 1].map(p => (
+        {/* Y-Axis Labels & Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map(p => (
           <g key={p}>
             <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="#f1f5f9" strokeWidth="1" />
-            {/* Left Axis: Rainfall */}
-            <text x={margin.left - 10} y={margin.top + p * innerH} textAnchor="end" fontSize="11" fill="#94a3b8" dominantBaseline="middle">
-              {(maxRain * (1 - p)).toFixed(2)}
+            
+            {/* Left Axis (Rainfall) */}
+            <text x={margin.left - 12} y={margin.top + (1-p) * innerH} textAnchor="end" fontSize="10" fill="#059669" dominantBaseline="middle" fontWeight="500">
+              {Math.round(maxRain * p)}
             </text>
-            {/* Right Axis: GW Level */}
-            <text x={width - margin.right + 10} y={margin.top + p * innerH} textAnchor="start" fontSize="11" fill="#94a3b8" dominantBaseline="middle">
-              {(maxGW * p).toFixed(2)}
+            
+            {/* Right Axis (GW Level - Inverted) */}
+            <text x={width - margin.right + 12} y={margin.top + p * innerH} textAnchor="start" fontSize="10" fill="#2563eb" dominantBaseline="middle" fontWeight="500">
+              {Math.round(maxGW * p)}m
             </text>
           </g>
         ))}
 
-        {/* Rainfall Bars (Green) */}
+        {/* Axis Titles */}
+        <text x={margin.left - 45} y={margin.top + innerH/2} transform={`rotate(-90, ${margin.left - 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#059669" fontWeight="bold">Rainfall (mm)</text>
+        <text x={width - margin.right + 45} y={margin.top + innerH/2} transform={`rotate(90, ${width - margin.right + 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#2563eb" fontWeight="bold">Depth (m)</text>
+
+        {/* Rainfall Bars */}
         {data.map((d, i) => (
           <rect
             key={`r-${i}`}
-            x={getX(i) - 5}
+            x={getX(i) - (showFullHistory ? 1 : 6)}
             y={getYRain(d.rainfall)}
-            width="10"
+            width={showFullHistory ? 2 : 12}
             height={innerH - (getYRain(d.rainfall) - margin.top)}
-            fill="#22c55e"
-            rx="1"
+            fill="#10b981"
+            fillOpacity="0.4"
+            rx={showFullHistory ? 0 : 2}
           />
         ))}
 
-        {/* Groundwater Level Line (Indigo) */}
-        <path d={actualPath} fill="none" stroke="#312e81" strokeWidth="1.5" />
-        {/* Predicted Line (Dashed) */}
-        <path d={predictedPath} fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4,4" opacity="0.5" />
+        {/* Groundwater Paths */}
+        {actualPath && <path d={actualPath} fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" />}
+        {predictedPath && <path d={predictedPath} fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4,4" opacity="0.6" />}
+
+        {/* Points */}
+        {data.map((d, i) => {
+          if (showFullHistory && i % (Math.ceil(data.length / 20)) !== 0) return null;
+          return (
+            <g key={`p-${i}`}>
+              {d.actual !== null && (
+                <circle cx={getX(i)} cy={getYGW(d.actual)} r={showFullHistory ? 1.5 : 4} fill="#1d4ed8" stroke="#fff" strokeWidth="1" />
+              )}
+            </g>
+          );
+        })}
+
+        {/* X-Axis Labels */}
+        {data.map((d, i) => {
+          const showLabel = showFullHistory ? (i % Math.ceil(data.length / 8) === 0) : true;
+          if (!showLabel) return null;
+          return (
+            <g key={`x-${i}`} transform={`translate(${getX(i)}, ${margin.top + innerH + 15})`}>
+              <text textAnchor="middle" fontSize="10" fill="#64748b" fontWeight="500">
+                {d.date.split('-')[1]}
+              </text>
+              <text y="12" textAnchor="middle" fontSize="9" fill="#94a3b8">
+                {d.date.split('-')[0]}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Hover Interaction Vertical Line */}
+        {hoverIndex !== null && (
+          <line x1={getX(hoverIndex)} y1={margin.top} x2={getX(hoverIndex)} y2={margin.top + innerH} stroke="#cbd5e1" strokeDasharray="4,2" />
+        )}
 
         {/* Interaction Area */}
         {data.map((d, i) => (
           <rect
             key={`h-${i}`}
-            x={getX(i) - innerW / (2 * data.length)}
+            x={getX(i) - (innerW / (2 * data.length))}
             y={margin.top}
             width={innerW / data.length}
             height={innerH}
@@ -2225,61 +2256,53 @@ function SmartHydrograph({
             onMouseLeave={() => setHoverIndex(null)}
           />
         ))}
-
-        {/* X-Axis Labels */}
-        {data.map((d, i) => (
-          <g key={`x-${i}`} transform={`translate(${getX(i)}, ${margin.top + innerH + 15})`}>
-            <text textAnchor="middle" fontSize="10" fill="#94a3b8">
-              {d.date.split('-')[1]}
-            </text>
-            <text y="12" textAnchor="middle" fontSize="9" fill="#cbd5e1">
-              {d.date.split('-')[0]}
-            </text>
-          </g>
-        ))}
       </svg>
 
-      {/* Floating Tooltip (APWRIMS Style) */}
+      {/* Legend */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', fontSize: '0.7rem', fontWeight: '500' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '12px', height: '12px', background: '#10b981', opacity: 0.4, borderRadius: '2px' }}></div>
+          <span style={{ color: '#059669' }}>Rainfall</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '12px', height: '2px', background: '#1d4ed8' }}></div>
+          <span style={{ color: '#1d4ed8' }}>Actual Level</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ width: '12px', height: '2px', background: '#60a5fa', borderStyle: 'dashed', borderTop: '2px dashed #60a5fa' }}></div>
+          <span style={{ color: '#60a5fa' }}>AI Predicted</span>
+        </div>
+      </div>
+
+      {/* Tooltip */}
       {hoverIndex !== null && (
-        <div style={{ position: 'absolute', top: '15%', left: getX(hoverIndex) > width/2 ? '15%' : 'auto', right: getX(hoverIndex) <= width/2 ? '15%' : 'auto', background: '#fff', padding: '12px', borderRadius: '4px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '0.75rem', zIndex: 20 }}>
-          <div style={{ fontWeight: '600', marginBottom: '8px', color: '#64748b' }}>
+        <div style={{ position: 'absolute', top: '70px', left: getX(hoverIndex) > width/2 ? '20px' : 'auto', right: getX(hoverIndex) <= width/2 ? '20px' : 'auto', background: 'rgba(255, 255, 255, 0.95)', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '0.75rem', zIndex: 20, pointerEvents: 'none' }}>
+          <div style={{ fontWeight: '700', marginBottom: '5px', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '3px' }}>
             {new Date(data[hoverIndex].date).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%' }}></div>
-            <span style={{ color: '#64748b' }}>Rainfall(mm):</span> <strong>{data[hoverIndex].rainfall.toFixed(2)} mm</strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '3px' }}>
+            <span style={{ color: '#059669' }}>Rainfall:</span>
+            <strong style={{ color: '#0f172a' }}>{data[hoverIndex].rainfall.toFixed(1)} mm</strong>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '8px', height: '8px', background: '#312e81', borderRadius: '50%' }}></div>
-            <span style={{ color: '#64748b' }}>Groundwater Level (m):</span> <strong>{data[hoverIndex].actual.toFixed(2)} m</strong>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '3px' }}>
+            <span style={{ color: '#1d4ed8' }}>Actual Depth:</span>
+            <strong style={{ color: '#0f172a' }}>{data[hoverIndex].actual !== null ? data[hoverIndex].actual.toFixed(2) + ' m' : 'NA'}</strong>
           </div>
-          {data[hoverIndex].predicted > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', opacity: 0.7 }}>
-              <div style={{ width: '8px', height: '1px', borderTop: '2px dashed #6366f1' }}></div>
-              <span style={{ color: '#64748b' }}>AI Prediction (m):</span> <strong>{data[hoverIndex].predicted.toFixed(2)} m</strong>
+          {data[hoverIndex].predicted !== null && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px' }}>
+              <span style={{ color: '#3b82f6' }}>AI Estimate:</span>
+              <strong style={{ color: '#0f172a' }}>{data[hoverIndex].predicted.toFixed(2)} m</strong>
             </div>
           )}
         </div>
       )}
-
-      {/* Legend (APWRIMS Style) */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-          <div style={{ width: '10px', height: '10px', background: '#22c55e', borderRadius: '50%' }}></div>
-          <span style={{ color: '#64748b' }}>Rainfall(mm)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem' }}>
-          <div style={{ width: '16px', height: '2px', background: '#312e81' }}></div>
-          <span style={{ color: '#64748b' }}>Groundwater Level (m)</span>
-        </div>
-      </div>
     </div>
   );
 }
 
 export function VillageDetails({ feature }) {
-  const props = feature.properties || {};
-  const advisories = props.advisories || [
+  const rawProps = feature.properties || {};
+  const advisories = rawProps.advisories || [
     { level: 'Info', text: 'Maintain current extraction levels. Groundwater recharge conditions are optimal.' }
   ];
 
@@ -2289,18 +2312,20 @@ export function VillageDetails({ feature }) {
     catch { return []; }
   };
 
-  const groundwaterPoints = (props.groundwaterHistory?.actual_series || [])
+  const groundwaterPoints = (rawProps.groundwaterHistory?.actual_series || [])
     .map((point) => ({
       label: String(point?.date || ""),
       value: Number(point?.depth),
     }))
     .filter((point) => Number.isFinite(point.value));
 
-  const rainfallSeries = parseAgg(props.monthly_rainfall);
-  const rechargeSeries = parseAgg(props.monthly_recharge);
-  const actualSeries = parseAgg(props.monthly_actual_gw);
-  const predictedSeries = parseAgg(props.monthly_predicted_gw);
-  const dateSeries = parseAgg(props.monthly_dates);
+  const props = normalizeVillageProperties(feature?.properties || {});
+  
+  const rainfallSeries = props.normalized_monthly_rainfall;
+  const rechargeSeries = props.normalized_monthly_recharge;
+  const actualSeries = props.normalized_monthly_depths;
+  const predictedSeries = props.normalized_monthly_predicted;
+  const dateSeries = props.normalized_monthly_dates;
 
   return (
     <div className="village-details">
@@ -2350,6 +2375,4 @@ export function VillageDetails({ feature }) {
     </div>
   );
 }
-
-
 

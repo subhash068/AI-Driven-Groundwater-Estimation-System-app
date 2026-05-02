@@ -100,3 +100,78 @@ export function shiftGeometryFor3D(geometry, depthFactor) {
   }
   return geometry;
 }
+
+/**
+ * Normalizes village properties to ensure consistent naming and prevent 'NA' displays.
+ * Centralizes the complex fallback logic for depths, risks, and confidence scores.
+ */
+export function normalizeVillageProperties(props) {
+  if (!props) return null;
+
+  // 1. Depth Normalization (Priority: Actual > Predicted > Legacy > Static)
+  const depthCandidates = [
+    props.current_depth,
+    props.actual_last_month,
+    props.target_last_month,
+    props.gw_level,
+    props.GW_Level,
+    props.depth,
+    props.predicted_groundwater_level,
+    props.groundwater_estimate
+  ];
+  
+  const currentDepthRaw = depthCandidates.find(v => v !== null && v !== undefined && String(v).trim() !== "" && Number.isFinite(Number(v)));
+  const currentDepth = currentDepthRaw !== undefined ? Number(currentDepthRaw) : null;
+  
+  // 2. Risk Normalization (Critical/Warning/Safe)
+  let risk = String(props.risk_level || "").trim().toLowerCase();
+  if (!["critical", "warning", "safe", "high", "medium", "low"].includes(risk)) {
+    // If risk is missing or invalid, derive from depth
+    if (currentDepth !== null) {
+      if (currentDepth >= 30) risk = "critical";
+      else if (currentDepth >= 20) risk = "warning";
+      else risk = "safe";
+    } else {
+      risk = "safe";
+    }
+  }
+  
+  // Map Aliases
+  if (risk === "high") risk = "critical";
+  if (risk === "medium" || risk === "moderate") risk = "warning";
+  if (risk === "low") risk = "safe";
+
+  // 4. Series Normalization (Map various names to a standard set)
+  const getSeries = (...candidates) => {
+    for (const c of candidates) {
+      if (Array.isArray(c) && c.length > 0) return c;
+      if (typeof c === 'string' && c.startsWith('[') && c.length > 2) {
+        try {
+          const parsed = JSON.parse(c);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch(e) {}
+      }
+    }
+    return [];
+  };
+
+  const monthly_depths = getSeries(props.monthly_depths, props.observed_series, props.monthly_actual_gw);
+  const monthly_dates = getSeries(props.monthly_depths_full_dates, props.monthly_depths_dates, props.monthly_dates, props.observed_dates);
+  const monthly_rainfall = getSeries(props.monthly_rainfall, props.rainfall_series);
+  const monthly_recharge = getSeries(props.monthly_recharge, props.recharge_series);
+  const monthly_predicted = getSeries(props.monthly_predicted_gw, props.predicted_groundwater_series, props.lstm_forecast);
+  const confidence = props.confidence ?? props.combined_reliability ?? props.reliability ?? 0.85;
+
+  return {
+    ...props,
+    normalized_depth: currentDepth,
+    normalized_risk: risk.charAt(0).toUpperCase() + risk.slice(1),
+    normalized_confidence: confidence,
+    normalized_monthly_depths: monthly_depths,
+    normalized_monthly_dates: monthly_dates,
+    normalized_monthly_rainfall: monthly_rainfall,
+    normalized_monthly_recharge: monthly_recharge,
+    normalized_monthly_predicted: monthly_predicted,
+    is_hydrated: Boolean(props.is_hydrated || props.forecast_yearly || props.lstm_forecast || (Array.isArray(monthly_predicted) && monthly_predicted.length > 0))
+  };
+}

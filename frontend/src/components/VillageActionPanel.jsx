@@ -3,14 +3,17 @@ import { api } from "../services/api";
 
 function formatDepth(value) {
   const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return "NA";
+  if (!Number.isFinite(numeric) || value === null || (numeric === 0 && value !== 0)) return "NA";
+  // If numeric is 0 but value was "0" or 0, it's a real 0.
+  // But if value was null/undefined, Number() makes it 0. We want NA.
   return `${numeric.toFixed(2)} m`;
 }
 
 function formatConfidence(value) {
   const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return "NA";
+  if (!Number.isFinite(numeric) || value === null) return "NA";
   const scaled = numeric <= 1 ? numeric * 100 : numeric;
+  if (scaled === 0) return "0%"; // Valid but low
   const bounded = Math.max(0, Math.min(100, scaled));
   return `${bounded.toFixed(0)}%`;
 }

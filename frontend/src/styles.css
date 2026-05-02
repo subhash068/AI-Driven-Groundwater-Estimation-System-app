@@ -4285,3 +4285,4 @@ body,
 .cluster-bubble {
   font-size: 14px;
 }
+.skeleton-pulse { background: rgba(255, 255, 255, 0.05); animation: pulse 1.5s infinite ease-in-out; } @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }

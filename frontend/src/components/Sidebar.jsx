@@ -402,7 +402,7 @@ export function Sidebar({
                         <span>Pumping Records</span>
                       </div>
                       <div>
-                        <strong>{activeDistrictData.waterLevels?.avgWaterLevel || 0}m</strong>
+                        <strong>{activeDistrictData.waterLevels?.avgWaterLevel ?? "NA"}m</strong>
                         <span>Avg Level</span>
                       </div>
                     </div>
@@ -417,7 +417,7 @@ export function Sidebar({
                         <span>Pumping Records</span>
                       </div>
                       <div>
-                        <strong>{comparisonDistrictData.waterLevels.avgWaterLevel}m</strong>
+                        <strong>{comparisonDistrictData.waterLevels.avgWaterLevel ?? "NA"}m</strong>
                         <span>Avg Level</span>
                       </div>
                     </div>
