@@ -836,7 +836,6 @@ export function MapView({
   filters,
   showLulc,
   showGroundwaterLevels,
-  showConfidenceIntervals,
   showPiezometers,
   showWells,
   selectedAnomalyTypes,
@@ -1157,30 +1156,11 @@ export function MapView({
     // Map Mode Logic
     const currentMode = (mapMode || "prediction").toLowerCase();
     
-    if (currentMode === "uncertainty") {
-        const uncertainty = Number(props.uncertainty) || Number(props.uncertainty_range) || 1.0;
-        if (uncertainty < 0.3) fillColor = "rgba(0, 255, 0, 0.4)";
-        else if (uncertainty < 0.6) fillColor = "rgba(255, 165, 0, 0.6)";
-        else fillColor = "rgba(255, 0, 0, 0.8)";
-        fillOpacity = 0.8;
-    } 
-    else if (currentMode === "trend") {
+    if (currentMode === "trend") {
         const trend = String(props.trend || props.trend_direction || "").toLowerCase();
         if (trend.includes("declin")) fillColor = "#ef4444"; // red
         else if (trend.includes("ris") || trend.includes("increas")) fillColor = "#3b82f6"; // blue
         else fillColor = "#facc15"; // yellow
-    }
-    else if (currentMode === "validation") {
-        const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id || props.has_piezometer);
-        if (hasSensor) {
-            const error = Math.abs(Number(props.abs_error_latest || props.abs_error || 0));
-            if (error < 0.5) fillColor = "#22c55e"; // green
-            else if (error < 1.5) fillColor = "#facc15"; // yellow
-            else fillColor = "#ef4444"; // red
-        } else {
-            fillColor = "transparent"; // Hide non-sensor villages
-            fillOpacity = 0;
-        }
     }
 
     const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
@@ -1705,11 +1685,6 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             style={(feature) => {
               if (isSelectedVillageFeature(feature)) {
                 return selectedVillageStyle(feature);
-              }
-              if (showConfidenceIntervals) {
-                 const confidence = Number(feature?.properties?.st_gnn_prediction?.confidence_interval?.[1] || 0) - Number(feature?.properties?.st_gnn_prediction?.confidence_interval?.[0] || 0);
-                 const opacity = Number.isFinite(confidence) && confidence > 0 ? clamp(0.2 + (confidence / 5), 0.2, 0.9) : 0.1;
-                 return { ...groundwaterStyle(feature), fillColor: '#94a3b8', fillOpacity: opacity, color: '#facc15', weight: opacity > 0.5 ? 2 : 1 };
               }
               return showGroundwaterLevels ? groundwaterStyle(feature) : neutralVillageStyle(feature);
             }}

@@ -25,8 +25,6 @@ export function Sidebar({
   setShowLulc,
   showGroundwaterLevels,
   setShowGroundwaterLevels,
-  showConfidenceIntervals,
-  setShowConfidenceIntervals,
   showPiezometers,
   setShowPiezometers,
   showWells,
@@ -67,10 +65,6 @@ export function Sidebar({
   setShowTanks,
   showDemSurface,
   setShowDemSurface,
-  showModelIdwDiff,
-  setShowModelIdwDiff,
-  showErrorMap,
-  setShowErrorMap,
   districtHoverData,
   trendHighlights,
   simulatorVillageId,
@@ -303,36 +297,6 @@ export function Sidebar({
                 onChange={() => setShowGroundwaterLevels(!showGroundwaterLevels)}
               />
               Groundwater Levels
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showConfidenceIntervals}
-                onChange={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
-              />
-              Confidence Intervals
-            </label>
-            <label className="toggle" title="Difference between Model and IDW baseline">
-              <input
-                type="checkbox"
-                checked={showModelIdwDiff}
-                onChange={() => {
-                  setShowModelIdwDiff(!showModelIdwDiff);
-                  if (!showModelIdwDiff) setShowErrorMap(false);
-                }}
-              />
-              Model vs IDW (Delta)
-            </label>
-            <label className="toggle" title="Spatial error map for observed villages">
-              <input
-                type="checkbox"
-                checked={showErrorMap}
-                onChange={() => {
-                  setShowErrorMap(!showErrorMap);
-                  if (!showErrorMap) setShowModelIdwDiff(false);
-                }}
-              />
-              Error Map (Observed)
             </label>
             <label className="toggle">
               <input

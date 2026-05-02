@@ -998,10 +998,118 @@ body,
 }
 
 .dashboard-shell .dashboard-top-bar {
-  position: sticky;
-  top: 0;
-  z-index: 1100;
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.28);
 }
+
+/* Main Analysis Dock Styles */
+.village-analysis-dock {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 440px;
+  background: rgba(11, 19, 32, 0.96);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(0, 229, 255, 0.3);
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -15px 50px rgba(0,0,0,0.65);
+  border-radius: 28px 28px 0 0;
+  color: #f8fafc;
+}
+
+.village-analysis-dock.collapsed {
+  transform: translateY(calc(100% - 52px));
+  background: rgba(11, 19, 32, 0.88);
+}
+
+.analysis-dock-header {
+  padding: 12px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
+  user-select: none;
+}
+
+.analysis-dock-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.analysis-dock-title h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.analysis-dock-badge {
+  padding: 4px 10px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #00e5ff;
+}
+
+.analysis-dock-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.analysis-dock-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.analysis-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  height: 100%;
+}
+
+.analysis-chart-area {
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.analysis-info-sidebar {
+  padding: 24px;
+  background: rgba(255,255,255,0.02);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  overflow-y: auto;
+}
+
+.analysis-toggle-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.analysis-toggle-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.dashboard-top-bar { position: sticky; top: 0; z-index: 1100; background: rgba(10, 17, 30, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(56, 189, 248, 0.2); }
 
 .topbar-title-main {
   min-width: 160px;

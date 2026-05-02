@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from "react";
-import { DashboardTopBar, DashboardAnalyticsPanel, VillageInsightsPanel } from "./components/UI";
+import { DashboardTopBar, DashboardAnalyticsPanel, VillageInsightsPanel, VillageAnalysisDock, ComprehensiveAnalysisModal } from "./components/UI";
 import { useVillageData } from "./hooks/useVillageData";
 import { useGroundwaterDataset } from "./hooks/useGroundwaterDataset";
 import { api, getApiStatusSummary, subscribeApiStatus, LOCAL_DATA_ONLY_MODE } from "./services/api";
@@ -279,7 +279,6 @@ export default function App({ navigate, pathname }) {
   const [showGroundwaterLevels, setShowGroundwaterLevels] = useState(false);
   const [showPiezometers, setShowPiezometers] = useState(false);
   const [showWells, setShowWells] = useState(false);
-  const [showConfidenceIntervals, setShowConfidenceIntervals] = useState(false);
   const [showDistrictBoundaries, setShowDistrictBoundaries] = useState(false);
   const [showMandalBoundaries, setShowMandalBoundaries] = useState(false);
   const [showStateBoundary, setShowStateBoundary] = useState(true);
@@ -293,6 +292,8 @@ export default function App({ navigate, pathname }) {
   const [showDemSurface, setShowDemSurface] = useState(false);
   const [baseMapTheme, setBaseMapTheme] = useState("satellite");
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
+  const [isAnalysisDockOpen, setIsAnalysisDockOpen] = useState(false);
+  const [showFullHistory, setShowFullHistory] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
     return window.innerWidth > 1100;
@@ -335,11 +336,17 @@ export default function App({ navigate, pathname }) {
   const [showRecharge, setShowRecharge] = useState(false);
   const [showAquifer, setShowAquifer] = useState(false);
   const [showSoil, setShowSoil] = useState(false);
-  const [showModelIdwDiff, setShowModelIdwDiff] = useState(false);
-  const [showErrorMap, setShowErrorMap] = useState(false);
   const [apiStatus, setApiStatus] = useState(() => getApiStatusSummary());
   const [modelUpgradeSummary, setModelUpgradeSummary] = useState(null);
   const [isHydrating, setIsHydrating] = useState(false);
+
+  useEffect(() => {
+    if (selectedFeature) {
+      setIsAnalysisDockOpen(true);
+    } else {
+      setIsAnalysisDockOpen(false);
+    }
+  }, [selectedFeature]);
 
   const { 
     villages, 
@@ -1110,8 +1117,6 @@ export default function App({ navigate, pathname }) {
           setMapMode={setMapMode}
           showGroundwaterLevels={showGroundwaterLevels}
           setShowGroundwaterLevels={setShowGroundwaterLevels}
-          showConfidenceIntervals={showConfidenceIntervals}
-          setShowConfidenceIntervals={setShowConfidenceIntervals}
           showPiezometers={showPiezometers}
           setShowPiezometers={setShowPiezometers}
           showWells={showWells}
@@ -1150,10 +1155,6 @@ export default function App({ navigate, pathname }) {
           setShowAquifer={setShowAquifer}
           showSoil={showSoil}
           setShowSoil={setShowSoil}
-          showModelIdwDiff={showModelIdwDiff}
-          setShowModelIdwDiff={setShowModelIdwDiff}
-          showErrorMap={showErrorMap}
-          setShowErrorMap={setShowErrorMap}
           onNavigateHome={() => typeof navigate === "function" && navigate("/")}
           loading={loading}
           districtHoverData={districtHoverData}
@@ -1208,7 +1209,6 @@ export default function App({ navigate, pathname }) {
                 filters={filters}
                 showLulc={showLulc}
                 showGroundwaterLevels={showGroundwaterLevels}
-                showConfidenceIntervals={showConfidenceIntervals}
                 showPiezometers={showPiezometers}
                 showWells={showWells}
                 selectedAnomalyTypes={selectedAnomalyTypes}
@@ -1226,8 +1226,6 @@ export default function App({ navigate, pathname }) {
                 showDemSurface={showDemSurface}
                 showAquifer={showAquifer}
                 showSoil={showSoil}
-                showModelIdwDiff={showModelIdwDiff}
-                showErrorMap={showErrorMap}
                 villageDataError={error}
                 villageDataSource={dataSource}
                 datasetRowsById={datasetRowsById}
@@ -1236,6 +1234,12 @@ export default function App({ navigate, pathname }) {
                 rechargeZones={aiPredictionEnabled && showRecharge ? rechargeZones : null}
                 selectedDistrict={filters.district}
                 baseMapTheme={baseMapTheme}
+              />
+              <VillageAnalysisDock 
+                selectedFeature={selectedVillageFeature}
+                isOpen={isAnalysisDockOpen}
+                onToggle={() => setIsAnalysisDockOpen(!isAnalysisDockOpen)}
+                onShowFullHistory={() => setShowFullHistory(true)}
               />
             </main>
             <div className={`insights-dock ${isInsightsOpen ? "open" : "closed"}`}>
@@ -1263,6 +1267,18 @@ export default function App({ navigate, pathname }) {
           </div>
         </section>
       </div>
+      {showFullHistory && selectedVillageFeature && (
+        <ComprehensiveAnalysisModal 
+          props={selectedVillageFeature.properties}
+          fullHistoryDataForModal={{
+            dates: selectedVillageFeature.properties.normalized_monthly_dates || [],
+            actual: selectedVillageFeature.properties.normalized_monthly_depths || [],
+            pred: selectedVillageFeature.properties.normalized_monthly_predicted || [],
+            rain: selectedVillageFeature.properties.normalized_monthly_rainfall || []
+          }}
+          onClose={() => setShowFullHistory(false)}
+        />
+      )}
     </Suspense>
   );
 }

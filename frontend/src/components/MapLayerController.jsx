@@ -27,9 +27,7 @@ export default function MapLayerController({ mode, setMode }) {
             }}
           >
             {m} {m === MAP_MODES.PREDICTION && ' (Default)'}
-            {m === MAP_MODES.UNCERTAINTY && ' (Confidence)'}
             {m === MAP_MODES.TREND && ' (Direction)'}
-            {m === MAP_MODES.VALIDATION && ' (Scientific)'}
           </button>
         ))}
       </div>

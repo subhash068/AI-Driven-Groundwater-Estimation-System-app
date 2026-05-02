@@ -244,7 +244,7 @@ def run(raw_dir: Path, predictions_out: Path, map_out: Path) -> None:
     frontend_data_dir = Path("frontend/public/data")
     if frontend_data_dir.exists():
         print(f"Syncing data to {frontend_data_dir}...")
-        for f in [geojson_path, judge_path]:
+        for f in [geojson_path, judge_path, map_out]:
             if f.exists():
                 shutil.copy(f, frontend_data_dir / f.name)
 

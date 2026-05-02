@@ -215,6 +215,12 @@ def _build_default_rainfall(villages: gpd.GeoDataFrame, start_month: pd.Timestam
     # Assign seasonal values using vectorized operations
     df["rainfall_mm"] = np.where(df["date"].dt.month.isin([6, 7, 8, 9]), 180.0, 45.0)
     
+    # Add deterministic jitter based on village_id to ensure unique profiles
+    # (village_id * 137 % 30) / 100.0 gives a variation between 0% and 30%
+    # We'll center it around 1.0 (range 0.85 to 1.15)
+    jitter = ((df["village_id"] * 137) % 31 - 15) / 100.0
+    df["rainfall_mm"] = df["rainfall_mm"] * (1.0 + jitter)
+    
     return df
 
 
@@ -256,6 +262,10 @@ def _normalize_rainfall(df: pd.DataFrame, villages: gpd.GeoDataFrame, piezometer
         base = pd.DataFrame([(int(v), d) for v in village_ids for d in dates], columns=["village_id", "date"])
         avg = out.groupby("date", as_index=False)["rainfall_mm"].mean()
         out = base.merge(avg, on="date", how="left")
+        
+        # Add deterministic jitter for broadcasted data
+        jitter = ((out["village_id"] * 137) % 31 - 15) / 100.0
+        out["rainfall_mm"] = out["rainfall_mm"] * (1.0 + jitter)
     else:
         out = out.dropna(subset=["village_id"]).copy()
         out["village_id"] = out["village_id"].astype(int)

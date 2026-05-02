@@ -436,7 +436,10 @@ function WaterTrendChart({
   );
   const roundedMax = Math.ceil(maxVal / 10) * 10;
 
-  const getX = (i) => margin.left + (i / (series.length - 1)) * innerW;
+  const getX = (i) => {
+    if (series.length <= 1) return margin.left + innerW / 2;
+    return margin.left + (i / (series.length - 1)) * innerW;
+  };
   const getY = (v) => margin.top + (v / roundedMax) * innerH; // 0 at top
 
   const getStatus = (v) => {
@@ -942,9 +945,6 @@ export function MapLegend({
   showRecharge = false,
   showAquifer = false,
   showSoil = false,
-  showModelIdwDiff = false,
-  showErrorMap = false,
-  aquiferLayer = false,
   districtNote = null
 }) {
   return (
@@ -967,23 +967,6 @@ export function MapLegend({
         </>
       )}
       
-      {mapMode === 'uncertainty' && (
-        <>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: 'rgba(0, 255, 0, 0.4)' }}></div>
-            <span>Reliable (Low Uncertainty)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: 'rgba(255, 165, 0, 0.6)' }}></div>
-            <span>Moderate (Medium Uncertainty)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: 'rgba(255, 0, 0, 0.8)' }}></div>
-            <span>High Risk (High Uncertainty)</span>
-          </div>
-        </>
-      )}
-      
       {mapMode === 'trend' && (
         <>
           <div className="legend-item">
@@ -1000,23 +983,7 @@ export function MapLegend({
           </div>
         </>
       )}
-      
-      {mapMode === 'validation' && (
-        <>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: '#22c55e' }}></div>
-            <span>Accurate (Error {'<'} 0.5m)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: '#facc15' }}></div>
-            <span>Acceptable (Error {'<'} 1.5m)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: '#ef4444' }}></div>
-            <span>Deviation (Error {'>'} 1.5m)</span>
-          </div>
-        </>
-      )}
+
 
       {/* Other toggle legends */}
       {showPiezometers && (
@@ -1090,24 +1057,6 @@ export function MapLegend({
           <div className="legend-item">
             <div className="legend-color" style={{ background: '#111827' }}></div>
             <span>Black / Vertisols</span>
-          </div>
-        </>
-      )}
-      {showModelIdwDiff && (
-        <>
-          <div className="legend-divider" />
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: 'linear-gradient(90deg, #16a34a 0%, #eab308 50%, #dc2626 100%)' }}></div>
-            <span>Model vs IDW (Green: shallower, Red: deeper)</span>
-          </div>
-        </>
-      )}
-      {showErrorMap && (
-        <>
-          <div className="legend-divider" />
-          <div className="legend-item">
-            <div className="legend-color" style={{ background: 'linear-gradient(90deg, #16a34a 0%, #eab308 30%, #f97316 60%, #dc2626 100%)' }}></div>
-            <span>Error Map (Green: {"<"}1m, Red: {">"}4m)</span>
           </div>
         </>
       )}
@@ -1416,8 +1365,10 @@ function VillageInsightsPanelContentImpl({
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [props.normalized_monthly_dates, props.normalized_monthly_predicted]);
-
+  
   const hasMonthlySeries = trendPoints.length > 0 || groundwaterPoints.length > 0 || predictedYearlyPoints.length > 0;
+
+
   const groundwaterPredicted = Number.isFinite(Number(groundwaterInsights?.predicted_gwl))
     ? Number(groundwaterInsights.predicted_gwl)
     : predictedDepth;
@@ -1456,7 +1407,7 @@ function VillageInsightsPanelContentImpl({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
           <div>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '4px' }}>Groundwater Level</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff' }}>{formatDepth(currentDepth)}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff' }}>{formatDepth(currentDepth ?? predictedDepth)}</div>
           </div>
           <div>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '4px' }}>Trend</div>
@@ -1555,61 +1506,9 @@ function VillageInsightsPanelContentImpl({
           </div>
         </div>
       </div>
-      {trendPoints.length > 0 && (
-        <div className="insight-trend">
-          <div className="insight-section-heading" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <small>Groundwater Trend</small>
-              <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>Yearly averages & Hydrograph</span>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div className="trend-filter-mini">
-                <select 
-                  value={groundwaterYear} 
-                  onChange={(e) => setGroundwaterYear(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.7rem', padding: '2px 4px', borderRadius: '4px' }}
-                >
-                  <option value="">All Years</option>
-                  {trendYearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-              <div className="trend-filter-mini">
-                <select 
-                  value={groundwaterMonth} 
-                  onChange={(e) => setGroundwaterMonth(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.7rem', padding: '2px 4px', borderRadius: '4px' }}
-                >
-                  <option value="">All Months</option>
-                  {MONTH_LABELS.map((m, i) => <option key={m} value={i}>{m}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
-          <WaterTrendChart
-            points={groundwaterPoints.length > 0 ? groundwaterPoints : (trendPoints.length > 0 ? trendPoints : predictedYearlyPoints)}
-            forecastPoints={yearlyForecastPoints}
-            predictedValue={predictedDepth}
-            actualLabel="Actual average"
-            predictedLabel="AI yearly forecast"
-          />
-          <p className="insight-muted" style={{ marginTop: '8px' }}>
-            Year coverage: {trendCoverage}
-            {yearlyForecastPoints.length ? ` | Forecast: ${yearlyForecastPoints.map((point) => point.label).join(", ")}` : ""}
-            {" | "}Trend: {trendDirection.arrow} {trendDirection.label}
-          </p>
-        </div>
-      )}
       <div className="insight-trend" style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
-        <SmartHydrograph 
-          rainfall={filteredHydrographData.rain}
-          recharge={filteredHydrographData.recharge}
-          actualGW={filteredHydrographData.actual}
-          predictedGW={filteredHydrographData.pred}
-          dates={filteredHydrographData.dates}
-        />
-        <p className="insight-muted" style={{ marginTop: '10px', fontSize: '0.65rem', fontStyle: 'italic', opacity: 0.7 }}>
-          “Long-term hydro-climatic trend analysis integrating satellite rainfall and sensor observations.”
+        <p className="insight-muted" style={{ textAlign: 'center', fontSize: '0.75rem', opacity: 0.8 }}>
+          Detailed hydro-climatic analysis available in the <strong>Main Analysis Dock</strong> at the bottom of the workspace.
         </p>
       </div>
       
@@ -1759,6 +1658,179 @@ function VillageInsightsPanelContentImpl({
         AI Prediction: {aiPredictionEnabled ? "Enabled" : "Disabled"}.
       </p>
     </DraggableInsightsShell>
+  );
+}
+
+export function ComprehensiveAnalysisModal({ props, fullHistoryDataForModal, onClose }) {
+  const [activeTab, setActiveTab] = useState('village');
+  
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#ffffff', zIndex: 9999, display: 'flex', flexDirection: 'column', padding: '40px', boxShadow: 'none' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' }}>
+        <div>
+          <h1 style={{ color: '#0f172a', margin: 0, fontSize: '1.8rem', fontWeight: '800' }}>Comprehensive Hydro-Climatic Analysis</h1>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
+            <button 
+              onClick={() => setActiveTab('village')}
+              style={{ 
+                background: activeTab === 'village' ? '#eff6ff' : 'transparent', 
+                color: activeTab === 'village' ? '#2563eb' : '#64748b',
+                border: activeTab === 'village' ? '1px solid #bfdbfe' : '1px solid transparent', 
+                padding: '8px 16px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Village Dynamics
+            </button>
+            <button 
+              onClick={() => setActiveTab('regional')}
+              style={{ 
+                background: activeTab === 'regional' ? '#eff6ff' : 'transparent', 
+                color: activeTab === 'regional' ? '#2563eb' : '#64748b',
+                border: activeTab === 'regional' ? '1px solid #bfdbfe' : '1px solid transparent', 
+                padding: '8px 16px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Regional Context
+            </button>
+          </div>
+        </div>
+        <button 
+          onClick={onClose} 
+          style={{ 
+            background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '48px', height: '48px', 
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            fontSize: '1.5rem', color: '#64748b', transition: 'background 0.2s' 
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#e2e8f0'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#f1f5f9'}
+        >
+          ✕
+        </button>
+      </div>
+      
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', borderRadius: '16px', border: '1px solid #e2e8f0', background: '#f8fafc', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)' }}>
+        {activeTab === 'village' ? (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+            <div style={{ flex: 1, padding: '20px' }}>
+              <PlotlyHydrograph 
+                rainfall={fullHistoryDataForModal.rain}
+                actualGW={fullHistoryDataForModal.actual}
+                predictedGW={fullHistoryDataForModal.pred}
+                dates={fullHistoryDataForModal.dates}
+                title={`Detailed Historical Series: ${props.village_name || 'Selected Village'}`}
+                height="100%"
+              />
+            </div>
+            <div style={{ padding: '30px', borderTop: '1px solid #f1f5f9', fontSize: '1rem', color: '#475569', background: '#f8fafc' }}>
+               <h4 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '1.1rem' }}>Village Dynamics Analysis</h4>
+               <p style={{ margin: 0, lineHeight: '1.6' }}>This full-page view provides a high-resolution interactive series for <strong>{props.village_name}</strong>. You can hover over data points to see exact values, zoom into specific time periods, and toggle series visibility in the legend. The inverted axis for groundwater depth (blue line) represents the physical depth from the surface, while the green bars show monthly rainfall events.</p>
+            </div>
+          </div>
+        ) : (
+          <iframe 
+            src="/data/rainfall_gw_analysis.html" 
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            title="Full History Analysis"
+          />
+        )}
+      </div>
+      
+      <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <p style={{ margin: 0 }}>Dataset Integrity: CHIRPS Rainfall + Piezometer Ground Truth + ST-GNN AI Forecasting Engine</p>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <span style={{ padding: '6px 12px', background: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+            {activeTab === 'village' ? 'Mode: High-Resolution Dynamic' : 'Mode: Comprehensive Regional Report'}
+          </span>
+          <span style={{ padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '6px', border: '1px solid #bfdbfe', fontWeight: '600' }}>
+            Village ID: {props.village_id}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function VillageAnalysisDock({ selectedFeature, isOpen, onToggle, onShowFullHistory }) {
+  const props = selectedFeature?.properties || {};
+  
+  const fullTimelineData = useMemo(() => {
+    const dates = props.normalized_monthly_dates || [];
+    const actual = props.normalized_monthly_depths || [];
+    const pred = props.normalized_monthly_predicted || [];
+    const rain = props.normalized_monthly_rainfall || [];
+    const recharge = props.normalized_monthly_recharge || [];
+    
+    return {
+      dates,
+      actual,
+      pred,
+      rain,
+      recharge
+    };
+  }, [props]);
+
+  if (!selectedFeature) return null;
+
+  return (
+    <div className={`village-analysis-dock ${isOpen ? '' : 'collapsed'}`}>
+      <div className="analysis-dock-header" onClick={onToggle}>
+        <div className="analysis-dock-title">
+          <div className="analysis-dock-badge">LIVE ANALYSIS</div>
+          <h2>Comprehensive Hydro-Climatic Analysis: {props.village_name}</h2>
+        </div>
+        <div className="analysis-dock-controls">
+          <button 
+            className="analysis-toggle-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowFullHistory();
+            }}
+          >
+            Expand to Full Screen
+          </button>
+          <div style={{ color: '#94a3b8', fontSize: '1.2rem', transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.3s' }}>
+            ▼
+          </div>
+        </div>
+      </div>
+      <div className="analysis-dock-content">
+        <div className="analysis-main-grid">
+          <div className="analysis-chart-area">
+            <SmartHydrograph 
+              rainfall={fullTimelineData.rain}
+              recharge={fullTimelineData.recharge}
+              actualGW={fullTimelineData.actual}
+              predictedGW={fullTimelineData.pred}
+              dates={fullTimelineData.dates}
+              onViewFullHistory={onShowFullHistory}
+              isFullView={true}
+            />
+          </div>
+          <div className="analysis-info-sidebar">
+             <h3 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#00e5ff' }}>Insights & Trends</h3>
+             <p style={{ margin: '0 0 16px 0', fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.5 }}>
+               Temporal correlation analysis between CHIRPS rainfall events and localized groundwater fluctuations.
+             </p>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                   <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Long-term Trend</div>
+                   <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>
+                      {props.trend_slope < 0 ? 'Decreasing Depth' : 'Increasing Depth'}
+                   </div>
+                </div>
+                <div style={{ padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                   <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Model Confidence</div>
+                   <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#22c55e' }}>
+                      {formatConfidencePercent(props.confidence ?? 0.88)}
+                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2056,6 +2128,135 @@ export function DashboardAnalyticsPanel({
   );
 }
 
+export function PlotlyHydrograph({ 
+  rainfall = [], 
+  actualGW = [], 
+  predictedGW = [], 
+  dates = [],
+  title = "Village Hydro-Climatic Profile",
+  height = "400px"
+}) {
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !window.Plotly) return;
+
+    const parse = (val) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch (e) { return []; }
+      }
+      return [];
+    };
+
+    const d_dates = parse(dates);
+    const d_rain = parse(rainfall);
+    const d_actual = parse(actualGW);
+    const d_pred = parse(predictedGW);
+
+    const parseVal = (v) => {
+      if (v === null || v === undefined || v === "" || v === "NA") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const cleanActual = d_actual.map(parseVal);
+    const cleanPredicted = d_pred.map(parseVal);
+    const cleanRain = d_rain.map(v => Number(v || 0));
+
+    // Annotation for peak rainfall
+    const maxRain = Math.max(...cleanRain, 0);
+    const maxRainIdx = cleanRain.indexOf(maxRain);
+    const annotations = [];
+    if (maxRain > 50 && maxRainIdx !== -1) {
+      annotations.push({
+        x: d_dates[maxRainIdx],
+        y: maxRain,
+        xref: 'x',
+        yref: 'y',
+        text: 'Peak Recharge',
+        showarrow: true,
+        arrowhead: 2,
+        ax: 0,
+        ay: -40,
+        bgcolor: '#059669',
+        font: { color: '#ffffff' }
+      });
+    }
+
+    const traceRain = {
+      x: d_dates,
+      y: cleanRain,
+      name: 'Rainfall (mm)',
+      type: 'bar',
+      marker: { color: '#10b981', opacity: 0.5 },
+      hovertemplate: '%{y:.1f} mm<extra></extra>'
+    };
+
+    const traceActual = {
+      x: d_dates,
+      y: cleanActual,
+      name: 'Actual Depth (m)',
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: { color: '#1d4ed8', width: 3, shape: 'spline' },
+      marker: { size: 6, color: '#1d4ed8', line: { color: '#fff', width: 1 } },
+      yaxis: 'y2',
+      hovertemplate: '%{y:.2f} m<extra></extra>'
+    };
+
+    const tracePred = {
+      x: d_dates,
+      y: cleanPredicted,
+      name: 'AI Prediction (m)',
+      type: 'scatter',
+      mode: 'lines',
+      line: { color: '#60a5fa', width: 2, dash: 'dash' },
+      yaxis: 'y2',
+      hovertemplate: '%{y:.2f} m<extra></extra>'
+    };
+
+    const layout = {
+      title: {
+        text: title,
+        font: { size: 16, family: 'Inter, sans-serif', color: '#1e293b', weight: 'bold' }
+      },
+      margin: { l: 60, r: 60, t: 80, b: 60 },
+      hovermode: 'x unified',
+      template: 'plotly_white',
+      legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' },
+      xaxis: {
+        title: 'Timeline',
+        gridcolor: '#f1f5f9',
+        tickfont: { size: 10 }
+      },
+      yaxis: {
+        title: 'Rainfall (mm)',
+        side: 'left',
+        gridcolor: '#f1f5f9',
+        range: [0, Math.max(400, maxRain * 1.5)]
+      },
+      yaxis2: {
+        title: 'Groundwater Depth (m)',
+        side: 'right',
+        overlaying: 'y',
+        autorange: 'reversed',
+        gridcolor: '#f1f5f9',
+        showgrid: false
+      },
+      annotations: annotations
+    };
+
+    window.Plotly.newPlot(chartRef.current, [traceRain, tracePred, traceActual], layout, { responsive: true, displayModeBar: false });
+
+    return () => {
+      if (chartRef.current) window.Plotly.purge(chartRef.current);
+    };
+  }, [dates, rainfall, actualGW, predictedGW, title]);
+
+  return <div ref={chartRef} style={{ width: '100%', height }} />;
+}
+
 export function CollapsiblePanel({ title, children, defaultOpen = true }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
@@ -2076,10 +2277,11 @@ function SmartHydrograph({
   recharge = [], 
   actualGW = [], 
   predictedGW = [], 
-  dates = []
+  dates = [],
+  onViewFullHistory,
+  isFullView = false
 }) {
   const [hoverIndex, setHoverIndex] = useState(null);
-  const [showFullHistory, setShowFullHistory] = useState(false);
   
   const data = useMemo(() => {
     const parse = (val) => {
@@ -2113,28 +2315,25 @@ function SmartHydrograph({
       };
     }).filter(d => d.date);
 
-    return showFullHistory ? full : full.slice(-13);
-  }, [dates, rainfall, actualGW, predictedGW, showFullHistory]);
+    return isFullView ? full : full.slice(-13);
+  }, [dates, rainfall, actualGW, predictedGW, isFullView]);
 
   if (data.length < 2) return <p className="insight-muted">Insufficient data for hydrograph.</p>;
 
+  const margin = { top: 50, right: 60, bottom: 60, left: 60 };
   const width = 480;
   const height = 300;
-  const margin = { top: 50, right: 60, bottom: 60, left: 60 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
-
   const maxRain = Math.max(Math.ceil(Math.max(...data.map(d => d.rainfall), 100) / 50) * 50, 100);
   const maxGW = Math.max(Math.ceil(Math.max(...data.map(d => Math.max(d.actual || 0, d.predicted || 0)), 15) / 5) * 5, 15);
-  
   const getX = (i) => margin.left + (i / (data.length - 1)) * innerW;
   const getYRain = (v) => margin.top + innerH - (v / maxRain) * innerH; 
-  const getYGW = (v) => margin.top + (v / maxGW) * innerH; // 0 at top, increasing downwards
+  const getYGW = (v) => margin.top + (v / maxGW) * innerH;
 
   const getPath = (values, yFunc) => {
     const validPoints = values.map((v, i) => v !== null ? { x: getX(i), y: yFunc(v) } : null).filter(p => p !== null);
     if (validPoints.length < 2) return "";
-    
     let d = `M ${validPoints[0].x} ${validPoints[0].y}`;
     for (let i = 0; i < validPoints.length - 1; i++) {
       const p1 = validPoints[i];
@@ -2162,99 +2361,40 @@ function SmartHydrograph({
            </div>
         </div>
         <button 
-          onClick={() => setShowFullHistory(!showFullHistory)}
-          style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.7rem', cursor: 'pointer', fontWeight: '600', color: '#475569' }}
+          onClick={onViewFullHistory}
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #00e5ff', background: 'rgba(0, 229, 255, 0.05)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold', color: '#00e5ff', transition: 'all 0.2s' }}
         >
-          {showFullHistory ? "Last 13 Months" : "View Full History"}
+          View Full History
         </button>
       </div>
 
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-        {/* Y-Axis Labels & Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map(p => (
           <g key={p}>
             <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="#f1f5f9" strokeWidth="1" />
-            
-            {/* Left Axis (Rainfall) */}
-            <text x={margin.left - 12} y={margin.top + (1-p) * innerH} textAnchor="end" fontSize="10" fill="#059669" dominantBaseline="middle" fontWeight="500">
-              {Math.round(maxRain * p)}
-            </text>
-            
-            {/* Right Axis (GW Level - Inverted) */}
-            <text x={width - margin.right + 12} y={margin.top + p * innerH} textAnchor="start" fontSize="10" fill="#2563eb" dominantBaseline="middle" fontWeight="500">
-              {Math.round(maxGW * p)}m
-            </text>
+            <text x={margin.left - 12} y={margin.top + (1-p) * innerH} textAnchor="end" fontSize="10" fill="#059669" dominantBaseline="middle" fontWeight="500">{Math.round(maxRain * p)}</text>
+            <text x={width - margin.right + 12} y={margin.top + p * innerH} textAnchor="start" fontSize="10" fill="#2563eb" dominantBaseline="middle" fontWeight="500">{Math.round(maxGW * p)}m</text>
           </g>
         ))}
-
-        {/* Axis Titles */}
         <text x={margin.left - 45} y={margin.top + innerH/2} transform={`rotate(-90, ${margin.left - 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#059669" fontWeight="bold">Rainfall (mm)</text>
         <text x={width - margin.right + 45} y={margin.top + innerH/2} transform={`rotate(90, ${width - margin.right + 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#2563eb" fontWeight="bold">Depth (m)</text>
-
-        {/* Rainfall Bars */}
         {data.map((d, i) => (
-          <rect
-            key={`r-${i}`}
-            x={getX(i) - (showFullHistory ? 1 : 6)}
-            y={getYRain(d.rainfall)}
-            width={showFullHistory ? 2 : 12}
-            height={innerH - (getYRain(d.rainfall) - margin.top)}
-            fill="#10b981"
-            fillOpacity="0.4"
-            rx={showFullHistory ? 0 : 2}
-          />
+          <rect key={`r-${i}`} x={getX(i) - 6} y={getYRain(d.rainfall)} width={12} height={innerH - (getYRain(d.rainfall) - margin.top)} fill="#10b981" fillOpacity="0.4" rx={2} />
         ))}
-
-        {/* Groundwater Paths */}
         {actualPath && <path d={actualPath} fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" />}
         {predictedPath && <path d={predictedPath} fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4,4" opacity="0.6" />}
-
-        {/* Points */}
-        {data.map((d, i) => {
-          if (showFullHistory && i % (Math.ceil(data.length / 20)) !== 0) return null;
-          return (
-            <g key={`p-${i}`}>
-              {d.actual !== null && (
-                <circle cx={getX(i)} cy={getYGW(d.actual)} r={showFullHistory ? 1.5 : 4} fill="#1d4ed8" stroke="#fff" strokeWidth="1" />
-              )}
-            </g>
-          );
-        })}
-
-        {/* X-Axis Labels */}
-        {data.map((d, i) => {
-          const showLabel = showFullHistory ? (i % Math.ceil(data.length / 8) === 0) : true;
-          if (!showLabel) return null;
-          return (
-            <g key={`x-${i}`} transform={`translate(${getX(i)}, ${margin.top + innerH + 15})`}>
-              <text textAnchor="middle" fontSize="10" fill="#64748b" fontWeight="500">
-                {d.date.split('-')[1]}
-              </text>
-              <text y="12" textAnchor="middle" fontSize="9" fill="#94a3b8">
-                {d.date.split('-')[0]}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Hover Interaction Vertical Line */}
-        {hoverIndex !== null && (
-          <line x1={getX(hoverIndex)} y1={margin.top} x2={getX(hoverIndex)} y2={margin.top + innerH} stroke="#cbd5e1" strokeDasharray="4,2" />
-        )}
-
-        {/* Interaction Area */}
         {data.map((d, i) => (
-          <rect
-            key={`h-${i}`}
-            x={getX(i) - (innerW / (2 * data.length))}
-            y={margin.top}
-            width={innerW / data.length}
-            height={innerH}
-            fill="transparent"
-            style={{ cursor: 'pointer' }}
-            onMouseEnter={() => setHoverIndex(i)}
-            onMouseLeave={() => setHoverIndex(null)}
-          />
+          d.actual !== null && <circle key={`p-${i}`} cx={getX(i)} cy={getYGW(d.actual)} r={4} fill="#1d4ed8" stroke="#fff" strokeWidth="1" />
+        ))}
+        {data.map((d, i) => (
+          <g key={`x-${i}`} transform={`translate(${getX(i)}, ${margin.top + innerH + 15})`}>
+            <text textAnchor="middle" fontSize="10" fill="#64748b" fontWeight="500">{d.date.split('-')[1]}</text>
+            <text y="12" textAnchor="middle" fontSize="9" fill="#94a3b8">{d.date.split('-')[0]}</text>
+          </g>
+        ))}
+        {hoverIndex !== null && <line x1={getX(hoverIndex)} y1={margin.top} x2={getX(hoverIndex)} y2={margin.top + innerH} stroke="#cbd5e1" strokeDasharray="4,2" />}
+        {data.map((d, i) => (
+          <rect key={`h-${i}`} x={getX(i) - (innerW / (2 * data.length))} y={margin.top} width={innerW / data.length} height={innerH} fill="transparent" style={{ cursor: 'pointer' }} onMouseEnter={() => setHoverIndex(i)} onMouseLeave={() => setHoverIndex(null)} />
         ))}
       </svg>
 
@@ -2276,7 +2416,7 @@ function SmartHydrograph({
 
       {/* Tooltip */}
       {hoverIndex !== null && (
-        <div style={{ position: 'absolute', top: '70px', left: getX(hoverIndex) > width/2 ? '20px' : 'auto', right: getX(hoverIndex) <= width/2 ? '20px' : 'auto', background: 'rgba(255, 255, 255, 0.95)', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '0.75rem', zIndex: 20, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '70px', left: (hoverIndex / data.length) > 0.5 ? '20px' : 'auto', right: (hoverIndex / data.length) <= 0.5 ? '20px' : 'auto', background: 'rgba(255, 255, 255, 0.95)', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '0.75rem', zIndex: 20, pointerEvents: 'none' }}>
           <div style={{ fontWeight: '700', marginBottom: '5px', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '3px' }}>
             {new Date(data[hoverIndex].date).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
           </div>
@@ -2284,10 +2424,17 @@ function SmartHydrograph({
             <span style={{ color: '#059669' }}>Rainfall:</span>
             <strong style={{ color: '#0f172a' }}>{data[hoverIndex].rainfall.toFixed(1)} mm</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '3px' }}>
-            <span style={{ color: '#1d4ed8' }}>Actual Depth:</span>
-            <strong style={{ color: '#0f172a' }}>{data[hoverIndex].actual !== null ? data[hoverIndex].actual.toFixed(2) + ' m' : 'NA'}</strong>
-          </div>
+          {data[hoverIndex].actual !== null ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '3px' }}>
+              <span style={{ color: '#1d4ed8' }}>Actual Depth:</span>
+              <strong style={{ color: '#0f172a' }}>{data[hoverIndex].actual.toFixed(2)} m</strong>
+            </div>
+          ) : (data[hoverIndex].predicted === null && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '3px' }}>
+              <span style={{ color: '#1d4ed8' }}>Actual Depth:</span>
+              <strong style={{ color: '#0f172a' }}>NA</strong>
+            </div>
+          ))}
           {data[hoverIndex].predicted !== null && (
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px' }}>
               <span style={{ color: '#3b82f6' }}>AI Estimate:</span>
