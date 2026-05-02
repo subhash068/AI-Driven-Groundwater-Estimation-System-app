@@ -1,0 +1,39 @@
+{
+  "run_id": "debc18d2-15da-4bc7-b07f-aed8d1ddebbe",
+  "data_version": "v1.0",
+  "model_version": "stgnn_xgb_v2",
+  "features_used": [
+    "gw_lag_1",
+    "gw_lag_2",
+    "gw_lag_3",
+    "weighted_groundwater_idw",
+    "average_groundwater_within_10km",
+    "nearest_piezometer_groundwater",
+    "pumping_data",
+    "nearby_groundwater_std_10km",
+    "distance_to_stream_km",
+    "distance_to_canal_km",
+    "rainfall_lag_3m",
+    "nearest_piezometer_distance_km",
+    "rainfall",
+    "rainfall_lag_1m",
+    "aquifer_type_enc",
+    "distance_to_tank_km",
+    "nearby_piezometer_count_10km",
+    "rainfall_6m_sum",
+    "rainfall_3m_sum",
+    "rainfall_lag_6m",
+    "seasonal_phase_enc",
+    "lulc_class_enc",
+    "rainfall_anomaly",
+    "effective_recharge",
+    "lag_availability"
+  ],
+  "train_regions": [],
+  "test_regions": [
+    "temporal_holdout_2024",
+    "spatial_kfold"
+  ],
+  "rmse": 2.0316467104333857,
+  "mae": 0.8081297379015597
+}

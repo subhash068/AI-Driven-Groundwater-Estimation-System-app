@@ -186,7 +186,7 @@ export const DISTRICT_HOVER_DATA = Object.entries(pumpingRowsByDistrict).reduce(
 }, {});
 
 export const INITIAL_VIEW_STATE = {
-  longitude: 79.74,
-  latitude: 15.91,
-  zoom: 6.5
+  longitude: 78.9629,
+  latitude: 22.5937,
+  zoom: 5
 };

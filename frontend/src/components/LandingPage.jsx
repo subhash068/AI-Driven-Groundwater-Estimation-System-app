@@ -27,8 +27,8 @@ function AnimatedCounter({ value, duration = 2000 }) {
   return <span>{displayValue.toLocaleString()}</span>;
 }
 
-function MiniMapPreview({ villages }) {
-  const center = [15.91, 79.74];
+function MiniMapPreview({ villages, stateBoundaryLayer }) {
+  const center = [22.5937, 78.9629];
   const previewFeatures = useMemo(() => {
     if (!villages) return null;
     return {
@@ -41,7 +41,7 @@ function MiniMapPreview({ villages }) {
     <div className="mini-map-glass h-full w-full">
       <MapContainer 
         center={center} 
-        zoom={6} 
+        zoom={4.5} 
         zoomControl={false} 
         dragging={false} 
         touchZoom={false} 
@@ -50,6 +50,12 @@ function MiniMapPreview({ villages }) {
         style={{ height: '100%', width: '100%', background: 'transparent' }}
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
+        {stateBoundaryLayer && (
+          <GeoJSON 
+            data={stateBoundaryLayer} 
+            style={{ color: "#ffffff", weight: 0.8, dashArray: "3, 3", fillOpacity: 0 }} 
+          />
+        )}
         {previewFeatures && (
           <GeoJSON 
             data={previewFeatures} 
@@ -215,7 +221,7 @@ export function LandingPage({ totalVillages, districtCount, onEnterDashboard, vi
           </div>
           
           <div className="hero-visual-container animate-fade-up delay-200">
-            <MiniMapPreview villages={villages} />
+            <MiniMapPreview villages={villages} stateBoundaryLayer={stateBoundaryLayer} />
           </div>
         </section>
 

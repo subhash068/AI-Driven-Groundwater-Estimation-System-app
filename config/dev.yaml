@@ -1,0 +1,11 @@
+environment: dev
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: password
+  db_name: groundwater_dev
+paths:
+  data_dir: data/
+  models_dir: output/models/
+  predictions_dir: output/predictions/

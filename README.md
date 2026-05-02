@@ -103,13 +103,32 @@ Government-grade starter platform for village-level groundwater estimation, fore
 - `frontend/public/farmer/`: mobile-first farmer portal
 - `infra/docker-compose.yml`: PostGIS + Redis + GeoServer local stack
 
+### Raw Data Bundles
+
+The project now consumes the following source archives from `data/raw/`:
+
+- `Village_Mandal_DEM_Soils_MITanks_Krishna.zip`: village boundaries, soils, and MI tank polygons
+- `Aquifers_Krishna.zip`: aquifer polygons
+- `GM_Krishna.zip`: geomorphology polygons
+- `GTWells_Krishna.zip`: bore-well inventory and derived well stats
+- `KrishnaLULC.zip`: 2011 and 2021 land-use / land-cover rasters
+- `K_DEM1.zip`: DEM raster and world file
+- `K_Canals.zip`, `K_Strms.zip`, `K_Drain.zip`, `K_Tanks.zip`: surface-water layers used for proximity features
+- `Pumping Data.xlsx` and `PzWaterLevel_2024.xlsx`: pumping and piezometer observations
+
+These bundles feed three main entry points:
+
+- `scripts/build_authoritative_krishna_data.py` builds the frontend-ready GeoJSON and summary files
+- `ml_pipeline/data/generate_dataset.py` and `ml_pipeline/training/run_pipeline.py` build model features and predictions
+- `model/pipeline.py` and `model/stage_data.py` keep the legacy CSV/GeoJSON workflow in sync
+
 ---
 
 ## Quick Start
 
 ### Groundwater AI Pipeline
 ```bash
-# 1) Stage Krishna source files into repo-local data/raw
+# 1) Stage Krishna source files into repo-local data/raw (optional if already present)
 python -m model.stage_data
 
 # 2) Build village-level features + XGBoost + Kriging outputs
@@ -117,7 +136,7 @@ python -m model.pipeline --kriging-strategy residual
 python -m model.pipeline --export
 
 # 3) Run backend API
-uvicorn backend.app.main:app --reload
+uvicorn backend.app.main:app --reload --reload-dir backend/app --reload-exclude patch.py
 
 # 4) Run frontend dashboard
 cd frontend
@@ -154,7 +173,7 @@ python -m backend.scripts.seed_user --username admin --full-name "System Admin" 
 
 ### 5) Run Backend API
 ```bash
-uvicorn backend.app.main:app --reload
+uvicorn backend.app.main:app --reload --reload-dir backend/app --reload-exclude patch.py
 ```
 
 ### 6) Build Training Dataset
@@ -316,4 +335,3 @@ Outputs:
 - `output/groundwater_predictions.csv`
 - `output/groundwater_model_metrics.csv`
 - `output/groundwater_map.html`
-

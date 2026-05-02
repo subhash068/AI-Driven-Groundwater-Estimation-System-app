@@ -271,7 +271,7 @@ export default function App({ navigate, pathname }) {
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
   const [is3D, setIs3D] = useState(false);
   const [showLulc, setShowLulc] = useState(false);
-  const [showGroundwaterLevels, setShowGroundwaterLevels] = useState(true);
+  const [showGroundwaterLevels, setShowGroundwaterLevels] = useState(false);
   const [showPiezometers, setShowPiezometers] = useState(false);
   const [showWells, setShowWells] = useState(false);
   const [showConfidenceIntervals, setShowConfidenceIntervals] = useState(false);
@@ -280,6 +280,12 @@ export default function App({ navigate, pathname }) {
   const [showStateBoundary, setShowStateBoundary] = useState(true);
   const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(["Severe drop", "Moderate drop"]);
   const [selectedLulcClasses, setSelectedLulcClasses] = useState(LULC_CLASS_KEYS);
+  const [showRainfall, setShowRainfall] = useState(false);
+  const [showCanals, setShowCanals] = useState(false);
+  const [showStreams, setShowStreams] = useState(false);
+  const [showDrains, setShowDrains] = useState(false);
+  const [showTanks, setShowTanks] = useState(false);
+  const [showDemSurface, setShowDemSurface] = useState(false);
   const [baseMapTheme, setBaseMapTheme] = useState("satellite");
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -308,6 +314,7 @@ export default function App({ navigate, pathname }) {
   });
 
   const [activeLayer, setActiveLayer] = useState(1);
+  const [mapMode, setMapMode] = useState("prediction");
 
 
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -1054,7 +1061,7 @@ export default function App({ navigate, pathname }) {
   if (!isDashboardRoute) {
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <Home onEnterDashboard={openDashboard} villages={villages} />
+        <Home onEnterDashboard={openDashboard} villages={villages} stateBoundaryLayer={stateBoundaryLayer} />
       </Suspense>
     );
   }
@@ -1089,6 +1096,8 @@ export default function App({ navigate, pathname }) {
           setIs3D={setIs3D}
           showLulc={showLulc}
           setShowLulc={setShowLulc}
+          mapMode={mapMode}
+          setMapMode={setMapMode}
           showGroundwaterLevels={showGroundwaterLevels}
           setShowGroundwaterLevels={setShowGroundwaterLevels}
           showConfidenceIntervals={showConfidenceIntervals}
@@ -1105,6 +1114,18 @@ export default function App({ navigate, pathname }) {
           setShowMandalBoundaries={setShowMandalBoundaries}
           showStateBoundary={showStateBoundary}
           setShowStateBoundary={setShowStateBoundary}
+          showRainfall={showRainfall}
+          setShowRainfall={setShowRainfall}
+          showCanals={showCanals}
+          setShowCanals={setShowCanals}
+          showStreams={showStreams}
+          setShowStreams={setShowStreams}
+          showDrains={showDrains}
+          setShowDrains={setShowDrains}
+          showTanks={showTanks}
+          setShowTanks={setShowTanks}
+          showDemSurface={showDemSurface}
+          setShowDemSurface={setShowDemSurface}
           selectedLulcClasses={selectedLulcClasses}
           setSelectedLulcClasses={setSelectedLulcClasses}
           highRiskOnly={highRiskOnly}
@@ -1169,6 +1190,7 @@ export default function App({ navigate, pathname }) {
                 filteredGeojson={dashboardGeojson}
                 monthIndex={monthIndex}
                 is3D={is3D}
+            mapMode={mapMode}
                 onVillageClick={handleVillageClick}
                 onDistrictHover={setHoveredDistrict}
                 selectedFeature={selectedVillageFeature}
@@ -1186,6 +1208,12 @@ export default function App({ navigate, pathname }) {
                 stateBoundaryLayer={stateBoundaryLayer}
                 selectedLulcClasses={selectedLulcClasses}
                 showRecharge={showRecharge}
+                showRainfall={showRainfall}
+                showCanals={showCanals}
+                showStreams={showStreams}
+                showDrains={showDrains}
+                showTanks={showTanks}
+                showDemSurface={showDemSurface}
                 showAquifer={showAquifer}
                 showSoil={showSoil}
                 showModelIdwDiff={showModelIdwDiff}
@@ -1210,6 +1238,8 @@ export default function App({ navigate, pathname }) {
                     aquiferAnalytics={aquiferAnalytics}
                     datasetAnalytics={datasetAnalytics}
                     showPiezometers={showPiezometers}
+                    datasetRowsById={datasetRowsById}
+                    datasetRowsByLocation={datasetRowsByLocation}
                   />
                   <VillageActionPanel
                     selectedFeature={selectedVillageFeature}

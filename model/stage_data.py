@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
 import shutil
 
-SOURCE_DIR = Path(r"C:/Users/windows-11/Desktop/Document from A Momin")
+LEGACY_SOURCE_DIR = Path(r"C:/Users/windows-11/Desktop/Document from A Momin")
 TARGET_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
+ENV_SOURCE_DIR = os.getenv("GROUNDWATER_SOURCE_DIR")
+CONFIGURED_SOURCE_DIR = Path(ENV_SOURCE_DIR).expanduser() if ENV_SOURCE_DIR else None
 
 FILE_NAMES = [
     "Aquifers_Krishna.zip",
@@ -21,15 +24,40 @@ FILE_NAMES = [
 ]
 
 
+def _source_dirs() -> list[Path]:
+    candidates: list[Path] = []
+    if CONFIGURED_SOURCE_DIR is not None:
+        candidates.append(CONFIGURED_SOURCE_DIR)
+    candidates.append(LEGACY_SOURCE_DIR)
+    return [path for path in candidates if path.exists()]
+
+
+def _find_source_file(name: str) -> Path | None:
+    for source_dir in _source_dirs():
+        candidate = source_dir / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def stage() -> list[Path]:
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
     copied: list[Path] = []
     for name in FILE_NAMES:
-        src = SOURCE_DIR / name
-        if not src.exists():
-            continue
         dst = TARGET_DIR / name
-        if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+        src = _find_source_file(name)
+        if dst.exists():
+            if src is not None and src.resolve() != dst.resolve():
+                try:
+                    if src.stat().st_mtime > dst.stat().st_mtime:
+                        shutil.copy2(src, dst)
+                except OSError:
+                    shutil.copy2(src, dst)
+            copied.append(dst)
+            continue
+        if src is None:
+            continue
+        if src.resolve() != dst.resolve():
             shutil.copy2(src, dst)
         copied.append(dst)
     return copied

@@ -9,7 +9,7 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from ml.generate_dataset import load_villages
+from ml_pipeline.data.generate_dataset import load_villages
 from model.config import AREA_CRS, DEFAULT_CRS
 from model.pipeline import OrdinaryKriging
 from model.train_from_csv import _prepare_training_frame

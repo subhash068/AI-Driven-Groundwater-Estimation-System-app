@@ -3,7 +3,7 @@ const API_BASE_URL =
     import.meta?.env?.VITE_API_BASE_URL) ||
   "http://127.0.0.1:8000";
 
-export const LOCAL_DATA_ONLY_MODE = false;
+export const LOCAL_DATA_ONLY_MODE = true;
 
 const apiStatusState = {
   usingFallback: false,
@@ -79,6 +79,32 @@ async function readGeoJsonFallback(path) {
   const payload = await res.json();
   if (payload?.type === "FeatureCollection") return payload;
   return { type: "FeatureCollection", features: [] };
+}
+
+async function getLocalVillageFeature(villageId) {
+  const numericId = Number(villageId);
+  const sources = [
+    "/data/map_data_predictions.geojson",
+    "/data/map_data_predictions_ntr.geojson"
+  ];
+  for (const path of sources) {
+    try {
+      const payload = await readGeoJsonFallback(path);
+      const features = Array.isArray(payload?.features) ? payload.features : [];
+      const match = features.find(
+        (feature) => Number(feature?.properties?.village_id) === numericId
+      );
+      if (match) return match;
+    } catch {
+      // try next source
+    }
+  }
+  return null;
+}
+
+function toNumberOrNull(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function featureCollectionToList(collection) {
@@ -161,19 +187,82 @@ export const api = {
   },
 
   async getVillageStatus(villageId) {
+    if (LOCAL_DATA_ONLY_MODE) {
+      const feature = await getLocalVillageFeature(villageId);
+      const props = feature?.properties || {};
+      return {
+        village_id: Number(villageId),
+        current_depth:
+          toNumberOrNull(props.current_depth) ??
+          toNumberOrNull(props.predicted_groundwater_level) ??
+          toNumberOrNull(props.depth),
+        confidence_score:
+          toNumberOrNull(props.confidence_score) ??
+          toNumberOrNull(props.confidence) ??
+          0,
+        anomaly_flags: Array.isArray(props.anomaly_flags) ? props.anomaly_flags : [],
+        forecast_3_month: Array.isArray(props.forecast_3_month) ? props.forecast_3_month : [],
+        observed_series: Array.isArray(props.observed_series) ? props.observed_series : [],
+        trend_direction: props.trend_direction || props.trend || "Stable",
+        risk_level: props.risk_level || "warning",
+        recommended_actions: Array.isArray(props.recommended_actions) ? props.recommended_actions : []
+      };
+    }
     return requestJson(`/get-village-status/${Number(villageId)}`);
   },
 
   async getPrediction(villageId, options = {}) {
+    if (LOCAL_DATA_ONLY_MODE) {
+      const feature = await getLocalVillageFeature(villageId);
+      const props = feature?.properties || {};
+      return {
+        village_id: Number(villageId),
+        predicted_groundwater_level:
+          toNumberOrNull(props.predicted_groundwater_level) ??
+          toNumberOrNull(props.groundwater_estimate) ??
+          toNumberOrNull(props.depth),
+        confidence_score:
+          toNumberOrNull(props.confidence_score) ??
+          toNumberOrNull(props.confidence) ??
+          0,
+        risk_level: props.risk_level || "warning",
+        draft_index: toNumberOrNull(props.draft_index) ?? 0,
+        forecast_3_month: Array.isArray(props.forecast_3_month) ? props.forecast_3_month : [],
+        forecast_yearly: Array.isArray(props.forecast_yearly) ? props.forecast_yearly : [],
+        observed_series: Array.isArray(props.observed_series) ? props.observed_series : [],
+        recommended_actions: Array.isArray(props.recommended_actions) ? props.recommended_actions : [],
+        anomaly_flag: Boolean(props.anomaly_flag),
+        anomaly_score: toNumberOrNull(props.anomaly_score) ?? 0,
+        mode: "local"
+      };
+    }
     const mode = String(options.mode || "batch");
     return requestJson(`/predict?village_id=${Number(villageId)}&mode=${encodeURIComponent(mode)}`);
   },
 
   async getVillageForecast(villageId) {
+    if (LOCAL_DATA_ONLY_MODE) {
+      const feature = await getLocalVillageFeature(villageId);
+      const props = feature?.properties || {};
+      return {
+        village_id: Number(villageId),
+        model_name: props.model_name || "local-static",
+        risk_level: props.risk_level || "warning",
+        forecast_3_month: Array.isArray(props.forecast_3_month) ? props.forecast_3_month : [],
+        forecast_yearly: Array.isArray(props.forecast_yearly) ? props.forecast_yearly : []
+      };
+    }
     return requestJson(`/village/${Number(villageId)}/forecast`);
   },
 
   async getStGnnPrediction(villageId) {
+    if (LOCAL_DATA_ONLY_MODE) {
+      const feature = await getLocalVillageFeature(villageId);
+      return feature?.properties || {
+        village_id: Number(villageId),
+        groundwater_level: null
+      };
+    }
     try {
       return await requestJson(`/api/groundwater/${Number(villageId)}`);
     } catch {
@@ -182,6 +271,9 @@ export const api = {
   },
 
   async simulateGroundwater(payload) {
+    if (LOCAL_DATA_ONLY_MODE) {
+      return { type: "FeatureCollection", features: [] };
+    }
     return requestJson("/api/groundwater/simulate", {
       method: "POST",
       body: JSON.stringify(payload || {})

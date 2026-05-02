@@ -1,5 +1,6 @@
 import React from 'react';
 import { CollapsiblePanel } from './UI';
+import MapLayerController from './MapLayerController';
 import AquiferScene from '../AquiferScene';
 
 const LULC_CLASS_OPTIONS = [
@@ -54,6 +55,18 @@ export function Sidebar({
   setShowAquifer,
   showSoil,
   setShowSoil,
+  showRainfall,
+  setShowRainfall,
+  showCanals,
+  setShowCanals,
+  showStreams,
+  setShowStreams,
+  showDrains,
+  setShowDrains,
+  showTanks,
+  setShowTanks,
+  showDemSurface,
+  setShowDemSurface,
   showModelIdwDiff,
   setShowModelIdwDiff,
   showErrorMap,
@@ -69,10 +82,12 @@ export function Sidebar({
   simulationError,
   isOpen,
   baseMapTheme,
-  setBaseMapTheme
+  setBaseMapTheme,
+  mapMode,
+  setMapMode
 }) {
-  const { state, district, mandal, villageName } = filters;
-  const { stateOptions, districtOptions, mandalOptions, villageOptions } = options;
+  const { state, district, mandal, villageName } = filters || {};
+  const { stateOptions = [], districtOptions = [], mandalOptions = [], villageOptions = [] } = options || {};
   const activeDistrictData = hoveredDistrict ? districtHoverData?.[hoveredDistrict] : null;
   const comparisonDistrict = hoveredDistrict
     ? Object.keys(districtHoverData || {}).find((districtName) => districtName !== hoveredDistrict)
@@ -83,11 +98,10 @@ export function Sidebar({
 
   const toggleLulcClass = (classKey) => {
     setSelectedLulcClasses((prev) => {
-      const current = Array.isArray(prev) ? prev : [];
-      if (current.includes(classKey)) {
-        return current.filter((k) => k !== classKey);
-      }
-      return [...current, classKey];
+      const next = new Set(prev);
+      if (next.has(classKey)) next.delete(classKey);
+      else next.add(classKey);
+      return Array.from(next);
     });
   };
 
@@ -112,40 +126,72 @@ export function Sidebar({
         </div>
       ) : (
         <>
-          <CollapsiblePanel title="District and Village" defaultOpen={true} key={`district-${panelKey}`}>
+          <div className="sidebar-priority-controls" style={{ 
+            marginBottom: '20px', 
+            padding: '4px 0 16px', 
+            borderBottom: '1px solid rgba(0, 229, 255, 0.1)' 
+          }}>
+            <MapLayerController mode={mapMode} setMode={setMapMode} />
+            
+            <div className="panel-kicker" style={{ marginTop: '16px', marginBottom: '8px' }}>Base Map Theme</div>
+            <select
+              value={baseMapTheme}
+              onChange={(e) => setBaseMapTheme(e.target.value)}
+              className="sidebar-select-premium"
+              style={{ 
+                width: '100%',
+                padding: '10px 12px', 
+                borderRadius: '8px', 
+                background: 'rgba(15, 23, 42, 0.6)', 
+                color: '#fff', 
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="satellite">Satellite (Esri Imagery)</option>
+              <option value="street">Street Map (OSM)</option>
+              <option value="voyager">Voyager (Carto Light)</option>
+            </select>
+          </div>
+
+          <CollapsiblePanel title="Location Filters" defaultOpen={true} key={`filters-${panelKey}`}>
             <label>
               State
               <select
-                value={state}
-                onChange={(e) => onFilterChange('state', e.target.value)}
+                value={state || ""}
+                onChange={(e) => onFilterChange("state", e.target.value)}
               >
                 <option value="">All States</option>
-                {stateOptions.map((item) => (
-                  <option key={item} value={item}>{item}</option>
+                {stateOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             </label>
             <label>
               District
               <select
-                value={district}
-                onChange={(e) => onFilterChange('district', e.target.value)}
+                value={district || ""}
+                onChange={(e) => onFilterChange("district", e.target.value)}
                 disabled={!state}
+                style={{ opacity: !state ? 0.5 : 1, cursor: !state ? "not-allowed" : "pointer" }}
               >
-                <option value="">{state ? "All Districts" : "Select state first"}</option>
-                {districtOptions.map((item) => (
-                  <option key={item} value={item}>{item}</option>
+                <option value="">All Districts</option>
+                {districtOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
             </label>
             <label>
               Mandal
               <select
-                value={mandal}
-                onChange={(e) => onFilterChange('mandal', e.target.value)}
+                value={mandal || ""}
+                onChange={(e) => onFilterChange("mandal", e.target.value)}
                 disabled={!district}
+                style={{ opacity: !district ? 0.5 : 1, cursor: !district ? "not-allowed" : "pointer" }}
               >
-                <option value="">{district ? "All Mandals" : "Select district first"}</option>
+                <option value="">All Mandals</option>
                 {mandalOptions.map((item) => (
                   <option key={`${item.district}-${item.value}`} value={item.value}>{item.label}</option>
                 ))}
@@ -153,10 +199,11 @@ export function Sidebar({
             </label>
             <label>
               Village
-              <select 
-                value={villageName} 
-                onChange={(e) => onFilterChange('villageName', e.target.value)}
+              <select
+                value={villageName || ""}
+                onChange={(e) => onFilterChange("villageName", e.target.value)}
                 disabled={!mandal}
+                style={{ opacity: !mandal ? 0.5 : 1, cursor: !mandal ? "not-allowed" : "pointer" }}
               >
                 <option value="">{mandal ? "All Villages" : "Select mandal first"}</option>
                 {villageOptions.map((item) => (
@@ -167,107 +214,6 @@ export function Sidebar({
           </CollapsiblePanel>
 
           <CollapsiblePanel title="Layer Toggles" defaultOpen={true} key={`layers-${panelKey}`}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
-              Base Map Theme
-              <select
-                value={baseMapTheme}
-                onChange={(e) => setBaseMapTheme(e.target.value)}
-                style={{ padding: '6px', borderRadius: '4px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}
-              >
-                <option value="satellite">Satellite (Esri Imagery)</option>
-                <option value="street">Street Map (OSM)</option>
-                <option value="voyager">Voyager (Carto Light)</option>
-                <option value="dark">Dark Theme (Carto Dark)</option>
-              </select>
-            </label>
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '12px 0' }}></div>
-            <label className="toggle">
-              <input type="checkbox" checked={is3D} onChange={() => setIs3D(!is3D)} />
-              3D View
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showGroundwaterLevels}
-                onChange={() => setShowGroundwaterLevels(!showGroundwaterLevels)}
-              />
-              Groundwater Levels
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showConfidenceIntervals}
-                onChange={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
-              />
-              GNN Uncertainty
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showLulc}
-                onChange={() => setShowLulc(!showLulc)}
-              />
-              LULC
-            </label>
-            <label className="toggle" title="Groundwater anomaly detection layer">
-              <input
-                type="checkbox"
-                checked={showAnomalies}
-                onChange={() => setShowAnomalies(!showAnomalies)}
-                aria-label="Groundwater anomaly detection layer"
-              />
-              Anomalies
-            </label>
-            {showAnomalies && (
-              <div className="anomaly-severity-filter">
-                <div className="anomaly-filter-actions">
-                  <button
-                    type="button"
-                    className="anomaly-filter-btn anomaly-filter-btn-critical"
-                    onClick={() => setSelectedAnomalyTypes(["Severe drop"])}
-                  >
-                    Show Critical Only
-                  </button>
-                  <button
-                    type="button"
-                    className="anomaly-filter-btn"
-                    onClick={() => setSelectedAnomalyTypes(["Severe drop", "Moderate drop", "Normal", "Rise"])}
-                  >
-                    Reset
-                  </button>
-                </div>
-                <label className="toggle anomaly-filter-toggle">
-                  <input
-                    type="checkbox"
-                    checked={selectedAnomalyTypes.length === 4}
-                    onChange={(event) => {
-                      setSelectedAnomalyTypes(
-                        event.target.checked ? ["Severe drop", "Moderate drop", "Normal", "Rise"] : []
-                      );
-                    }}
-                  />
-                  All
-                </label>
-                <div className="anomaly-type-grid">
-                  {["Severe drop", "Moderate drop", "Normal", "Rise"].map((type) => (
-                    <label key={type} className="toggle anomaly-filter-toggle">
-                      <input
-                        type="checkbox"
-                        checked={selectedAnomalyTypes.includes(type)}
-                        onChange={() => {
-                          setSelectedAnomalyTypes((current) =>
-                            current.includes(type)
-                              ? current.filter((item) => item !== type)
-                              : [...current, type]
-                          );
-                        }}
-                      />
-                      {type}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
             <label className="toggle">
               <input
                 type="checkbox"
@@ -287,10 +233,84 @@ export function Sidebar({
             <label className="toggle">
               <input
                 type="checkbox"
+                checked={showRainfall}
+                onChange={() => setShowRainfall(!showRainfall)}
+              />
+              Rainfall Map
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
                 checked={showSoil}
                 onChange={() => setShowSoil(!showSoil)}
               />
               Soil Types
+            </label>
+
+            <div style={{ marginTop: '12px', marginBottom: '6px', color: 'rgba(148, 163, 184, 0.9)', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Surface Water and Terrain
+            </div>
+            
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showCanals}
+                onChange={() => setShowCanals(!showCanals)}
+              />
+              Canals
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showStreams}
+                onChange={() => setShowStreams(!showStreams)}
+              />
+              Streams
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showDrains}
+                onChange={() => setShowDrains(!showDrains)}
+              />
+              Drains
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showTanks}
+                onChange={() => setShowTanks(!showTanks)}
+              />
+              Tanks/Water Bodies
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showDemSurface}
+                onChange={() => setShowDemSurface(!showDemSurface)}
+              />
+              Terrain (DEM)
+            </label>
+
+            <div style={{ marginTop: '12px', marginBottom: '6px', color: 'rgba(148, 163, 184, 0.9)', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Analysis Layers
+            </div>
+
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showGroundwaterLevels}
+                onChange={() => setShowGroundwaterLevels(!showGroundwaterLevels)}
+              />
+              Groundwater Levels
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={showConfidenceIntervals}
+                onChange={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
+              />
+              Confidence Intervals
             </label>
             <label className="toggle" title="Difference between Model and IDW baseline">
               <input
@@ -330,30 +350,6 @@ export function Sidebar({
               />
               Wells
             </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showStateBoundary}
-                onChange={() => setShowStateBoundary(!showStateBoundary)}
-              />
-              State Boundary
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showDistrictBoundaries}
-                onChange={() => setShowDistrictBoundaries(!showDistrictBoundaries)}
-              />
-              District Boundaries
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={showMandalBoundaries}
-                onChange={() => setShowMandalBoundaries(!showMandalBoundaries)}
-              />
-              Mandal Boundaries
-            </label>
           </CollapsiblePanel>
 
           {showLulc && (
@@ -383,128 +379,56 @@ export function Sidebar({
 
           {is3D && (
             <CollapsiblePanel title="Aquifer Geometry" defaultOpen={false} key={`aquifer-${panelKey}`}>
-              <div className="aquifer-panel" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
+              <div className="aquifer-panel">
+                <h3>Aquifer Scene (3D)</h3>
                 <div className="aquifer-scene">
-                  <AquiferScene
-                    weatheredDepth={Number(selectedFeature?.properties?.weathered_rock || 10)}
-                    fracturedDepth={Number(selectedFeature?.properties?.fractured_rock || 18)}
-                  />
+                  <AquiferScene />
                 </div>
               </div>
             </CollapsiblePanel>
           )}
 
-          {hoveredDistrict && activeDistrictData && (
+          {hoveredDistrict && (
             <CollapsiblePanel title="Hover Insights" defaultOpen={true} key={`hover-${panelKey}`}>
-              <div className="district-hover-card" style={{ background: 'transparent', border: 'none', padding: 0 }}>
-                <h3 style={{ fontSize: '1rem', color: '#fff', marginBottom: '8px' }}>{hoveredDistrict}</h3>
-                {activeDistrictData.summary && (
+              <div className="district-hover-card">
+                <h3>{hoveredDistrict}</h3>
+                <p className="district-hover-source">Dynamic Regional Analysis</p>
+
+                {activeDistrictData && (
                   <>
-                    <p className="district-hover-source">{activeDistrictData.summary.source}</p>
                     <div className="district-hover-stats">
                       <div>
-                        <strong>{activeDistrictData.summary.villageCount}</strong>
-                        <span>Villages</span>
+                        <strong>{activeDistrictData.pumping?.recordCount || 0}</strong>
+                        <span>Pumping Records</span>
                       </div>
                       <div>
-                        <strong>
-                          {activeDistrictData.summary.avgDepth !== null
-                            ? `${activeDistrictData.summary.avgDepth}m`
-                            : "NA"}
-                        </strong>
-                        <span>Avg Depth</span>
-                      </div>
-                      <div>
-                        <strong>{activeDistrictData.summary.warningCount}</strong>
-                        <span>Warning Zones</span>
-                      </div>
-                      <div>
-                        <strong>{activeDistrictData.summary.criticalCount}</strong>
-                        <span>Critical Zones</span>
+                        <strong>{activeDistrictData.waterLevels?.avgWaterLevel || 0}m</strong>
+                        <span>Avg Level</span>
                       </div>
                     </div>
                   </>
                 )}
 
-                {activeDistrictData.pumping && activeDistrictData.waterLevels && (
+                {comparisonDistrictData?.pumping && comparisonDistrictData?.waterLevels && (
                   <>
                     <div className="district-hover-stats">
                       <div>
-                        <strong>{activeDistrictData.pumping.recordCount}</strong>
+                        <strong>{comparisonDistrictData.pumping.recordCount}</strong>
                         <span>Pumping Records</span>
                       </div>
                       <div>
-                        <strong>{activeDistrictData.waterLevels.avgWaterLevel}m</strong>
+                        <strong>{comparisonDistrictData.waterLevels.avgWaterLevel}m</strong>
                         <span>Avg Level</span>
                       </div>
-                    </div>
-                    <div className="district-hover-section" style={{ marginTop: '12px' }}>
-                      <strong style={{ fontSize: '0.8rem', color: '#94a3b8' }}>TOP PUMPING MANDALS</strong>
-                      <ul style={{ paddingLeft: '16px', marginTop: '4px', fontSize: '0.8rem' }}>
-                        {activeDistrictData.pumping.topMandals.map(m => (
-                          <li key={m.mandal}>{m.mandal}: {m.wells} wells</li>
-                        ))}
-                      </ul>
                     </div>
                   </>
                 )}
               </div>
-
-              {comparisonDistrict && comparisonDistrictData && (
-                <div className="district-hover-card" style={{ background: 'transparent', border: 'none', padding: 0, marginTop: '14px' }}>
-                  <h4 style={{ fontSize: '0.9rem', color: '#7dd3fc', marginBottom: '8px' }}>
-                    Compare with {comparisonDistrict}
-                  </h4>
-                  {comparisonDistrictData.summary && (
-                    <>
-                      <p className="district-hover-source">{comparisonDistrictData.summary.source}</p>
-                      <div className="district-hover-stats">
-                        <div>
-                          <strong>{comparisonDistrictData.summary.villageCount}</strong>
-                          <span>Villages</span>
-                        </div>
-                        <div>
-                          <strong>
-                            {comparisonDistrictData.summary.avgDepth !== null
-                              ? `${comparisonDistrictData.summary.avgDepth}m`
-                              : "NA"}
-                          </strong>
-                          <span>Avg Depth</span>
-                        </div>
-                        <div>
-                          <strong>{comparisonDistrictData.summary.warningCount}</strong>
-                          <span>Warning Zones</span>
-                        </div>
-                        <div>
-                          <strong>{comparisonDistrictData.summary.criticalCount}</strong>
-                          <span>Critical Zones</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {comparisonDistrictData.pumping && comparisonDistrictData.waterLevels && (
-                    <>
-                      <div className="district-hover-stats">
-                        <div>
-                          <strong>{comparisonDistrictData.pumping.recordCount}</strong>
-                          <span>Pumping Records</span>
-                        </div>
-                        <div>
-                          <strong>{comparisonDistrictData.waterLevels.avgWaterLevel}m</strong>
-                          <span>Avg Level</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </CollapsiblePanel>
           )}
         </>
       )}
       </div>
     </aside>
-
   );
 }

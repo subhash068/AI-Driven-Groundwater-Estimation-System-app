@@ -1,0 +1,21 @@
+{
+  "generated_from": "K_DEM1.zip",
+  "hillshade": "/data/krishna_dem_hillshade.png",
+  "contours": "/data/krishna_dem_contours.geojson",
+  "contour_interval_m": 25.0,
+  "bounds": [
+    [
+      15.70772150145,
+      80.00098138025
+    ],
+    [
+      17.153449406449997,
+      81.56340603675
+    ]
+  ],
+  "sampled_size": [
+    1600,
+    1480
+  ],
+  "source_crs": "EPSG:4326"
+}

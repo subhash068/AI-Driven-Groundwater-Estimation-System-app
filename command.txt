@@ -4,7 +4,7 @@ npm install react-leaflet-cluster --legacy-peer-deps
 
 
 backend :
-py -3.13 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+py -3.13 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir backend/app --reload-exclude patch.py
 
 cd frontend
 npm run dev -- --host 127.0.0.1 --port 5173
@@ -12,4 +12,3 @@ npm run dev -- --host 127.0.0.1 --port 5173
 dataset :
 python ml/generate_dataset.py --data-dir data/raw --out output/final_dataset.csv
 python -m model.train_from_csv --dataset output/final_dataset.csv --data-dir data/raw --kriging-strategy residual
-

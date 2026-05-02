@@ -36,53 +36,90 @@ const createClusterIcon = (cluster) => {
   });
 };
 
-function WellClusterLayer({ data }) {
+function WellClusterLayer({ data, onVillageClick }) {
   return (
     <MarkerClusterGroup 
       iconCreateFunction={createClusterIcon}
       showCoverageOnHover={false}
       chunkedLoading
     >
-      {data.map((v, i) => (
-        <Marker key={i} position={[v.lat, v.lng]} wellCount={v.well_count} />
-      ))}
+      {data.map((v, i) => {
+        const vid = v.feature?.properties?.village_id || v.id || i;
+        return (
+          <Marker 
+            key={`cluster-marker-${vid}`} 
+            position={[v.lat, v.lng]} 
+            wellCount={v.well_count}
+            eventHandlers={{
+              click: (e) => {
+                if (e.originalEvent) {
+                  e.originalEvent.stopPropagation();
+                  if (e.originalEvent.stopImmediatePropagation) {
+                    e.originalEvent.stopImmediatePropagation();
+                  }
+                }
+                if (onVillageClick && v.feature) {
+                  onVillageClick(v.feature);
+                }
+              }
+            }}
+          />
+        );
+      })}
     </MarkerClusterGroup>
   );
 }
 
-function WellCircleLayer({ data }) {
+function WellCircleLayer({ data, onVillageClick }) {
   return (
     <>
-      {data.map((v, i) => (
-        <CircleMarker
-          key={i}
-          center={[v.lat, v.lng]}
-          radius={getRadius(v.well_count)}
-          pathOptions={{
-            fillColor: getColor(v.well_count),
-            fillOpacity: 0.7,
-            color: "#0f172a", // slight border for definition
-            weight: 1
-          }}
-        >
-          <Tooltip sticky direction="top" className="wells-tooltip">
-            <div style={{ minWidth: "180px", fontFamily: "sans-serif" }}>
-              <strong>Village:</strong> {v.village}<br/>
-              <strong>District:</strong> {v.district}<br/>
-              <strong>Estimated Wells:</strong> {v.well_count}<br/>
-              <br/>
-              <span style={{ fontSize: "0.85em", opacity: 0.85, display: "block", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "6px", marginTop: "6px" }}>
-                <em>Village-level estimate only.</em>
-              </span>
-            </div>
-          </Tooltip>
-        </CircleMarker>
-      ))}
+      {data.map((v, i) => {
+        const vid = v.feature?.properties?.village_id || v.id || i;
+        return (
+          <CircleMarker
+            key={`circle-marker-${vid}`}
+            center={[v.lat, v.lng]}
+            radius={getRadius(v.well_count)}
+            eventHandlers={{
+              click: (e) => {
+                if (e.originalEvent) {
+                  e.originalEvent.stopPropagation();
+                  if (e.originalEvent.stopImmediatePropagation) {
+                    e.originalEvent.stopImmediatePropagation();
+                  }
+                }
+                if (onVillageClick && v.feature) {
+                  onVillageClick(v.feature);
+                }
+              }
+            }}
+            pathOptions={{
+              fillColor: getColor(v.well_count),
+              fillOpacity: 0.85, // slightly more opaque for visibility
+              color: "#ffffff",   // white border to stand out against polygon
+              weight: 1.5,
+              pane: 'markerPane'  // try to force it to a higher pane
+            }}
+          >
+            <Tooltip sticky direction="top" className="wells-tooltip">
+              <div style={{ minWidth: "180px", fontFamily: "sans-serif" }}>
+                <strong>Village:</strong> {v.village}<br/>
+                <strong>District:</strong> {v.district}<br/>
+                <strong>Estimated Wells:</strong> {v.well_count}<br/>
+                <br/>
+                <span style={{ fontSize: "0.85em", opacity: 0.85, display: "block", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "6px", marginTop: "6px" }}>
+                  <em>Village-level estimate only.</em>
+                </span>
+              </div>
+            </Tooltip>
+          </CircleMarker>
+        );
+      })}
     </>
   );
 }
 
-export default function WellsLayerController({ data }) {
+export default function WellsLayerController({ data, onVillageClick }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
   const memoData = useMemo(() => data || [], [data]);
@@ -96,7 +133,7 @@ export default function WellsLayerController({ data }) {
   if (!memoData || memoData.length === 0) return null;
 
   if (zoom < 10) {
-    return <WellClusterLayer data={memoData} />;
+    return <WellClusterLayer data={memoData} onVillageClick={onVillageClick} />;
   }
-  return <WellCircleLayer data={memoData} />;
+  return <WellCircleLayer data={memoData} onVillageClick={onVillageClick} />;
 }

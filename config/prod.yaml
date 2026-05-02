@@ -1,0 +1,11 @@
+environment: prod
+database:
+  host: ${DB_HOST}
+  port: 5432
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  db_name: groundwater_prod
+paths:
+  data_dir: /app/data/
+  models_dir: /app/output/models/
+  predictions_dir: /app/output/predictions/

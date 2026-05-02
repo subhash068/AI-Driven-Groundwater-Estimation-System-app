@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Marker, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Marker, ImageOverlay, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { MapLegend } from './UI';
 import { INITIAL_VIEW_STATE } from '../constants/data';
@@ -35,6 +35,15 @@ const LULC_CLASSES = [
   "rangeland"
 ];
 
+
+function cleanText(val, fallback = "NA") {
+  if (val === null || val === undefined) return fallback;
+  const s = String(val).trim();
+  const lower = s.toLowerCase();
+  if (!s || ["nan", "null", "undefined", "na", "n/a", "-"].includes(lower)) return fallback;
+  return s;
+}
+
 function normalizeDistrictName(value) {
   return String(value || "").trim().toUpperCase();
 }
@@ -55,13 +64,16 @@ function isPointGeometry(feature) {
 }
 
 function normalizeRiskLevel(value, fallbackDepth = null) {
+  const depth = Number(fallbackDepth);
+  if (Number.isFinite(depth)) {
+    if (depth >= 30) return "critical";
+    if (depth >= 20) return "warning";
+    if (depth > 0 || depth === 0) return "safe";
+  }
   const text = String(value || "").trim().toLowerCase();
   if (["critical", "severe", "high"].includes(text)) return "critical";
   if (["warning", "medium", "moderate"].includes(text)) return "warning";
   if (["safe", "low", "good"].includes(text)) return "safe";
-  if (!Number.isFinite(Number(fallbackDepth))) return "warning";
-  if (Number(fallbackDepth) >= 30) return "critical";
-  if (Number(fallbackDepth) >= 20) return "warning";
   return "safe";
 }
 
@@ -113,12 +125,29 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
     props.monthly_depths?.[monthIndex] ??
     props.groundwater_estimate ??
     props.predicted_groundwater_level ??
+    props.predicted_groundwater ??
+    props.groundwater_level ??
+    props.gw_level ??
+    props.estimated_depth ??
+    props.predicted_groundwater_xgb ??
+    row.monthly_depths?.[monthIndex] ??
+    row.groundwater_estimate ??
+    row.predicted_groundwater_level ??
+    row.predicted_groundwater ??
+    row.groundwater_level ??
+    row.gw_level ??
+    row.depth ??
     props.estimated_groundwater_depth ??
     props.actual_last_month ??
     props.depth ??
     NaN
   );
-  const confidenceRaw = Number(props.confidence ?? props.confidence_score);
+  const confidenceRaw = Number(
+    props.confidence ??
+    props.confidence_score ??
+    row.confidence ??
+    row.confidence_score
+  );
   const confidence = Number.isFinite(confidenceRaw)
     ? Math.max(0, Math.min(100, confidenceRaw <= 1 ? confidenceRaw * 100 : confidenceRaw))
     : NaN;
@@ -134,28 +163,73 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
   const recommendation = Array.isArray(props.recommended_actions) && props.recommended_actions.length
     ? props.recommended_actions[0]
     : props.recommendation || "";
-  const forecast = Array.isArray(props.forecast_3_month) ? props.forecast_3_month : [];
+  const forecast = Array.isArray(props.forecast_3_month)
+    ? props.forecast_3_month
+    : Array.isArray(props.forecast_3m)
+      ? props.forecast_3m
+      : Array.isArray(row.forecast_3_month)
+        ? row.forecast_3_month
+        : Array.isArray(row.forecast_3m)
+          ? row.forecast_3m
+          : [];
   const nextForecast = forecast.length ? forecast[0] : null;
-  const district = String(props.district || "Unknown");
-  const mandal = String(props.mandal || "Unknown");
-  const village = String(props.village_name || props.village || "Unknown");
+  const district = cleanText(firstValidText(
+    row.district,
+    row.District,
+    row.district_name,
+    row.districtName,
+    props.district,
+    props.District,
+    props.district_name,
+    props.districtName
+  ), "Unknown");
+  const mandal = cleanText(firstValidText(
+    row.mandal,
+    row.Mandal,
+    row.mandal_name,
+    row.mandalName,
+    props.mandal,
+    props.Mandal,
+    props.mandal_name,
+    props.mandalName
+  ), "Unknown");
+  const village = cleanText(firstValidText(
+    row.village_name,
+    row.Village_Name,
+    row.village,
+    props.village_name,
+    props.Village_Name,
+    props.village
+  ), "Unknown");
   const soilType = firstValidText(
     row.soil_taxonomy,
     row.Soil_Taxonomy,
+    row.soil_type,
+    row.Soil_Type,
+    row.soil_class,
     row.soil,
     row.Soil,
     props.soil_taxonomy,
     props.Soil_Taxonomy,
+    props.soil_type,
+    props.Soil_Type,
+    props.soil_class,
     props.soil,
-    props.Soil
+    props.Soil,
+    row.geomorphology,
+    props.geomorphology
   );
   const cropType = firstValidText(
     row.dominant_crop_type,
     row.Dominant_Crop_Type,
+    row.primary_crop,
     row.crop_type,
     props.dominant_crop_type,
     props.Dominant_Crop_Type,
-    props.crop_type
+    props.primary_crop,
+    props.crop_type,
+    row.lulc_class,
+    props.lulc_class
   );
   const distToSensor = Number(props.dist_to_sensor_km ?? props.nearest_distance_km ?? props.nearest_piezometer_distance_km);
   const reliability = Number(props.combined_reliability ?? 0.8);
@@ -200,9 +274,9 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
            <span>Spatial: ${Math.round(r_dist * 100)}%</span>
         </div>
       </div>
-      <strong>Interval:</strong> ${Number.isFinite(gwl) ? `${(gwl - uncertainty/2).toFixed(1)}m – ${(gwl + uncertainty/2).toFixed(1)}m` : "NA"} (±${(uncertainty/2).toFixed(2)}m)<br/>
+      ${uncertainty > 0 ? `<strong>Interval:</strong> ${(gwl - uncertainty/2).toFixed(1)}m - ${(gwl + uncertainty/2).toFixed(1)}m (+/-${(uncertainty/2).toFixed(2)}m)<br/>` : ""}
       <strong>Proximity:</strong> ${hasSensor ? "On-site" : (Number.isFinite(distToSensor) ? `${distToSensor.toFixed(2)} km` : "NA")}<br/>
-      <strong>Aquifer:</strong> ${Number(props.aquifer_storage_factor || 0).toFixed(2)} Storage Factor<br/>
+      ${props.aquifer_storage_factor ? `<strong>Aquifer:</strong> ${Number(props.aquifer_storage_factor).toFixed(2)} Storage Factor<br/>` : ""}
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"/>
       <strong>District:</strong> ${district} | <strong>Mandal:</strong> ${mandal}<br/>
       <strong>Prediction:</strong> ${Number.isFinite(gwl) ? `${gwl.toFixed(2)} m` : "NA"}<br/>
@@ -223,14 +297,88 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
       <strong>Risk level:</strong> ${risk}<br/>
       <strong>Confidence:</strong> ${Number.isFinite(confidence) ? `${confidence.toFixed(2)}%` : "NA"}<br/>
       ${alert ? `<strong>Alert:</strong> ${alert}<br/>` : ""}
-      ${nextForecast ? `<strong>Next forecast:</strong> ${Number.isFinite(Number(nextForecast.predicted_groundwater_depth)) ? `${Number(nextForecast.predicted_groundwater_depth).toFixed(2)} m` : "NA"}<br/>` : ""}
+      ${nextForecast ? `<strong>Next forecast:</strong> ${Number.isFinite(Number(nextForecast.predicted_groundwater_depth ?? nextForecast.predicted_groundwater_level ?? nextForecast.prediction ?? nextForecast.depth)) ? `${Number(nextForecast.predicted_groundwater_depth ?? nextForecast.predicted_groundwater_level ?? nextForecast.prediction ?? nextForecast.depth).toFixed(2)} m` : "NA"}<br/>` : ""}
       ${recommendation ? `<strong>Recommendation:</strong> ${recommendation}` : ""}
     </div>
   `;
 }
 
-function villageTooltipHtml(feature) {
-  return villageInfoHtml(feature);
+function villageTooltipHtml(feature, datasetRow = null, monthIndex = 0, mapMode,
+  baseMapTheme = 'prediction') {
+  const props = feature?.properties || {};
+  const row = datasetRow || {};
+  const currentMode = (mapMode || "prediction").toLowerCase();
+  
+  const village = cleanText(firstValidText(
+    row.village_name,
+    row.Village_Name,
+    row.village,
+    props.village_name,
+    props.Village_Name,
+    props.village
+  ), "Unknown");
+  const district = cleanText(firstValidText(
+    row.district,
+    row.District,
+    row.district_name,
+    props.district,
+    props.District,
+    props.district_name
+  ), "Unknown");
+  const mandal = cleanText(firstValidText(
+    row.mandal,
+    row.Mandal,
+    row.mandal_name,
+    props.mandal,
+    props.Mandal,
+    props.mandal_name
+  ), "Unknown");
+  
+  if (currentMode === "uncertainty") {
+      const uncertainty = Number(props.uncertainty) || Number(props.uncertainty_range) || 1.0;
+      const confidence = Number(props.confidence) || Number(props.confidence_score) || 0.87;
+      return `
+        <div style="min-width: 180px">
+          <strong>Village:</strong> ${village}<br/>
+          <strong>District:</strong> ${district}<br/>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 6px 0;"/>
+          <strong>Uncertainty:</strong> ${uncertainty.toFixed(2)} m<br/>
+          <strong>Confidence:</strong> ${(confidence * 100).toFixed(1)}%
+        </div>
+      `;
+  }
+  
+  if (currentMode === "validation") {
+      const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id || props.has_piezometer);
+      if (!hasSensor) {
+        return `
+          <div style="min-width: 180px">
+            <strong>Village:</strong> ${village}<br/>
+            <strong>District:</strong> ${district}<br/>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 6px 0;"/>
+            No sensor data for validation.
+          </div>
+        `;
+      }
+      
+      const row = datasetRow || {};
+      const gwl = Number(props.monthly_depths?.[monthIndex] ?? props.groundwater_estimate ?? props.predicted_groundwater_level ?? props.depth ?? NaN);
+      const actual = Number(props.actual_last_month ?? row?.actual_last_month ?? row?.gw_level ?? gwl);
+      const error = Math.abs(gwl - actual);
+      
+      return `
+        <div style="min-width: 180px">
+          <strong>Village:</strong> ${village}<br/>
+          <strong>District:</strong> ${district}<br/>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 6px 0;"/>
+          <strong>Predicted:</strong> ${gwl.toFixed(2)} m<br/>
+          <strong>Actual:</strong> ${actual.toFixed(2)} m<br/>
+          <strong>Error:</strong> ${error.toFixed(2)} m
+        </div>
+      `;
+  }
+  
+  return villageInfoHtml(feature, datasetRow, monthIndex);
 }
 
 async function readGeoJsonIfValid(path) {
@@ -251,6 +399,158 @@ async function readGeoJsonIfValid(path) {
   } catch {
     return null;
   }
+}
+
+async function readJsonIfValid(path) {
+  try {
+    const res = await fetch(path, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const text = (await res.text()).trim();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+const SURFACE_LAYER_STYLES = {
+  canals: {
+    lineColor: "#2563eb",
+    lineWeight: 2.5,
+    fillColor: "#60a5fa",
+    fillOpacity: 0.08,
+    dashArray: "5, 4"
+  },
+  streams: {
+    lineColor: "#0891b2",
+    lineWeight: 1.8,
+    fillColor: "#22d3ee",
+    fillOpacity: 0.18
+  },
+  drains: {
+    lineColor: "#16a34a",
+    lineWeight: 1.4,
+    fillColor: "#4ade80",
+    fillOpacity: 0.08,
+    dashArray: "3, 5"
+  },
+  tanks: {
+    lineColor: "#f59e0b",
+    lineWeight: 1.2,
+    fillColor: "#fbbf24",
+    fillOpacity: 0.2
+  },
+  contours: {
+    lineColor: "#7c4a2d",
+    lineWeight: 0.8,
+    opacity: 0.65
+  }
+};
+
+function formatLengthKm(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? `${numeric.toFixed(2)} km` : "NA";
+}
+
+function formatAreaSqKm(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? `${numeric.toFixed(2)} km²` : "NA";
+}
+
+function surfaceLayerStyle(layerKey, feature) {
+  const config = SURFACE_LAYER_STYLES[layerKey] || SURFACE_LAYER_STYLES.canals;
+  const geomType = String(feature?.geometry?.type || "").toLowerCase();
+  const isPolygon = geomType.includes("polygon");
+  if (layerKey === "contours") {
+    return {
+      color: config.lineColor,
+      weight: config.lineWeight,
+      opacity: config.opacity,
+      fillOpacity: 0
+    };
+  }
+  if (isPolygon) {
+    return {
+      color: config.lineColor,
+      weight: config.lineWeight,
+      fillColor: config.fillColor,
+      fillOpacity: config.fillOpacity,
+      opacity: 0.95
+    };
+  }
+  return {
+    color: config.lineColor,
+    weight: config.lineWeight,
+    opacity: 0.95,
+    dashArray: config.dashArray,
+    fillOpacity: 0
+  };
+}
+
+function surfaceLayerTooltip(layerKey, feature) {
+  const props = feature?.properties || {};
+  const label = firstValidText(
+    props.feature_label,
+    props.canal_name,
+    props.project_name,
+    props.river_name,
+    props.sub_river,
+    props.drain_name,
+    props.description,
+    props.tank_name,
+    props.district_name,
+    props.region_name,
+    `Feature`
+  );
+  if (layerKey === "canals") {
+    return `
+      <div style="min-width: 180px">
+        <strong>${label}</strong><br/>
+        <strong>Project:</strong> ${firstValidText(props.project_name, "NA")}<br/>
+        <strong>Code:</strong> ${firstValidText(props.canal_code, props.project_code, "NA")}<br/>
+        <strong>Type:</strong> ${firstValidText(props.canal_type, "NA")}<br/>
+        <strong>Length:</strong> ${formatLengthKm(props.length_km)}
+      </div>
+    `;
+  }
+  if (layerKey === "streams") {
+    return `
+      <div style="min-width: 180px">
+        <strong>${label}</strong><br/>
+        <strong>River:</strong> ${firstValidText(props.river_name, "NA")}<br/>
+        <strong>Sub-river:</strong> ${firstValidText(props.sub_river, "NA")}<br/>
+        <strong>Area:</strong> ${formatAreaSqKm(props.area_sqkm)}<br/>
+        <strong>Length:</strong> ${formatLengthKm(props.length_km)}
+      </div>
+    `;
+  }
+  if (layerKey === "drains") {
+    return `
+      <div style="min-width: 180px">
+        <strong>${label}</strong><br/>
+        <strong>Description:</strong> ${firstValidText(props.description, "NA")}<br/>
+        <strong>Code:</strong> ${firstValidText(props.drain_code, "NA")}<br/>
+        <strong>Length:</strong> ${formatLengthKm(props.length_km)}
+      </div>
+    `;
+  }
+  if (layerKey === "tanks") {
+    return `
+      <div style="min-width: 180px">
+        <strong>${label}</strong><br/>
+        <strong>District:</strong> ${firstValidText(props.district_name, "NA")}<br/>
+        <strong>Region:</strong> ${firstValidText(props.region_name, "NA")}<br/>
+        <strong>Area:</strong> ${formatAreaSqKm(props.area_sqkm)}<br/>
+        <strong>Perimeter:</strong> ${formatLengthKm(props.length_km)}
+      </div>
+    `;
+  }
+  return `
+    <div style="min-width: 160px">
+      <strong>${label}</strong><br/>
+      <strong>Elevation:</strong> ${firstValidText(props.contour_label, props.elevation_m, "NA")}
+    </div>
+  `;
 }
 
 function normalizeLulcCategory(value) {
@@ -353,7 +653,7 @@ function FlyToSelection({ popupLngLat, selectedFeature, filters }) {
   return null;
 }
 
-function FitToFilterSelection({ filteredGeojson, filters }) {
+function FitToFilterSelection({ filteredGeojson, filters, stateBoundaryLayer }) {
   const map = useMap();
   const lastZoomKeyRef = useRef("");
 
@@ -389,9 +689,14 @@ function FitToFilterSelection({ filteredGeojson, filters }) {
     let padding = 0.12;
     let maxZoom = 8.8;
 
+    const stateOnly = Boolean(filters?.state) && !filters?.district;
     const districtOnly = Boolean(filters?.district) && !filters?.mandal && !filters?.villageName;
 
-    if (filters?.district) {
+    if (stateOnly && stateBoundaryLayer && String(filters?.state).toUpperCase() === "ANDHRA PRADESH") {
+      dataToFit = stateBoundaryLayer;
+      padding = 0.05;
+      maxZoom = 7.5;
+    } else if (filters?.district) {
       padding = 0.14;
       maxZoom = 11;
     }
@@ -545,12 +850,30 @@ export function MapView({
   datasetRowsByLocation,
   anomalies,
   rechargeZones,
-  selectedDistrict
+  selectedDistrict,
+  showRainfall,
+  showCanals,
+  showStreams,
+  showDrains,
+  showTanks,
+  showDemSurface,
+  mapMode,
+  baseMapTheme,
+  showStateBoundary,
+  stateBoundaryLayer
 }) {
   const [hoverBadge, setHoverBadge] = useState(null);
   const [hoveredDistrictName, setHoveredDistrictName] = useState(null);
   const [aquiferGeojson, setAquiferGeojson] = useState(null);
   const [piezometerStations, setPiezometerStations] = useState([]);
+  const [surfaceLayers, setSurfaceLayers] = useState({
+    canals: null,
+    streams: null,
+    drains: null,
+    tanks: null,
+    demMeta: null,
+    demContours: null
+  });
   const hoverFrameRef = useRef(null);
   const pendingHoverRef = useRef(null);
   const activeDistrictRef = useRef(null);
@@ -705,6 +1028,32 @@ export function MapView({
   useEffect(() => {
     let active = true;
     (async () => {
+      const [canals, streams, drains, tanks, demMeta, demContours] = await Promise.all([
+        readGeoJsonIfValid("/data/krishna_canals.geojson"),
+        readGeoJsonIfValid("/data/krishna_streams.geojson"),
+        readGeoJsonIfValid("/data/krishna_drains.geojson"),
+        readGeoJsonIfValid("/data/krishna_tanks.geojson"),
+        readJsonIfValid("/data/krishna_dem_meta.json"),
+        readGeoJsonIfValid("/data/krishna_dem_contours.geojson")
+      ]);
+      if (!active) return;
+      setSurfaceLayers({
+        canals,
+        streams,
+        drains,
+        tanks,
+        demMeta,
+        demContours
+      });
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
       try {
         const districtSlug = districtToSlug(selectedDistrict);
         let candidatePaths = [];
@@ -742,7 +1091,7 @@ export function MapView({
           // If a specific district is selected, filter by it. 
           // "ANDHRA PRADESH" or empty string means "show all for the state"
           const sDist = normalizeDistrictName(selectedDistrict);
-          if (sDist && sDist !== "ANDHRA PRADESH" && sDist !== "AP") {
+          if (sDist && sDist.toUpperCase() !== "ANDHRA PRADESH" && sDist.toUpperCase() !== "AP") {
             const stationDist = normalizeDistrictName(station?.district);
             return stationDist === sDist;
           }
@@ -782,20 +1131,58 @@ export function MapView({
   const groundwaterStyle = (feature) => {
     const isSelected = isSelectedVillageFeature(feature);
     const props = feature?.properties || {};
-    const depth = Number(
+    const rawDepth =
       props.monthly_depths?.[monthIndex] ??
       props.groundwater_estimate ??
       props.predicted_groundwater_level ??
+      props.predicted_groundwater ??
+      props.groundwater_level ??
       props.estimated_groundwater_depth ??
       props.actual_last_month ??
       props.depth ??
-      0
-    );
+      null;
+    const depth = Number(rawDepth);
+    const hasDepth = Number.isFinite(depth);
+    const normalized = hasDepth ? normalizeRiskLevel(props.risk_level, depth) : "unknown";
+    let fillColor =
+      normalized === "critical"
+        ? "#ef4444"
+        : normalized === "warning"
+          ? "#f59e0b"
+          : normalized === "safe"
+            ? "#22c55e"
+            : "#9ca3af";
+    let fillOpacity = isSelected ? 0.9 : 0.6;
     
-    const normalized = normalizeRiskLevel(props.risk_level, depth);
-    const fillColor = normalized === "critical" ? '#ef4444' : normalized === "warning" ? '#f59e0b' : '#22c55e';
+    // Map Mode Logic
+    const currentMode = (mapMode || "prediction").toLowerCase();
     
-    // Highlight villages that have a physical piezometer sensor (Teacher nodes)
+    if (currentMode === "uncertainty") {
+        const uncertainty = Number(props.uncertainty) || Number(props.uncertainty_range) || 1.0;
+        if (uncertainty < 0.3) fillColor = "rgba(0, 255, 0, 0.4)";
+        else if (uncertainty < 0.6) fillColor = "rgba(255, 165, 0, 0.6)";
+        else fillColor = "rgba(255, 0, 0, 0.8)";
+        fillOpacity = 0.8;
+    } 
+    else if (currentMode === "trend") {
+        const trend = String(props.trend || props.trend_direction || "").toLowerCase();
+        if (trend.includes("declin")) fillColor = "#ef4444"; // red
+        else if (trend.includes("ris") || trend.includes("increas")) fillColor = "#3b82f6"; // blue
+        else fillColor = "#facc15"; // yellow
+    }
+    else if (currentMode === "validation") {
+        const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id || props.has_piezometer);
+        if (hasSensor) {
+            const error = Math.abs(Number(props.abs_error_latest || props.abs_error || 0));
+            if (error < 0.5) fillColor = "#22c55e"; // green
+            else if (error < 1.5) fillColor = "#facc15"; // yellow
+            else fillColor = "#ef4444"; // red
+        } else {
+            fillColor = "transparent"; // Hide non-sensor villages
+            fillOpacity = 0;
+        }
+    }
+
     const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
     
     // 1. COMBINED RELIABILITY (Physics + AI Confidence)
@@ -822,19 +1209,13 @@ export function MapView({
 
   const neutralVillageStyle = (feature) => {
     const isSelected = isSelectedVillageFeature(feature);
-    const props = feature?.properties || {};
-    const hasSensor = !!(props.has_sensor === 1 || props.has_sensor === true || props.sensor_id);
-    const reliability = Number(props.combined_reliability ?? 0.8);
-    const gapScore = Number(props.gap_score || 0);
-    const isGapZone = gapScore > 0.75 && !hasSensor;
-    
     return {
-      color: isSelected ? "#fff" : (hasSensor ? "#00e5ff" : (isGapZone ? "#f43f5e" : "rgba(255, 255, 255, 0.1)")),
-      weight: isSelected ? 2.5 : (hasSensor ? 3.0 : (isGapZone ? 2.5 : 0.5)),
-      fillColor: hasSensor ? "rgba(0, 229, 255, 0.15)" : (isGapZone ? "rgba(244, 63, 94, 0.08)" : "rgba(255, 255, 255, 0.02)"),
-      fillOpacity: isSelected ? 0.7 : (hasSensor ? 0.6 : 0.1),
-      className: hasSensor ? 'premium-village-polygon sensor-village' : (isGapZone ? 'premium-village-polygon gap-zone' : 'premium-village-polygon'),
-      dashArray: hasSensor ? "" : (isGapZone ? "4, 6" : (reliability < 0.3 ? "3, 10" : ""))
+      color: isSelected ? "#fff" : "rgba(255, 255, 255, 0.1)",
+      weight: isSelected ? 2 : 0.5,
+      fillColor: isSelected ? "rgba(0, 229, 255, 0.2)" : "transparent",
+      fillOpacity: isSelected ? 0.4 : 0,
+      className: 'premium-village-polygon-neutral',
+      dashArray: ""
     };
   };
 
@@ -1137,7 +1518,8 @@ export function MapView({
         lng: lon,
         well_count: wells,
         village: effectiveProps.village_name || effectiveProps.village || "Unknown",
-        district: effectiveProps.district || "Unknown"
+        district: effectiveProps.district || "Unknown",
+        feature // Reference for selection logic
       };
     }).filter(Boolean);
     
@@ -1288,7 +1670,34 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
       >
         <TileLayer attribution={baseTileAttribution} url={baseTileUrl} />
 
+        {showDemSurface && surfaceLayers.demMeta?.bounds && (
+          <ImageOverlay
+            url={surfaceLayers.demMeta.hillshade || "/data/krishna_dem_hillshade.png"}
+            bounds={surfaceLayers.demMeta.bounds}
+            opacity={0.58}
+            interactive={false}
+          />
+        )}
+
         {extrusionGeojson && <GeoJSON key={`3d-${monthIndex}`} data={extrusionGeojson} style={extrusionStyle} interactive={false} />}
+{(filters?.state || showStateBoundary) && stateBoundaryLayer && (
+          <GeoJSON
+            key={`state-boundary-${filters?.state || "none"}`}
+            data={stateBoundaryLayer}
+            style={() => {
+              const isHighlighted = (filters?.state && String(filters.state).trim().toUpperCase() === "ANDHRA PRADESH");
+              return {
+                color: isHighlighted ? "#000000" : "#64748b",
+                weight: isHighlighted ? 3.5 : 2.0,
+                fillColor: "transparent",
+                fillOpacity: 0,
+                dashArray: isHighlighted ? "" : "5, 5"
+              };
+            }}
+            interactive={false}
+          />
+        )}
+
         {visibleFeatures && (
           <GeoJSON
             key={`2d-${monthIndex}`}
@@ -1313,7 +1722,8 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const datasetRow =
                 (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) ||
                 (locationKey && datasetRowsByLocation?.get(locationKey));
-              const popupHtml = villageInfoHtml(feature, datasetRow, monthIndex);
+              const popupHtml = villageTooltipHtml(feature, datasetRow, monthIndex, mapMode,
+  baseMapTheme);
               if (layer?.bindTooltip) {
                 layer.bindTooltip(popupHtml, {
                   sticky: true,
@@ -1333,14 +1743,14 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
             }}
           />
         )}
-        {showDistrictBoundaries && visibleFeatures && (
+        {(filters?.state || showDistrictBoundaries) && visibleFeatures && (
           <GeoJSON
             data={visibleFeatures}
             style={(feature) => {
               const district = String(feature?.properties?.district || "District");
               const color = boundaryColorFromText(district);
               return {
-                color,
+                color: "#000000",
                 weight: 1.9,
                 fillColor: color,
                 fillOpacity: 0.01,
@@ -1358,7 +1768,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const mandal = String(feature?.properties?.mandal || "Mandal");
               const color = boundaryColorFromText(mandal);
               return {
-                color,
+                color: "#000000",
                 weight: 1.2,
                 fillColor: color,
                 fillOpacity: 0.005,
@@ -1437,6 +1847,109 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           <GeoJSON 
             data={rechargeZones} 
             style={{ color: '#00e5ff', weight: 2, dashArray: '5, 5', fillOpacity: 0.1 }} 
+          />
+        )}
+
+        {showRainfall && visibleFeatures && (
+          <GeoJSON
+            key={`rainfall-${monthIndex}`}
+            data={visibleFeatures}
+            style={(feature) => {
+              const props = feature?.properties || {};
+              const rain = Number(props.rainfall ?? props.rainfall_mm ?? 0);
+              // Scale from 0 to 400mm
+              const ratio = Math.min(rain / 300, 1);
+              // Deep blue for high rain, pale blue/white for low
+              const r = Math.round(255 - 200 * ratio);
+              const g = Math.round(255 - 100 * ratio);
+              const b = 255;
+              return {
+                fillColor: `rgb(${r}, ${g}, ${b})`,
+                weight: 0.5,
+                opacity: 0.3,
+                color: "rgba(255,255,255,0.2)",
+                fillOpacity: 0.75
+              };
+            }}
+            onEachFeature={(feature, layer) => {
+              const props = feature?.properties || {};
+              const rain = Number(props.rainfall ?? props.rainfall_mm ?? 0);
+              const recharge = Number(props.effective_recharge ?? 0);
+              layer.bindTooltip(`
+                <div style="min-width: 140px">
+                  <strong>Rainfall:</strong> ${rain.toFixed(1)} mm<br/>
+                  <strong>Effective Recharge:</strong> ${recharge.toFixed(2)} mm
+                </div>
+              `, { sticky: true });
+            }}
+          />
+        )}
+
+        {showCanals && surfaceLayers.canals && (
+          <GeoJSON
+            data={surfaceLayers.canals}
+            style={(feature) => surfaceLayerStyle("canals", feature)}
+            onEachFeature={(feature, layer) => {
+              layer.bindTooltip(surfaceLayerTooltip("canals", feature), {
+                sticky: true,
+                direction: "top",
+                opacity: 0.96,
+                className: "surface-layer-tooltip"
+              });
+            }}
+          />
+        )}
+
+        {showStreams && surfaceLayers.streams && (
+          <GeoJSON
+            data={surfaceLayers.streams}
+            style={(feature) => surfaceLayerStyle("streams", feature)}
+            onEachFeature={(feature, layer) => {
+              layer.bindTooltip(surfaceLayerTooltip("streams", feature), {
+                sticky: true,
+                direction: "top",
+                opacity: 0.96,
+                className: "surface-layer-tooltip"
+              });
+            }}
+          />
+        )}
+
+        {showDrains && surfaceLayers.drains && (
+          <GeoJSON
+            data={surfaceLayers.drains}
+            style={(feature) => surfaceLayerStyle("drains", feature)}
+            onEachFeature={(feature, layer) => {
+              layer.bindTooltip(surfaceLayerTooltip("drains", feature), {
+                sticky: true,
+                direction: "top",
+                opacity: 0.96,
+                className: "surface-layer-tooltip"
+              });
+            }}
+          />
+        )}
+
+        {showTanks && surfaceLayers.tanks && (
+          <GeoJSON
+            data={surfaceLayers.tanks}
+            style={(feature) => surfaceLayerStyle("tanks", feature)}
+            onEachFeature={(feature, layer) => {
+              layer.bindTooltip(surfaceLayerTooltip("tanks", feature), {
+                sticky: true,
+                direction: "top",
+                opacity: 0.96,
+                className: "surface-layer-tooltip"
+              });
+            }}
+          />
+        )}
+
+        {showDemSurface && surfaceLayers.demContours && (
+          <GeoJSON
+            data={surfaceLayers.demContours}
+            style={(feature) => surfaceLayerStyle("contours", feature)}
+            interactive={false}
           />
         )}
 
@@ -1561,7 +2074,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           </>
         )}
 
-        {wellsData && <WellsLayerController data={wellsData} />}
+        {wellsData && <WellsLayerController data={wellsData} onVillageClick={onVillageClick} />}
 
         {showRecharge && aquiferGeojson && (
           <GeoJSON
@@ -1618,9 +2131,10 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           onVillageClick={onVillageClick}
         />
         <FlyToSelection popupLngLat={popupLngLat} selectedFeature={selectedFeature} filters={filters} />
-        <FitToFilterSelection filteredGeojson={visibleFeatures} filters={filters} />
+        <FitToFilterSelection filteredGeojson={visibleFeatures} filters={filters} stateBoundaryLayer={stateBoundaryLayer} />
 
         <MapLegend
+          mapMode={mapMode}
           showGroundwaterLevels={showGroundwaterLevels}
           showPiezometers={showPiezometers}
           showWells={showWells}

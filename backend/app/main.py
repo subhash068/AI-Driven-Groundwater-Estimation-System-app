@@ -42,7 +42,7 @@ from .services import (
     locate_village_by_point,
     upsert_village_estimate,
 )
-from .ml.st_gnn_service import gnn_service
+from .services.prediction_service import gnn_service
 
 
 

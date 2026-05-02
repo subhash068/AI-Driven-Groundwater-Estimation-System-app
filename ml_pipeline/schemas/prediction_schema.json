@@ -1,0 +1,11 @@
+{
+  "village_id": "string",
+  "district": "string",
+  "predicted_groundwater_level": "float",
+  "base_groundwater_level": "float",
+  "confidence": "float",
+  "uncertainty": "float",
+  "risk_level": "string",
+  "trend": "string",
+  "top_factors": ["string"]
+}

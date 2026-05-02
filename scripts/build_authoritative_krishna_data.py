@@ -11,7 +11,13 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 from PIL import Image
+import matplotlib
+matplotlib.use("Agg")
+from matplotlib import pyplot as plt
+from matplotlib.colors import LightSource
+from scipy.ndimage import distance_transform_edt, zoom
 from shapely import contains_xy
+from shapely.geometry import LineString
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -185,6 +191,320 @@ def find_first_matching_file(root: Path, patterns: list[str]) -> Path | None:
         except FileNotFoundError:
             continue
     return None
+
+
+def first_present_text(row: pd.Series, fields: list[str], fallback: str) -> str:
+    for field in fields:
+        value = row.get(field)
+        if value is None:
+            continue
+        if isinstance(value, (float, np.floating)) and np.isnan(value):
+            continue
+        text = canonical_name(value)
+        if not text:
+            continue
+        if text.strip().lower() in {"unknown", "na", "n/a", "none", "null"}:
+            continue
+        return text
+    return fallback
+
+
+def _read_vector_from_zip(
+    zip_name: str,
+    staging_name: str,
+    shp_patterns: list[str],
+    default_crs: str | None = None,
+) -> gpd.GeoDataFrame:
+    zip_path = RAW / zip_name
+    if not zip_path.exists():
+        raise FileNotFoundError(f"Missing raw archive: {zip_name}")
+
+    staging_root = STAGING / staging_name
+    ensure_unzipped(zip_path, staging_root)
+    shp = find_first_matching_file(staging_root, shp_patterns)
+    if shp is None:
+        raise FileNotFoundError(f"Could not find a shapefile in {zip_name}")
+
+    gdf = gpd.read_file(shp)
+    if gdf.crs is None:
+        if default_crs is None:
+            raise ValueError(f"{zip_name} is missing CRS information and no default CRS was provided")
+        gdf = gdf.set_crs(default_crs, allow_override=True)
+    return gdf
+
+
+def _export_vector_layer(
+    *,
+    zip_name: str,
+    staging_name: str,
+    shp_patterns: list[str],
+    output_name: str,
+    default_crs: str | None,
+    rename_map: dict[str, str],
+    label_fields: list[str],
+    fallback_label: str,
+    keep_fields: list[str],
+    simplify_tolerance: float | None = None,
+    simplify_crs: str | None = None,
+    project_crs: str = "EPSG:32644",
+    output_crs: str = "EPSG:4326",
+) -> gpd.GeoDataFrame | None:
+    if not (RAW / zip_name).exists():
+        print(f"[INFO] Skipping {output_name}: missing {zip_name}")
+        return None
+
+    gdf = _read_vector_from_zip(zip_name, staging_name, shp_patterns, default_crs=default_crs)
+    metric = gdf.to_crs(project_crs)
+
+    if simplify_tolerance is not None:
+        simplify_frame = gdf if simplify_crs is None or str(gdf.crs) == simplify_crs else gdf.to_crs(simplify_crs)
+        simplify_frame = simplify_frame.copy()
+        simplify_frame["geometry"] = simplify_frame.geometry.simplify(simplify_tolerance, preserve_topology=True)
+        gdf_out = simplify_frame.to_crs(output_crs) if output_crs else simplify_frame
+    else:
+        gdf_out = gdf.to_crs(output_crs) if output_crs else gdf.copy()
+
+    gdf_out = gdf_out.rename(columns=rename_map).copy()
+    gdf_out["source_layer"] = Path(zip_name).stem
+    gdf_out["length_km"] = metric.geometry.length / 1000.0
+    gdf_out["area_sqkm"] = metric.geometry.area / 1_000_000.0
+    gdf_out["feature_label"] = gdf_out.apply(lambda row: first_present_text(row, label_fields, fallback_label), axis=1)
+    gdf_out["length_km"] = pd.to_numeric(gdf_out["length_km"], errors="coerce").round(3)
+    gdf_out["area_sqkm"] = pd.to_numeric(gdf_out["area_sqkm"], errors="coerce").round(3)
+
+    final_fields = []
+    for field in ["source_layer", "feature_label", *keep_fields]:
+        if field in gdf_out.columns and field not in final_fields:
+            final_fields.append(field)
+    final_fields.append("geometry")
+    gdf_out = gdf_out[final_fields].copy()
+    gdf_out.to_file(FRONTEND_DATA / output_name, driver="GeoJSON")
+    print(f"[SURFACE] exported {output_name}: {len(gdf_out)} features")
+    return gdf_out
+
+
+def export_surface_layers() -> dict[str, object]:
+    canals = _export_vector_layer(
+        zip_name="K_Canals.zip",
+        staging_name="Canals",
+        shp_patterns=["K_Canals.shp", "*.shp"],
+        output_name="krishna_canals.geojson",
+        default_crs="EPSG:4326",
+        rename_map={
+            "CANNAME": "canal_name",
+            "PRJNAME": "project_name",
+            "CAN_TYPE": "canal_type",
+            "CANCODE": "canal_code",
+            "PRJCODE": "project_code",
+            "STATE": "state_code",
+            "CN_ST": "canal_status",
+            "CN_PURP": "purpose",
+            "CN_TYPE": "channel_type",
+            "CCA": "command_area",
+            "POTENTIAL": "potential",
+            "CN_SS": "sub_system",
+            "CN_HDC": "head_condition",
+            "Shape_Leng": "source_length",
+        },
+        label_fields=["canal_name", "project_name", "canal_code", "project_code"],
+        fallback_label="Canal",
+        keep_fields=["canal_name", "project_name", "canal_type", "canal_code", "project_code", "length_km"],
+        simplify_tolerance=0.00005,
+        simplify_crs="EPSG:4326",
+    )
+
+    streams = _export_vector_layer(
+        zip_name="K_Strms.zip",
+        staging_name="Streams",
+        shp_patterns=["K_Strms.shp", "*.shp"],
+        output_name="krishna_streams.geojson",
+        default_crs=None,
+        rename_map={
+            "RIVER": "river_name",
+            "SUB_RIVER": "sub_river",
+            "Shape_Leng": "source_length",
+            "Shape_Area": "source_area",
+        },
+        label_fields=["sub_river", "river_name"],
+        fallback_label="Stream",
+        keep_fields=["river_name", "sub_river", "length_km", "area_sqkm"],
+        simplify_tolerance=25.0,
+        simplify_crs=None,
+    )
+
+    drains = _export_vector_layer(
+        zip_name="K_Drain.zip",
+        staging_name="Drains",
+        shp_patterns=["K_Drain.shp", "*.shp"],
+        output_name="krishna_drains.geojson",
+        default_crs=None,
+        rename_map={
+            "DESCRIPTIO": "description",
+            "NAME": "drain_name",
+            "CODE": "drain_code",
+            "Shape_Leng": "source_length",
+        },
+        label_fields=["drain_name", "description", "drain_code"],
+        fallback_label="Drain",
+        keep_fields=["drain_name", "description", "drain_code", "length_km"],
+        simplify_tolerance=20.0,
+        simplify_crs=None,
+    )
+
+    tanks = _export_vector_layer(
+        zip_name="K_Tanks.zip",
+        staging_name="Tanks",
+        shp_patterns=["K_Tanks.shp", "*.shp"],
+        output_name="krishna_tanks.geojson",
+        default_crs=None,
+        rename_map={
+            "R_NAME": "region_name",
+            "DNAME": "district_name",
+            "FIRST_DNA_": "first_district_name",
+            "DCODE_": "district_code",
+            "NEWFIELD1": "newfield1",
+            "NAME": "tank_name",
+            "Shape_Leng": "source_length",
+            "Shape_Area": "source_area",
+        },
+        label_fields=["tank_name", "district_name", "region_name"],
+        fallback_label="Tank",
+        keep_fields=["tank_name", "district_name", "region_name", "area_sqkm", "length_km"],
+        simplify_tolerance=20.0,
+        simplify_crs=None,
+    )
+
+    dem_payload = export_dem_surface()
+    return {
+        "canals": canals,
+        "streams": streams,
+        "drains": drains,
+        "tanks": tanks,
+        "dem": dem_payload,
+    }
+
+
+def export_dem_surface() -> dict[str, object]:
+    zip_name = "K_DEM1.zip"
+    zip_path = RAW / zip_name
+    if not zip_path.exists():
+        print(f"[INFO] Skipping DEM overlay: missing {zip_name}")
+        return {}
+
+    staging_root = STAGING / "DEM"
+    ensure_unzipped(zip_path, staging_root)
+    tif_path = find_file(staging_root, "K_DEM1.tif")
+    tfw_path = find_file(staging_root, "K_DEM1.tfw")
+
+    raster = np.array(Image.open(tif_path), dtype=np.float32)
+    transform = _read_world_file(tfw_path)
+    a, d, b, e, c, f = transform
+    if b != 0.0 or d != 0.0:
+        raise ValueError("Rotated DEM world transform is not supported")
+
+    height, width = raster.shape
+    west = c - a / 2.0
+    east = c + a * (width - 0.5)
+    north = f - e / 2.0
+    south = f + e * (height - 0.5)
+    south, north = sorted((south, north))
+    west, east = sorted((west, east))
+
+    valid_mask = raster > -1e30
+    if not np.any(valid_mask):
+        raise ValueError("DEM raster does not contain any valid elevation values")
+
+    max_dimension = 1600
+    scale = min(1.0, max_dimension / float(max(height, width)))
+    sampled_data = np.where(valid_mask, raster, 0.0).astype(np.float32)
+    sampled_weight = valid_mask.astype(np.float32)
+    if scale < 1.0:
+        sampled_data = zoom(sampled_data, (scale, scale), order=1, prefilter=False)
+        sampled_weight = zoom(sampled_weight, (scale, scale), order=1, prefilter=False)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            sampled = np.divide(
+                sampled_data,
+                sampled_weight,
+                out=np.full_like(sampled_data, np.nan, dtype=np.float32),
+                where=sampled_weight > 1e-3,
+            )
+    else:
+        sampled = np.where(valid_mask, raster, np.nan).astype(np.float32)
+
+    invalid = ~np.isfinite(sampled)
+    if np.any(invalid):
+        nearest_indices = distance_transform_edt(invalid, return_distances=False, return_indices=True)
+        sampled = sampled[tuple(nearest_indices)]
+
+    south_up = np.flipud(sampled)
+    light_source = LightSource(azdeg=315, altdeg=45)
+    hillshade = light_source.shade(south_up, cmap=plt.cm.Greys, vert_exag=1.2, blend_mode="overlay")
+    hillshade = np.flipud(hillshade)
+    hillshade_img = Image.fromarray((np.clip(hillshade, 0.0, 1.0) * 255).astype(np.uint8), mode="RGBA")
+    hillshade_path = FRONTEND_DATA / "krishna_dem_hillshade.png"
+    hillshade_img.save(hillshade_path)
+
+    ny, nx = sampled.shape
+    dx = (east - west) / float(nx)
+    dy = (north - south) / float(ny)
+    xs = np.linspace(west + dx / 2.0, east - dx / 2.0, nx)
+    ys = np.linspace(south + dy / 2.0, north - dy / 2.0, ny)
+    contour_source = np.ma.masked_invalid(south_up)
+    finite_values = sampled[np.isfinite(sampled)]
+    contour_interval = 25.0
+    contour_min = float(np.nanmin(finite_values))
+    contour_max = float(np.nanmax(finite_values))
+    contour_start = math.floor(contour_min / contour_interval) * contour_interval
+    contour_stop = math.ceil(contour_max / contour_interval) * contour_interval
+    if contour_stop <= contour_start:
+        contour_stop = contour_start + contour_interval
+    contour_levels = np.arange(contour_start, contour_stop + contour_interval, contour_interval)
+
+    fig = plt.figure(figsize=(4, 4))
+    ax = fig.add_subplot(111)
+    ax.set_axis_off()
+    contour_set = ax.contour(xs, ys, contour_source, levels=contour_levels)
+    contour_features: list[dict[str, object]] = []
+    for level, segments in zip(contour_set.levels, contour_set.allsegs):
+        for segment in segments:
+            if len(segment) < 2:
+                continue
+            line = LineString(segment).simplify(0.00005, preserve_topology=False)
+            if line.is_empty or line.length == 0:
+                continue
+            contour_features.append(
+                {
+                    "elevation_m": float(level),
+                    "contour_label": f"{int(round(float(level)))} m",
+                    "geometry": line,
+                }
+            )
+    plt.close(fig)
+
+    contours_gdf = gpd.GeoDataFrame(contour_features, crs="EPSG:4326")
+    if contours_gdf.empty:
+        contours_gdf = gpd.GeoDataFrame(
+            {"elevation_m": pd.Series(dtype=float), "contour_label": pd.Series(dtype=str)},
+            geometry=gpd.GeoSeries([], crs="EPSG:4326"),
+            crs="EPSG:4326",
+        )
+    contours_gdf.to_file(FRONTEND_DATA / "krishna_dem_contours.geojson", driver="GeoJSON")
+
+    dem_meta = {
+        "generated_from": zip_name,
+        "hillshade": "/data/krishna_dem_hillshade.png",
+        "contours": "/data/krishna_dem_contours.geojson",
+        "contour_interval_m": contour_interval,
+        "bounds": [[south, west], [north, east]],
+        "sampled_size": [int(nx), int(ny)],
+        "source_crs": "EPSG:4326",
+    }
+    (FRONTEND_DATA / "krishna_dem_meta.json").write_text(
+        json.dumps(dem_meta, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print(f"[SURFACE] exported krishna_dem_hillshade.png and krishna_dem_contours.geojson: {len(contours_gdf)} contour segments")
+    return dem_meta
 
 
 def read_village_boundaries() -> gpd.GeoDataFrame:
@@ -875,6 +1195,8 @@ def build() -> None:
     aquifers_out = aquifers.copy()
     aquifers_out.to_file(FRONTEND_DATA / "aquifers_krishna.geojson", driver="GeoJSON")
 
+    surface_layers = export_surface_layers()
+
     # Sidebar hierarchy based strictly on village boundaries.
     districts = []
     for district_name, district_df in village_front.sort_values(["district", "mandal", "village_name"]).groupby("district"):
@@ -913,6 +1235,16 @@ def build() -> None:
     print(f"villages: {len(village_front)}")
     print(f"districts: {len(districts)}")
     print(f"aquifer polygons: {len(aquifers_out)}")
+    if surface_layers.get("canals") is not None:
+        print(f"canals: {len(surface_layers['canals'])}")
+    if surface_layers.get("streams") is not None:
+        print(f"streams: {len(surface_layers['streams'])}")
+    if surface_layers.get("drains") is not None:
+        print(f"drains: {len(surface_layers['drains'])}")
+    if surface_layers.get("tanks") is not None:
+        print(f"tanks: {len(surface_layers['tanks'])}")
+    if surface_layers.get("dem"):
+        print(f"DEM contour interval: {surface_layers['dem'].get('contour_interval_m')} m")
 
 
 if __name__ == "__main__":

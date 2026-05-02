@@ -300,7 +300,14 @@ function normalizeRecord(input, index) {
     clouds_2021_pct: toNumber(props["clouds_2021%"] ?? props.clouds_2021_pct, null),
     rangeland_2021_pct: toNumber(props["rangeland_2021%"] ?? props.rangeland_2021_pct, null),
     pumping_rate: toNumber(props.pumping_rate ?? props.Pumping, null),
-    gw_level: toNumber(props.gw_level ?? props.GW_Level ?? props.predicted_groundwater_level, null),
+    gw_level: toNumber(
+      props.gw_level ??
+      props.GW_Level ??
+      props.predicted_groundwater_level ??
+      props.predicted_groundwater ??
+      props.groundwater_level,
+      null
+    ),
     actual_last_month: toNumber(props.actual_last_month ?? props.target_last_month ?? props.GW_Level, null),
     obs_station_count: toNumber(props.obs_station_count, 0),
     obs_elevation_msl: toNumber(props.obs_elevation_msl ?? props.obs_elevation_msl_mean, null),

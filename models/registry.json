@@ -1,0 +1,16 @@
+{
+  "models": [
+    {
+      "model_name": "groundwater_hybrid_v1",
+      "version": "stgnn_xgb_v2",
+      "timestamp": "2026-05-02T06:14:29.880860",
+      "metrics": {
+        "rmse": 2.0316467104333857,
+        "mae": 0.8081297379015597
+      },
+      "artifacts": {
+        "metadata": "output\\metadata.json"
+      }
+    }
+  ]
+}
