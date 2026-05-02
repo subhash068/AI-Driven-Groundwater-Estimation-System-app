@@ -274,5 +274,23 @@ def build_monthly_features(
     for col in ["rainfall_3m_sum", "rainfall_6m_sum", "rainfall_anomaly", "rainfall_lag_1m", "rainfall_lag_3m", "rainfall_lag_6m", "effective_recharge"]:
         features[col] = pd.to_numeric(features[col], errors="coerce").fillna(0.0)
 
+    # NEW: Cumulative Precipitation Deficit (CPD) over 12-month rolling windows
+    # CPD = sum(Rainfall - Monthly_Median) over 12 months
+    monthly_medians = features.groupby(features["date"].dt.month)["rainfall"].transform("median")
+    features["precip_deficit"] = features["rainfall"] - monthly_medians
+    features["cpd_12m"] = (
+        features.groupby("village_id")["precip_deficit"]
+        .rolling(window=12, min_periods=1)
+        .sum()
+        .reset_index(level=0, drop=True)
+    )
+
+    # NEW: MODIS Evapotranspiration Integration (Simulated/Placeholder for negative recharge)
+    # In a real scenario, this would be joined from MOD16A2 datasets
+    # We simulate it based on LULC and Seasonality as a 'negative recharge' proxy
+    et_factors = {"Monsoon": 0.3, "Post-monsoon": 0.5, "Pre-monsoon": 0.8}
+    features["modis_et_proxy"] = features["seasonal_phase"].map(et_factors) * features["rainfall"].mean() * 0.1
+    features["net_recharge"] = features["effective_recharge"] - features["modis_et_proxy"]
+
     features["month"] = pd.to_datetime(features["date"]).dt.to_period("M").astype(str)
     return features

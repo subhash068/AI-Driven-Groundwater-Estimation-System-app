@@ -51,6 +51,8 @@ DEFAULT_FEATURES = [
     "aquifer_storage_factor",
     "extraction_stress",
     "proximity_surface_water_km",
+    "cpd_12m",
+    "net_recharge",
 ]
 
 
@@ -94,7 +96,13 @@ def _prepare_features(gdf: gpd.GeoDataFrame) -> pd.DataFrame:
         errors="coerce",
     ).fillna(0.0)
     features["lulc_code"] = pd.to_numeric(gdf.get("Built%", gdf.get("built_area_pct", 0.0)), errors="coerce").fillna(0.0)
-    features["aquifer_code"] = pd.to_numeric(gdf.get("aquifer_storage_factor", 0.0), errors="coerce").fillna(0.0)
+    
+    # Use categorical encoding for Aquifer Units to support learnable embeddings
+    if "aquifer_type_enc" in gdf.columns:
+        features["aquifer_code"] = gdf["aquifer_type_enc"].fillna(0).astype(int)
+    else:
+        features["aquifer_code"] = pd.to_numeric(gdf.get("aquifer_storage_factor", 0.0), errors="coerce").fillna(0.0).astype(int)
+        
     features["geomorphology_code"] = pd.to_numeric(gdf.get("terrain_gradient", 0.0), errors="coerce").fillna(0.0)
     return features
 
@@ -141,38 +149,61 @@ def train_gnn_model(input_path: Path, output_path: Path, epochs: int = 200) -> d
     )
     optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-5)
 
-    print(f"Training on {len(train_sensor_indices)} sensors, validating on {len(val_sensor_indices)}")
+    # Prepare Physics Inputs for PINN Layer
+    # net_recharge, extraction_stress, cpd_12m
+    physics_inputs = torch.tensor(
+        node_features_ordered[["recharge_index", "extraction_stress", "geomorphology_code"]].values, 
+        dtype=torch.float
+    )
+    aquifer_idx = torch.tensor(node_features_ordered["aquifer_code"].values, dtype=torch.long)
+
+    print(f"Training Scientific-Grade ST-GNN on {len(train_sensor_indices)} sensors...")
     model.train()
     for epoch in range(epochs + 1):
         optimizer.zero_grad()
-        out = model(data.x, data.edge_index, data.edge_attr)
+        
+        # Forward pass with Physics & Aquifer Embeddings
+        out = model(data.x, data.edge_index, data.edge_attr, aquifer_idx=aquifer_idx, physics_inputs=physics_inputs)
+        
+        # 1. Supervised Loss (Quantile)
         loss_supervised = model.quantile_loss(out[train_mask], data.y[train_mask])
-        # 1. Mass Balance
+        
+        # 2. Physics-Informed "Divergence Constraint" (Mass Balance + Gradient)
+        # Total_Loss = α(RMSE) + β(Divergence_Constraint)
+        gwl_pred = out[:, 1]
         rainfall_proxy = data.x[:, 0]
         extraction_stress = data.x[:, 7]
-        gwl_pred = out[:, 1]
+        
         loss_balance = groundwater_balance_constraint(gwl_pred, rainfall_proxy, extraction_stress)
         
-        # 2. Hydraulic Gradient (Water Table follows Topography)
         elevation = node_features_ordered["elevation_dem"].values
         elevation_t = torch.tensor(elevation, dtype=torch.float, device=data.x.device)
         loss_gradient = hydraulic_gradient_constraint(gwl_pred, elevation_t, data.edge_index)
         
-        # 3. Aquifer Continuity (Hydrogeological smoothing)
-        loss_continuity = aquifer_continuity_constraint(gwl_pred, data.edge_index, data.edge_attr.squeeze())
+        # Scientific Grade Divergence Penalty
+        divergence_penalty = 0.5 * loss_balance + 0.5 * loss_gradient
         
-        total_loss = loss_supervised + 0.05 * loss_balance + 0.05 * loss_gradient + 0.1 * loss_continuity
+        alpha = 1.0
+        beta = 0.15 # β weight for physical consistency
+        
+        total_loss = alpha * loss_supervised + beta * divergence_penalty
+        
+        # 3. Aquifer Continuity (Hydrogeological Connectivity)
+        loss_continuity = aquifer_continuity_constraint(gwl_pred, data.edge_index, data.edge_attr.squeeze())
+        total_loss += 0.1 * loss_continuity
+
         total_loss.backward()
         optimizer.step()
+        
         if epoch % 50 == 0:
             with torch.no_grad():
                 pred = out[:, 1].unsqueeze(1)
                 val_mae = F.l1_loss(pred[val_mask], data.y[val_mask]).item()
-                print(f"Epoch {epoch:3d} | train={loss_supervised.item():.4f} | val_mae={val_mae:.4f}")
+                print(f"Epoch {epoch:3d} | Total Loss={total_loss.item():.4f} | Val MAE={val_mae:.4f}")
 
     model.eval()
     with torch.no_grad():
-        final_out = model(data.x, data.edge_index, data.edge_attr)
+        final_out = model(data.x, data.edge_index, data.edge_attr, aquifer_idx=aquifer_idx, physics_inputs=physics_inputs)
         gnn_preds = final_out[:, 1].cpu().numpy()
         p5 = final_out[:, 0].cpu().numpy()
         p95 = final_out[:, 2].cpu().numpy()

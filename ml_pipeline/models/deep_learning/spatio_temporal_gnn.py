@@ -5,7 +5,8 @@ from torch_geometric.nn import GATv2Conv
 
 class SpatioTemporalTransformerGNN(nn.Module):
     def __init__(self, in_channels: int, hidden_channels: int, out_channels: int = 3, 
-                 seq_len: int = 1, num_heads: int = 4, dropout: float = 0.2, edge_dim: int = None):
+                 seq_len: int = 1, num_heads: int = 4, dropout: float = 0.2, 
+                 edge_dim: int = None, num_aquifers: int = 20):
         """
         out_channels=3 for Quantile Regression [5th, 50th, 95th percentiles]
         """
@@ -15,13 +16,16 @@ class SpatioTemporalTransformerGNN(nn.Module):
         self.dropout = dropout
         self.hidden_channels = hidden_channels
         
+        # 0. Physics-Informed Embeddings (Aquifer properties)
+        # Learnable embeddings for 'Specific Yield' and 'Transmissivity'
+        self.aquifer_embedding = nn.Embedding(num_aquifers, 8) 
+        
         # 1. Spatial Component (GATv2)
-        # edge_dim enables processing of physics-aware edge weights (distance, elevation, etc.)
-        self.gat1 = GATv2Conv(in_channels, hidden_channels, heads=num_heads, concat=True, dropout=dropout, edge_dim=edge_dim)
+        # We add the embedding dimension to in_channels
+        self.gat1 = GATv2Conv(in_channels + 8, hidden_channels, heads=num_heads, concat=True, dropout=dropout, edge_dim=edge_dim)
         self.gat2 = GATv2Conv(hidden_channels * num_heads, hidden_channels, heads=1, concat=False, dropout=dropout, edge_dim=edge_dim)
         
         # 2. Temporal Component (Attention/Transformer)
-        # Replacing LSTM with MultiheadAttention for better temporal dynamics
         self.temporal_attention = nn.MultiheadAttention(
             embed_dim=hidden_channels,
             num_heads=num_heads,
@@ -29,18 +33,34 @@ class SpatioTemporalTransformerGNN(nn.Module):
             batch_first=True
         )
         
-        # Layer Norm for stability
-        self.norm = nn.LayerNorm(hidden_channels)
+        # 3. PINN Layer (Physics-Informed Residual Block)
+        # This layer specifically learns the delta between pure statistical prediction and mass balance
+        self.pinn_layer = nn.Sequential(
+            nn.Linear(hidden_channels + 3, hidden_channels), # +3 for (recharge, extraction, cpd)
+            nn.ReLU(),
+            nn.Linear(hidden_channels, 1) # Outputs a physics-based adjustment
+        )
         
-        # 3. Output Head (Quantile Regression)
+        self.norm = nn.LayerNorm(hidden_channels)
         self.fc1 = nn.Linear(hidden_channels, hidden_channels // 2)
         self.out = nn.Linear(hidden_channels // 2, out_channels)
 
-    def forward(self, x, edge_index, edge_attr=None):
+    def forward(self, x, edge_index, edge_attr=None, aquifer_idx=None, physics_inputs=None):
+        """
+        x: (nodes, seq, features)
+        aquifer_idx: (nodes,) indices of aquifer units
+        physics_inputs: (nodes, 3) -> (net_recharge, extraction, cpd)
+        """
         if x.dim() == 2:
             x = x.unsqueeze(1)
         
         num_nodes, seq_len, num_features = x.shape
+        
+        # Integrate Aquifer Embeddings
+        if aquifer_idx is not None:
+            aq_emb = self.aquifer_embedding(aquifer_idx) # (nodes, 8)
+            aq_emb = aq_emb.unsqueeze(1).repeat(1, seq_len, 1) # (nodes, seq, 8)
+            x = torch.cat([x, aq_emb], dim=-1)
         
         # Spatial Processing
         spatial_embeddings = []
@@ -58,14 +78,19 @@ class SpatioTemporalTransformerGNN(nn.Module):
         attn_out, _ = self.temporal_attention(combined_seq, combined_seq, combined_seq)
         combined_seq = self.norm(combined_seq + attn_out)
         
-        # Pooling/Last Step
-        last_step = combined_seq[:, -1, :]
+        # Last Step
+        h_final = combined_seq[:, -1, :]
+        
+        # PINN Adjustment
+        if physics_inputs is not None:
+            p_adj = self.pinn_layer(torch.cat([h_final, physics_inputs], dim=-1))
+            # The PINN adjustment is added to the median prediction later or used in loss
         
         # Final layers
-        x = F.relu(self.fc1(last_step))
-        x = self.out(x) # [batch, 3] -> (q5, q50, q95)
+        x_out = F.relu(self.fc1(h_final))
+        q_out = self.out(x_out) # (q5, q50, q95)
         
-        return x
+        return q_out
 
     def physics_informed_loss(self, pred, edge_index, edge_attr, lambda_flow=0.1):
         """

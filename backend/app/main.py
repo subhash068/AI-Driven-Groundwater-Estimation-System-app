@@ -381,6 +381,18 @@ async def groundwater_simulate(
     )
 
 
+@app.post("/api/groundwater/village/{village_id}/simulate", response_model=dict)
+async def groundwater_village_simulate(
+    village_id: int,
+    payload: dict = Body(default={}),
+) -> dict:
+    """
+    Scientific-Grade Village Scenario Simulation.
+    Params: {rainfall_reduction_pct, extraction_increase_pct, new_recharge_structure_count}
+    """
+    return gnn_service.simulate_scenario(village_id=village_id, params=payload)
+
+
 @app.get("/analytics/model-upgrades", response_model=dict)
 async def analytics_model_upgrades() -> dict:
     return await fetch_model_upgrade_summary()
