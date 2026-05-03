@@ -316,7 +316,12 @@ export function Sidebar({
                 <div className="aquifer-panel">
                   <h3>Aquifer Scene (3D)</h3>
                   <div className="aquifer-scene">
-                    <AquiferScene />
+                    <AquiferScene 
+                      weatheredDepth={selectedFeature?.properties?.weathered_rock || selectedFeature?.properties?.weathered}
+                      fracturedDepth={selectedFeature?.properties?.fractured_rock || selectedFeature?.properties?.fractured}
+                      dtw={selectedFeature?.properties?.predicted_groundwater_level ?? selectedFeature?.properties?.depth ?? selectedFeature?.properties?.gw_level}
+                      elevation={selectedFeature?.properties?.elevation_dem ?? selectedFeature?.properties?.elevation}
+                    />
                   </div>
                 </div>
               </CollapsiblePanel>

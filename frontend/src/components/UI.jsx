@@ -1,5 +1,6 @@
 /* UI Design System - v2.1 (Restructured) */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
+import AquiferScene from '../AquiferScene';
 import { advisoryLabel, normalizeVillageProperties, getRiskFromDepth } from '../utils/mapUtils';
 
 const MONTH_LABELS = [
@@ -1447,6 +1448,21 @@ function VillageInsightsPanelContentImpl({
               return `SAFE: Groundwater levels are healthy. Normal extraction for irrigation is sustainable for the current season.`;
             })()}
           </p>
+        </div>
+        
+        {/* 3D Aquifer Stratification Section */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.1em', marginBottom: '8px' }}>
+            3D Aquifer Stratification
+          </div>
+          <div style={{ height: '240px', background: '#050b14', borderRadius: '12px', overflow: 'hidden', border: '1px solid #1e293b' }}>
+            <AquiferScene 
+               weatheredDepth={displayProps.weathered_rock || displayProps.weathered}
+               fracturedDepth={displayProps.fractured_rock || displayProps.fractured}
+               dtw={displayProps.predicted_groundwater_level ?? displayProps.depth ?? displayProps.gw_level}
+               elevation={displayProps.elevation_dem ?? displayProps.elevation}
+            />
+          </div>
         </div>
 
         <div style={{ marginBottom: '16px' }}>

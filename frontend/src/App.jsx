@@ -32,7 +32,6 @@ const LULC_CLASS_KEYS = [
 const ANOMALY_TYPE_OPTIONS = ["Severe drop", "Moderate drop", "Normal", "Rise"];
 
 const Home = lazy(() => import("./pages/Home").then(module => ({ default: module.Home })));
-const Sidebar = lazy(() => import("./components/Sidebar").then(module => ({ default: module.Sidebar })));
 const MapView = lazy(() => import("./components/MapView").then(module => ({ default: module.MapView })));
 const VillageActionPanel = lazy(() => import("./components/VillageActionPanel").then(module => ({ default: module.VillageActionPanel })));
 const AIModelMethodology = lazy(() => import("./components/AIModelMethodology").then(module => ({ default: module.AIModelMethodology })));

@@ -102,14 +102,16 @@ function WellCircleLayer({ data, onVillageClick }) {
             }}
           >
             <Tooltip sticky direction="top" className="wells-tooltip">
-              <div style={{ minWidth: "180px", fontFamily: "sans-serif" }}>
-                <strong>Village:</strong> {v.village}<br/>
-                <strong>District:</strong> {v.district}<br/>
-                <strong>Estimated Wells:</strong> {v.well_count}<br/>
-                <br/>
-                <span style={{ fontSize: "0.85em", opacity: 0.85, display: "block", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "6px", marginTop: "6px" }}>
-                  <em>Village-level estimate only.</em>
-                </span>
+              <div style={{ minWidth: "190px", fontFamily: "'Inter', sans-serif", color: "#e2e8f0", lineHeight: 1.5 }}>
+                <strong style={{ color: "#fff", fontSize: "0.95rem", display: "block", marginBottom: "6px", borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: "4px" }}>Agricultural Infrastructure</strong>
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <div><span style={{ color: "#94a3b8", fontWeight: 600 }}>Village:</span> <span style={{ color: "#fff" }}>{v.village}</span></div>
+                  <div><span style={{ color: "#94a3b8", fontWeight: 600 }}>District:</span> <span style={{ color: "#fff" }}>{v.district}</span></div>
+                  <div><span style={{ color: "#94a3b8", fontWeight: 600 }}>Total Wells:</span> <span style={{ color: "#00e5ff", fontWeight: 800 }}>{v.well_count}</span></div>
+                </div>
+                <div style={{ fontSize: "0.65rem", color: "#64748b", fontStyle: "italic", marginTop: "8px", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "6px" }}>
+                  Village-level groundwater extraction infrastructure estimate.
+                </div>
               </div>
             </Tooltip>
           </CircleMarker>

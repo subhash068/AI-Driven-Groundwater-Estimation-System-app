@@ -279,6 +279,71 @@ export function normalizeVillageProperties(props) {
   };
 }
 
+/**
+ * Advanced Recharge Planning Engine - Site Selection Algorithm
+ * Ranks villages based on Recharge Potential, Urgency (Stress), and Feasibility (Proximity).
+ */
+export function calculateAdvancedRechargePriority(featureProps) {
+  const props = normalizeVillageProperties(featureProps);
+  if (!props) return { score: 0, label: "Unknown", color: "transparent", priority: 0 };
+
+  // 1. RECHARGE POTENTIAL (P) - 40% weight
+  // Combines soil permeability (if available) and recharge score
+  const potentialScore = props.normalized_recharge_score ?? 0.5;
+
+  // 2. URGENCY (U) - 40% weight
+  // Depletion trend (slope of depths) + Pumping stress (well density)
+  let trendScore = 0.5;
+  const depths = props.normalized_monthly_depths || [];
+  if (depths.length >= 6) {
+    const recent = depths.slice(-12).filter(v => Number.isFinite(v));
+    if (recent.length >= 2) {
+      const slope = (recent[recent.length - 1] - recent[0]) / recent.length;
+      // positive slope means water table is falling (depth increasing)
+      trendScore = clamp(0.5 + slope * 1.5, 0, 1);
+    }
+  }
+  
+  const wellDensity = clamp((props.normalized_well_count || 0) / 400, 0, 1);
+  const urgencyScore = (trendScore * 0.7) + (wellDensity * 0.3);
+
+  // 3. FEASIBILITY (F) - 20% weight
+  // Proximity to surface water tanks for diversion/recharge
+  const tankDist = props.normalized_dist_nearest_tank ?? 15;
+  const feasibilityScore = clamp(1 / (1 + tankDist / 3), 0, 1); // 3km as half-score distance
+
+  // WEIGHTED AGGREGATION
+  const finalScore = (potentialScore * 0.4) + (urgencyScore * 0.4) + (feasibilityScore * 0.2);
+
+  let label = "Neutral / Observation";
+  let color = "transparent";
+  let priority = 0;
+
+  if (finalScore > 0.72) {
+    label = "Critical Priority (Immediate AI-Recommended Site)";
+    color = "#00f5d4"; // Premium Cyan
+    priority = 3;
+  } else if (finalScore > 0.58) {
+    label = "High Priority (Diversion Intervention)";
+    color = "#7dd3fc"; // Sky Blue
+    priority = 2;
+  } else if (finalScore > 0.42) {
+    label = "Moderate Priority (Protection Zone)";
+    color = "#9b5de5"; // Amethyst
+    priority = 1;
+  }
+
+  return { 
+    score: finalScore, 
+    label, 
+    color, 
+    priority, 
+    potential: potentialScore, 
+    urgency: urgencyScore, 
+    feasibility: feasibilityScore 
+  };
+}
+
 export function getDistance(c1, c2) {
   if (!c1 || !c2) return Infinity;
   const lat1 = c1.latitude || c1[1];

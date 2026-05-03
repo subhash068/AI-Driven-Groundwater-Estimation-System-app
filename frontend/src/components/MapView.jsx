@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, GeoJSON, Marker, ImageOverlay, useMap, useMapE
 import L from "leaflet";
 import { MapLegend } from './UI';
 import { INITIAL_VIEW_STATE } from '../constants/data';
-import { buildLocationKey, healthColor, shiftGeometryFor3D, clamp, getRiskFromDepth, normalizeVillageProperties } from '../utils/mapUtils';
+import { buildLocationKey, healthColor, shiftGeometryFor3D, clamp, getRiskFromDepth, normalizeVillageProperties, calculateAdvancedRechargePriority } from '../utils/mapUtils';
 import WellsLayerController from './WellsLayer';
 
 const isValidGeoJSON = (data) => {
@@ -96,24 +96,6 @@ function villageRiskColor(feature) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-function calculateRechargePriority(feature) {
-  const props = normalizeVillageProperties(feature?.properties || {});
-  const risk = (props.normalized_risk || "").toLowerCase();
-  const rechargeScore = props.normalized_recharge_score ?? 0.5;
-  const depth = props.normalized_depth ?? 0;
-  
-  // High Priority: Critical depth AND high recharge potential
-  if ((risk === "critical" || depth > 30) && rechargeScore > 0.6) {
-    return { label: "High Priority (Artificial Recharge Recommended)", color: "#00f5d4", priority: 1 };
-  }
-  
-  // Medium Priority: Caution depth OR (Critical with moderate potential)
-  if (((risk === "caution" || (depth > 20 && depth <= 30)) && rechargeScore > 0.5) || (risk === "critical" && rechargeScore > 0.3)) {
-    return { label: "Moderate Priority (Protection Zone)", color: "#9b5de5", priority: 2 };
-  }
-  
-  return { label: "Neutral / Observation", color: "transparent", priority: 0 };
-}
 
 function villagePointToLayer(feature, latlng) {
   const props = feature?.properties || {};
@@ -190,11 +172,14 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
   const dataSource = props.data_source || (props.has_piezometer ? "Observed" : "Estimated");
 
   return `
-    <div style="font-family: 'Inter', sans-serif; font-size: 0.75rem; color: #fff; text-align: left;">
-      <div style="font-weight: 800; font-size: 0.9rem;">${displayVillage}</div>
-      <div style="color: #94a3b8; margin-bottom: 4px;">${mandal}</div>
-      <div>Depth: <strong style="color: #fff">${Number.isFinite(gwl) ? gwl.toFixed(2) + 'm' : "NA"}</strong> - <span style="color: ${normalizedRisk === 'critical' ? '#ef4444' : normalizedRisk === 'caution' ? '#f59e0b' : '#22c55e'}">${normalizedRisk.toUpperCase()}</span></div>
-      <div style="font-size: 0.65rem; color: #64748b; margin-top: 4px;">Source: ${dataSource}</div>
+    <div style="font-family: 'Inter', sans-serif; min-width: 170px; color: #e2e8f0; line-height: 1.5;">
+      <strong style="color: #fff; font-size: 0.95rem; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">${displayVillage}</strong>
+      <div style="color: #94a3b8; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">${mandal}</div>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <div><span style="color: #94a3b8;">Depth:</span> <strong style="color: #fff">${Number.isFinite(gwl) ? gwl.toFixed(2) + 'm' : "NA"}</strong></div>
+        <div><span style="color: #94a3b8;">Status:</span> <span style="color: ${normalizedRisk === 'critical' ? '#fca5a5' : normalizedRisk === 'caution' ? '#fcd34d' : '#4ade80'}; font-weight: 700;">${normalizedRisk.toUpperCase()}</span></div>
+        <div style="font-size: 0.65rem; color: #64748b; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px;">Source: <span style="color: #94a3b8;">${dataSource}</span></div>
+      </div>
     </div>
   `;
 
@@ -916,14 +901,16 @@ export function MapView({
     );
     const displayVillage = villageName && villageId && villageName !== String(villageId) ? `${villageName} (${villageId})` : villageName;
     return `
-      <div style="min-width: 190px">
-        <strong>Village:</strong> ${displayVillage}<br/>
-        <strong>District:</strong> ${district}<br/>
-        <strong>Mandal:</strong> ${mandal}<br/>
-        <strong>Groundwater deviation:</strong> ${Number.isFinite(deviation) ? `${deviation.toFixed(2)} m` : "NA"}<br/>
-        <strong>Type of anomaly:</strong> ${anomalyClass}<br/>
-        <strong>Raw label:</strong> ${rawType}<br/>
-        <strong>Groundwater level:</strong> ${Number.isFinite(currentGroundwater) ? `${currentGroundwater.toFixed(2)} m` : "NA"}
+      <div style="min-width: 190px; font-family: 'Inter', sans-serif; color: #e2e8f0; line-height: 1.5;">
+        <strong style="color: #ef4444; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding-bottom: 4px;">Hydrogeological Anomaly</strong>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div><span style="color: #94a3b8; font-weight: 600;">Village:</span> <span style="color: #fff;">${displayVillage}</span></div>
+          <div><span style="color: #94a3b8; font-weight: 600;">District:</span> <span style="color: #fff;">${district}</span></div>
+          <div><span style="color: #94a3b8; font-weight: 600;">Mandal:</span> <span style="color: #fff;">${mandal}</span></div>
+          <div style="margin-top: 4px;"><span style="color: #94a3b8; font-weight: 600;">Deviation:</span> <span style="color: #fca5a5; font-weight: 700;">${Number.isFinite(deviation) ? `${deviation.toFixed(2)} m` : "NA"}</span></div>
+          <div><span style="color: #94a3b8; font-weight: 600;">Type:</span> <span style="color: #fff; font-weight: 600;">${anomalyClass}</span></div>
+          <div><span style="color: #94a3b8; font-weight: 600;">Current GWL:</span> <span style="color: #fff;">${Number.isFinite(currentGroundwater) ? `${currentGroundwater.toFixed(2)} m` : "NA"}</span></div>
+        </div>
       </div>
     `;
   };
@@ -1385,14 +1372,16 @@ export function MapView({
     if (!showRechargeZones || !visibleFeatures?.features?.length) return null;
     const features = visibleFeatures.features
       .map(f => {
-        const priorityMeta = calculateRechargePriority(f);
+        const meta = calculateAdvancedRechargePriority(f.properties);
         return {
           ...f,
           properties: {
             ...f.properties,
-            __rechargePriority: priorityMeta.priority,
-            __rechargeColor: priorityMeta.color,
-            __rechargeLabel: priorityMeta.label
+            __rechargePriority: meta.priority,
+            __rechargeColor: meta.color,
+            __rechargeLabel: meta.label,
+            __rechargeScore: meta.score,
+            __rechargeMeta: meta
           }
         };
       })
@@ -1815,10 +1804,12 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               }
 
               layer.bindTooltip(`
-                <div style="font-family: 'Inter', sans-serif; padding: 4px;">
-                  <strong style="color: #fff; font-size: 0.85rem;">${village}</strong><br/>
-                  <span style="color: #00e5ff;">LULC: ${labelMap[category] || "Unclassified"}</span>
-                  ${extraInfo}
+                <div style="font-family: 'Inter', sans-serif; min-width: 150px; color: #e2e8f0; line-height: 1.5; padding: 4px;">
+                  <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">${village}</strong>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div><span style="color: #94a3b8; font-weight: 600;">LULC:</span> <span style="color: #00e5ff; font-weight: 600;">${labelMap[category] || "Unclassified"}</span></div>
+                    ${extraInfo}
+                  </div>
                 </div>
               `, { sticky: true, opacity: 0.98 });
             }}
@@ -1873,9 +1864,11 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const village = p.village_name || p.VILLAGE || "Village";
               const soil = p.soil_type || p.soil || "NA";
               layer.bindTooltip(`
-                <div style="font-family: 'Inter', sans-serif; padding: 4px;">
-                  <strong style="color: #fff; font-size: 0.85rem;">${village}</strong><br/>
-                  <span style="color: #fbbf24;">Soil Type: ${soil}</span>
+                <div style="font-family: 'Inter', sans-serif; min-width: 150px; color: #e2e8f0; line-height: 1.5; padding: 4px;">
+                  <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">${village}</strong>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div><span style="color: #94a3b8; font-weight: 600;">Soil Type:</span> <span style="color: #fbbf24; font-weight: 600;">${soil}</span></div>
+                  </div>
                 </div>
               `, { sticky: true, opacity: 0.98 });
             }}
@@ -1909,10 +1902,12 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               const rain = Number(props.rainfall ?? props.rainfall_mm ?? 0);
               const recharge = Number(props.effective_recharge ?? 0);
               layer.bindTooltip(`
-                <div style="font-family: 'Inter', sans-serif; min-width: 140px; padding: 4px;">
-                  <strong style="color: #fff; font-size: 0.85rem;">${village}</strong><br/>
-                  <span style="color: #3b82f6;">Rainfall: ${rain.toFixed(1)} mm</span><br/>
-                  <span style="color: #10b981;">Recharge: ${recharge.toFixed(2)} mm</span>
+                <div style="font-family: 'Inter', sans-serif; min-width: 160px; color: #e2e8f0; line-height: 1.5; padding: 4px;">
+                  <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">${village}</strong>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div><span style="color: #94a3b8; font-weight: 600;">Rainfall:</span> <span style="color: #3b82f6; font-weight: 700;">${rain.toFixed(1)} mm</span></div>
+                    <div><span style="color: #94a3b8; font-weight: 600;">Recharge:</span> <span style="color: #10b981; font-weight: 700;">${recharge.toFixed(2)} mm</span></div>
+                  </div>
                 </div>
               `, { sticky: true, opacity: 0.98 });
             }}
@@ -2112,20 +2107,42 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
         {showRechargeZones && rechargeZonesGeojson && (
           <GeoJSON
-            key="recharge-zones"
+            key={`recharge-zones-${rechargeZonesGeojson.features.length}`}
             data={rechargeZonesGeojson}
             style={(f) => ({
               color: f.properties.__rechargeColor,
-              weight: f.properties.__rechargePriority === 1 ? 4 : 2,
+              weight: f.properties.__rechargePriority >= 2 ? 4 : 2,
               fillColor: f.properties.__rechargeColor,
-              fillOpacity: 0.15,
-              dashArray: f.properties.__rechargePriority === 1 ? "" : "5, 5"
+              fillOpacity: 0.18,
+              dashArray: f.properties.__rechargePriority === 3 ? "" : "6, 4"
             })}
             onEachFeature={(f, layer) => {
+              const m = f.properties.__rechargeMeta || {};
               layer.bindTooltip(`
-                <div style="text-align:center; padding: 4px;">
-                  <strong style="color:${f.properties.__rechargeColor}; font-size: 0.85rem;">${f.properties.__rechargeLabel}</strong>
-                  <div style="font-size:0.75rem; margin-top:2px; color:#fff;">${f.properties.village_name}</div>
+                <div style="font-family: 'Inter', sans-serif; min-width: 180px; color: #e2e8f0; line-height: 1.5; padding: 4px;">
+                  <strong style="color: ${f.properties.__rechargeColor}; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">Recharge Site Selection</strong>
+                  <div style="color: #fff; font-weight: 700; margin-bottom: 4px;">${f.properties.__rechargeLabel}</div>
+                  
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <span style="color: #94a3b8;">Potential:</span>
+                      <span style="color: #fff;">${(m.potential * 100).toFixed(0)}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                      <span style="color: #94a3b8;">Urgency:</span>
+                      <span style="color: #fff;">${(m.urgency * 100).toFixed(0)}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                      <span style="color: #94a3b8;">Feasibility:</span>
+                      <span style="color: #fff;">${(m.feasibility * 100).toFixed(0)}%</span>
+                    </div>
+                    <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                      <span style="color: #94a3b8; font-weight: 600;">Overall Score:</span>
+                      <span style="color: ${f.properties.__rechargeColor}; font-weight: 800;">${(m.score * 100).toFixed(1)}</span>
+                    </div>
+                  </div>
+                  
+                  <div style="font-size: 0.65rem; color: #64748b; margin-top: 8px;">Village: ${f.properties.village_name}</div>
                 </div>
               `, { sticky: true, className: "recharge-tooltip" });
               layer.on("click", () => onVillageClick(f));
@@ -2159,9 +2176,13 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
               if (Number.isFinite(area)) body += `<strong>Area:</strong> ${area.toFixed(2)} km²<br/>`;
 
               layer.bindTooltip(`
-                <div style="font-family: 'Inter', sans-serif; min-width: 140px; padding: 4px;">
-                  <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px;">Aquifer Unit</strong>
-                  ${body}
+                <div style="font-family: 'Inter', sans-serif; min-width: 160px; padding: 6px; line-height: 1.5;">
+                  <strong style="color: #fff; font-size: 0.95rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">Aquifer Unit</strong>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div><span style="color: #94a3b8; font-weight: 600;">Lithology:</span> <span style="color: ${meta.color}; font-weight: 700;">${meta.label}</span></div>
+                    ${code && code !== "NA" ? `<div><span style="color: #94a3b8; font-weight: 600;">Code:</span> <span style="color: #fff;">${code}</span></div>` : ""}
+                    ${Number.isFinite(area) ? `<div><span style="color: #94a3b8; font-weight: 600;">Area:</span> <span style="color: #fff;">${area.toFixed(2)} km²</span></div>` : ""}
+                  </div>
                 </div>
               `, {
                 sticky: true,

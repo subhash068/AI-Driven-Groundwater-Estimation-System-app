@@ -53,8 +53,7 @@ from .api import v2
 app = FastAPI(title="Groundwater Insight API", version="1.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ALLOW_ORIGINS,
-    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
