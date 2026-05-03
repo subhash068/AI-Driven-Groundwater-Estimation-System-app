@@ -129,3 +129,17 @@ class V2LulcTrendsResponse(BaseModel):
     lulc_end_year: int | None
     lulc_start_dominant: str | None
     lulc_end_dominant: str | None
+
+
+class PumpingReport(BaseModel):
+    village_id: int
+    pumping_hours: float
+    pump_capacity_hp: float | None = None
+    crop_type: str | None = None
+    date: str | None = None
+
+
+class EstimateApproval(BaseModel):
+    village_id: int
+    approved_depth: float
+    engineer_notes: str | None = None

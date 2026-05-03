@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 import subprocess
+import sys
+from .prediction_service import gnn_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 FRONTEND_DATA = PROJECT_ROOT / "frontend" / "public" / "data"
@@ -33,16 +35,18 @@ class V2Service:
                         except (ValueError, TypeError):
                             continue
             
-            if self.final_dataset_path.exists():
-                with open(self.final_dataset_path, 'r') as f:
-                    data = json.load(f)
-                    for item in data:
-                        try:
-                            vid = int(item.get('Village_ID', item.get('village_id', -1)))
-                            if vid > 0:
-                                self._lulc_cache[vid] = item
-                        except (ValueError, TypeError):
-                            continue
+            for candidate in ["final_dataset.json", "final_dataset_ntr.json"]:
+                path = FRONTEND_DATA / candidate
+                if path.exists():
+                    with open(path, 'r') as f:
+                        data = json.load(f)
+                        for item in data:
+                            try:
+                                vid = int(item.get('Village_ID', item.get('village_id', -1)))
+                                if vid > 0:
+                                    self._lulc_cache[vid] = item
+                            except (ValueError, TypeError):
+                                continue
             LOGGER.info("V2 cache refreshed successfully.")
         except Exception as e:
             LOGGER.error(f"Failed to refresh V2 cache: {e}")
@@ -78,17 +82,31 @@ class V2Service:
                     value = f.get('value') or f.get('importance', 0.0)
                     structured_factors.append({"label": label, "value": value})
 
+        def parse_series(val):
+            if isinstance(val, str):
+                try:
+                    return json.loads(val)
+                except:
+                    return []
+            return val if isinstance(val, list) else []
+
         return {
             "village_id": village_id,
             "village_name": props.get('village_name', 'Unknown'),
             "mandal": props.get('mandal', 'Unknown'),
             "district": props.get('district', 'Unknown'),
-            "groundwater_level": props.get('predicted_groundwater_level'),
+            "groundwater_level": (
+                props.get('predicted_groundwater_level') 
+                or props.get('predicted_gw') 
+                or props.get('forecast_3m') 
+                or props.get('estimated_groundwater_depth')
+                or props.get('groundwater_depth')
+            ),
             "confidence": props.get('confidence', 0.0),
             "risk_level": props.get('risk_level', 'safe'),
             "trend": props.get('trend', 'stable'),
-            "monthly_predicted_gw": list(props.get('monthly_predicted_gw', [])),
-            "monthly_dates": [str(d) for d in props.get('monthly_dates', [])],
+            "monthly_predicted_gw": parse_series(props.get('monthly_predicted_gw')),
+            "monthly_dates": [str(d) for d in parse_series(props.get('monthly_dates'))],
             "water_pct": props.get('water_pct'),
             "trees_pct": props.get('trees_pct'),
             "crops_pct": props.get('crops_pct'),
@@ -119,10 +137,25 @@ class V2Service:
         }
 
     def retrain(self):
-        script_path = PROJECT_ROOT / "scripts" / "build_authoritative_krishna_data.py"
+        """Triggers the full ML pipeline to retrain models and regenerate predictions."""
+        # 1. First build authoritative data from raw files
+        build_script = PROJECT_ROOT / "scripts" / "build_authoritative_krishna_data.py"
+        # 2. Then run the training pipeline
+        train_script = PROJECT_ROOT / "ml_pipeline" / "training" / "run_pipeline.py"
+        
         try:
-            subprocess.run(["python", str(script_path)], check=True)
+            if build_script.exists():
+                LOGGER.info("Starting data build process...")
+                subprocess.run([sys.executable, str(build_script)], check=True)
+            
+            if train_script.exists():
+                LOGGER.info("Starting model training pipeline...")
+                subprocess.run([sys.executable, str(train_script)], check=True)
+            
+            # Refresh both local v2 cache and the global gnn_service
             self.refresh_cache()
+            gnn_service.refresh()
+            LOGGER.info("Retraining and cache refresh completed successfully.")
         except Exception as e:
             LOGGER.error(f"Retraining failed: {e}")
 

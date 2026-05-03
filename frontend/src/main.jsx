@@ -10,6 +10,8 @@ function getRoute(pathname) {
   if (pathname.startsWith("/forecasts")) return "/forecasts";
   if (pathname.startsWith("/anomalies")) return "/anomalies";
   if (pathname.startsWith("/recharge")) return "/recharge";
+  if (pathname.startsWith("/simulation")) return "/simulation";
+  if (pathname.startsWith("/validation")) return "/validation";
   if (pathname.startsWith("/explainability")) return "/explainability";
   if (pathname.startsWith("/methodology")) return "/methodology";
   if (pathname === "/" || pathname === "") return "/";

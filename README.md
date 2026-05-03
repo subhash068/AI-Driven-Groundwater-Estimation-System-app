@@ -327,7 +327,7 @@ This repo includes a modular village-level geospatial prediction workflow under 
 Run:
 
 ```bash
-python -m groundwater_pipeline.run_pipeline --raw-dir data/raw --predictions-out output/groundwater_predictions.csv --map-out output/groundwater_map.html
+python -m ml_pipeline.training.run_pipeline --raw-dir data/raw --predictions-out output/groundwater_predictions.csv --map-out output/groundwater_map.html
 ```
 
 Outputs:

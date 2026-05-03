@@ -1624,10 +1624,13 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         </div>
       )}
       <MapContainer
+        key={`map-instance-${is3D ? "3d" : "2d"}`}
+        id="dashboard-leaflet-map"
         center={[INITIAL_VIEW_STATE.latitude, INITIAL_VIEW_STATE.longitude]}
         zoom={INITIAL_VIEW_STATE.zoom}
-        className="leaflet-map"
-        preferCanvas
+        style={{ height: "100%", width: "100%", background: "#0f172a" }}
+        zoomControl={false}
+        preferCanvas={true}
       >
         <TileLayer attribution={baseTileAttribution} url={baseTileUrl} />
 

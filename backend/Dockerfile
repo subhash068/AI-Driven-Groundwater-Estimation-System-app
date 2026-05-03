@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend /app/backend
+COPY ml_pipeline /app/ml_pipeline
+COPY model /app/model
 COPY scripts /app/scripts
 COPY database /app/database
 COPY output /app/output

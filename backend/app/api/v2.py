@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Query, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Query, HTTPException, BackgroundTasks, Depends
 from ..services.v2_service import v2_service
-from ..schemas import V2PredictResponse, V2LulcTrendsResponse
+from ..schemas import V2PredictResponse, V2LulcTrendsResponse, PumpingReport, EstimateApproval
+from ..auth import require_roles
 
 router = APIRouter(prefix="/v2", tags=["v2"])
 
@@ -22,7 +23,17 @@ async def lulc_trends_v2(village_id: int = Query(..., ge=1)):
         raise HTTPException(status_code=404, detail=f"No lulc trends found for village {village_id}")
     return payload
 
-@router.post("/retrain")
+@router.post("/report-pumping", dependencies=[Depends(require_roles({"field_officer", "admin"}))])
+async def report_pumping_v2(report: PumpingReport):
+    # Logic to save report to DB would go here
+    return {"status": "Pumping report received", "village_id": report.village_id}
+
+@router.post("/approve-estimate", dependencies=[Depends(require_roles({"engineer", "admin"}))])
+async def approve_estimate_v2(approval: EstimateApproval):
+    # Logic to update authoritative estimate would go here
+    return {"status": "Estimate approved", "village_id": approval.village_id}
+
+@router.post("/retrain", dependencies=[Depends(require_roles({"admin", "engineer"}))])
 async def retrain_v2(background_tasks: BackgroundTasks):
     background_tasks.add_task(v2_service.retrain)
     return {"status": "Retraining started in background"}

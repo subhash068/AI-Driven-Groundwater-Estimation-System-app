@@ -657,7 +657,18 @@ def _standardize_village_payload(payload: dict) -> dict:
         or payload.get("groundwater_depth")
         or payload.get("actual_last_month")
         or payload.get("depth")
+        or payload.get("dtw")
+        or payload.get("gw_level")
+        or payload.get("water_level")
     )
+    
+    # Smart Fallback: If no single value is found, try to extract the latest from a series
+    if current_depth is None:
+        series = payload.get("monthly_depths_full") or payload.get("monthly_depths") or payload.get("monthly_actual_gw")
+        if isinstance(series, list) and series:
+            valid_vals = [v for v in [_to_float(x) for x in series] if v is not None]
+            if valid_vals:
+                current_depth = valid_vals[-1]
     confidence = _to_float(payload.get("confidence_score") or payload.get("confidence"), 0.0) or 0.0
     anomaly_flag = bool(payload.get("anomaly_flag"))
     anomaly_score = _to_float(payload.get("anomaly_score") or payload.get("max_anomaly_score"))
@@ -753,6 +764,8 @@ def _standardize_village_payload(payload: dict) -> dict:
             or payload.get("groundwater_estimate")
             or payload.get("estimated_groundwater_depth")
             or payload.get("groundwater_depth")
+            or payload.get("predicted_gw")
+            or payload.get("forecast_3m")
             or current_depth
         ),
         "confidence_score": confidence,

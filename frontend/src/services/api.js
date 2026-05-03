@@ -283,7 +283,12 @@ export const api = {
     if (LOCAL_DATA_ONLY_MODE) {
       return { type: "FeatureCollection", features: [] };
     }
-    return requestJson("/api/groundwater/simulate", {
+    const villageId = payload.village_id;
+    const url = villageId 
+      ? `/api/groundwater/village/${villageId}/simulate` 
+      : "/api/groundwater/simulate";
+      
+    return requestJson(url, {
       method: "POST",
       body: JSON.stringify(payload || {})
     });
@@ -305,5 +310,36 @@ export const api = {
   async retrain() {
     if (LOCAL_DATA_ONLY_MODE) return { status: "local-only" };
     return requestJson("/v2/retrain", { method: "POST" });
+  },
+
+  async login(username, password) {
+    const formData = new URLSearchParams();
+    formData.append("username", username);
+    formData.append("password", password);
+
+    const response = await fetch(`${API_BASE_URL}/auth/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "Login failed" }));
+      throw new Error(error.detail || "Login failed");
+    }
+
+    const data = await response.json();
+    localStorage.setItem("access_token", data.access_token);
+    setStatusPatch({ authRequired: false });
+    return data;
+  },
+
+  logout() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("token");
+    setStatusPatch({ authRequired: false });
+    window.location.reload();
   }
 };

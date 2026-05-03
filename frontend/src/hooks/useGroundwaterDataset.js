@@ -336,14 +336,22 @@ export function normalizeRecord(input, index = 0) {
   };
 }
 
+const JSON_CACHE = new Map();
+
 async function fetchJsonIfValid(path) {
+  const cacheKey = path;
+  if (JSON_CACHE.has(cacheKey)) return JSON_CACHE.get(cacheKey);
+  
   try {
-    const response = await fetch(path, { headers: { Accept: "application/json" } });
+    const url = `${path}?v=${new Date().getTime()}`;
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
     if (!response.ok) return null;
-    const text = (await response.text()).trim();
-    if (!text) return null;
-    return JSON.parse(text);
-  } catch {
+    const data = await response.json();
+    if (!data) return null;
+    JSON_CACHE.set(cacheKey, data);
+    return data;
+  } catch (err) {
+    console.warn(`Failed to fetch dataset from ${path}:`, err);
     return null;
   }
 }

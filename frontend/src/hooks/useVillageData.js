@@ -4,10 +4,13 @@ import { INDIAN_STATES } from '../constants/data';
 
 const DEFAULT_STATE = "Andhra Pradesh";
 const EXCLUDED_DISTRICTS = new Set([]);
+const GEOJSON_CACHE = new Map();
 
 const DISTRICT_VILLAGE_DATASET_CANDIDATES = [
-  
   "/data/map_data_predictions.geojson",
+  "/data/village_boundaries.geojson",
+  "/data/villages.geojson",
+  "/data/village_boundaries_imputed.geojson",
   "/data/villages_with_sensors.geojson"
 ];
 
@@ -104,22 +107,19 @@ function optionLabel(district, mandal, villageName = null) {
 }
 
 async function fetchJsonIfValid(path) {
+  const cacheKey = path;
+  if (GEOJSON_CACHE.has(cacheKey)) return GEOJSON_CACHE.get(cacheKey);
+  
   try {
-    const cacheBuster = `v=${new Date().getTime()}`;
-    const url = path.includes('?') ? `${path}&${cacheBuster}` : `${path}?${cacheBuster}`;
+    const url = `${path}?v=${new Date().getTime()}`;
     const response = await fetch(url, { headers: { Accept: "application/json" } });
     if (!response.ok) return null;
-    const text = (await response.text()).trim();
-    if (!text) return null;
-    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-    const looksJson = text.startsWith("{") || text.startsWith("[");
-    const jsonLikeType =
-      contentType.includes("application/json") ||
-      contentType.includes("application/geo+json") ||
-      contentType.includes("text/plain");
-    if (!looksJson && !jsonLikeType) return null;
-    return JSON.parse(text);
-  } catch {
+    const data = await response.json();
+    if (!data) return null;
+    GEOJSON_CACHE.set(cacheKey, data);
+    return data;
+  } catch (err) {
+    console.warn(`Failed to fetch JSON from ${path}:`, err);
     return null;
   }
 }

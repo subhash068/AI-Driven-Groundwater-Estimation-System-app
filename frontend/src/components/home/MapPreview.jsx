@@ -184,7 +184,14 @@ export function MapPreview({ villages, stats }) {
               <strong>District:</strong> {selectedDistrict}
             </p>
           </div>
-          <MapContainer center={DEFAULT_CENTER} zoom={8} zoomControl style={{ height: "100%", width: "100%" }}>
+          <MapContainer 
+            key="home-preview-map"
+            id="home-preview-map"
+            center={DEFAULT_CENTER} 
+            zoom={8} 
+            zoomControl 
+            style={{ height: "100%", width: "100%" }}
+          >
             <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
 
             {layers.groundwater && (

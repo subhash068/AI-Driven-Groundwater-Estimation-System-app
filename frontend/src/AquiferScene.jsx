@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState, useRef } from "react";
+import React, { memo, useMemo, useState, useRef, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Text, ContactShadows, PresentationControls, Environment, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -19,22 +19,12 @@ const StratificationCore = memo(({ weatheredDepth, fracturedDepth, dtw, elevatio
   const totalDepth = wDepth + fDepth;
 
   // Materials (Memoized to prevent memory leak and context loss)
-  const materials = useMemo(() => ({
-    soil: new THREE.MeshStandardMaterial({ 
-      color: "#8B5E34", 
-      roughness: 0.8,
-      metalness: 0.1 
-    }),
-    weathered: new THREE.MeshStandardMaterial({ 
-      color: "#D2B48C", 
-      transparent: true,
-      opacity: 0.85
-    }),
-    fractured: new THREE.MeshStandardMaterial({ 
-      color: "#4A4A4A",
-      roughness: 1.0 
-    }),
-    water: new THREE.MeshPhysicalMaterial({
+  // Materials (Memoized to prevent memory leak and context loss)
+  const materials = useMemo(() => {
+    const soil = new THREE.MeshStandardMaterial({ color: "#8B5E34", roughness: 0.8, metalness: 0.1 });
+    const weathered = new THREE.MeshStandardMaterial({ color: "#D2B48C", transparent: true, opacity: 0.85 });
+    const fractured = new THREE.MeshStandardMaterial({ color: "#4A4A4A", roughness: 1.0 });
+    const water = new THREE.MeshPhysicalMaterial({
       color: "#00e5ff",
       transparent: true,
       opacity: 0.6,
@@ -43,8 +33,16 @@ const StratificationCore = memo(({ weatheredDepth, fracturedDepth, dtw, elevatio
       metalness: 0.1,
       ior: 1.33,
       thickness: 0.5,
-    })
-  }), []);
+    });
+    return { soil, weathered, fractured, water };
+  }, []);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      Object.values(materials).forEach(m => m.dispose());
+    };
+  }, [materials]);
 
   // Calculate positions (Y is up)
   // Ground is at Y = 0
@@ -130,8 +128,9 @@ const StratificationCore = memo(({ weatheredDepth, fracturedDepth, dtw, elevatio
 
 export default function AquiferScene({ weatheredDepth, fracturedDepth, dtw, elevation }) {
   return (
-    <div style={{ width: "100%", height: "100%", background: "#050b14" }}>
-      <Canvas
+    <div style={{ width: "100%", height: "100%", background: "#050b14", position: 'relative' }}>
+      <ErrorBoundary fallback={<div style={{ padding: '20px', color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center' }}>3D View temporarily unavailable. GPU resources exhausted.</div>}>
+        <Canvas
         camera={{ position: [8, 5, 12], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
         shadows
@@ -160,6 +159,24 @@ export default function AquiferScene({ weatheredDepth, fracturedDepth, dtw, elev
         <ContactShadows position={[0, -15, 0]} opacity={0.4} scale={20} blur={2} far={4.5} />
         <Environment preset="city" />
       </Canvas>
+      </ErrorBoundary>
     </div>
   );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("3D Scene Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
 }

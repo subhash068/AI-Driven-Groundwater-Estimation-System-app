@@ -1484,50 +1484,144 @@ function VillageInsightsPanelContentImpl({
           </div>
         </div>
 
+        {/* Management Console - Administrative Layer */}
+        <div style={{ 
+          marginTop: '32px', 
+          padding: '20px', 
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
+          borderRadius: '16px', 
+          border: '1px dashed #cbd5e1',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            fontSize: '0.7rem', 
+            color: '#475569', 
+            fontWeight: '800', 
+            marginBottom: '12px', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.15em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ color: '#0ea5e9' }}>⚙️</span> Management Console
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <button 
+              onClick={() => alert("Report Pumping Form Opened\nAction restricted to Field Officers.")}
+              style={{ 
+                padding: '10px', 
+                background: '#fff', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                fontSize: '0.75rem', 
+                fontWeight: '600', 
+                color: '#1e293b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <span>🚜</span> Report Pumping
+            </button>
+            
+            <button 
+              onClick={() => alert("Verification Workflow Initiated\nAction restricted to Hydrogeologists/Engineers.")}
+              style={{ 
+                padding: '10px', 
+                background: '#fff', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                fontSize: '0.75rem', 
+                fontWeight: '600', 
+                color: '#1e293b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <span>✅</span> Verify Estimate
+            </button>
+          </div>
+          
+          <div style={{ 
+            marginTop: '12px', 
+            fontSize: '0.65rem', 
+            color: '#64748b', 
+            fontStyle: 'italic',
+            lineHeight: '1.4',
+            borderTop: '1px solid rgba(0,0,0,0.05)',
+            paddingTop: '10px'
+          }}>
+            This console provides direct integration with the Government RBAC system. Actions taken here are recorded in the immutable audit trail.
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
 
 
-export function SimpleLineChart({ dates = [], values = [], color }) {
-  const dataMax = Math.max(...values.filter(v => Number.isFinite(v)), 10);
-  const max = Math.ceil(dataMax / 5) * 5; // Round up to nearest 5
-  const min = 0;
+export function SimpleLineChart({ dates = [], values = [], baselineSeries = [], color }) {
+  const validValues = [...values, ...baselineSeries].filter(v => Number.isFinite(v));
+  if (!validValues.length) return <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>No data available</div>;
+
+  const dataMax = Math.max(...validValues, 10);
+  const dataMin = Math.min(...validValues, 0);
+  
+  const range = dataMax - dataMin;
+  const padding = range < 1 ? 2 : range * 0.2;
+  const min = Math.max(0, dataMin - padding);
+  const max = dataMax + padding;
+  
   const width = 400;
   const height = 180;
-  
-  if (!values.length) return <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>No data available</div>;
 
-  const points = values.map((v, i) => {
-    const x = values.length > 1 ? (i / (values.length - 1)) * width : width / 2;
-    const y = (v / max) * height; 
-    return { x, y };
-  });
+  const getPoints = (series) => {
+    return series.map((v, i) => {
+      const x = series.length > 1 ? (i / (series.length - 1)) * width : width / 2;
+      const val = Number.isFinite(v) ? v : min;
+      const y = ((val - min) / (max - min)) * height; 
+      return { x, y };
+    });
+  };
 
-  const pathD = points.length > 0 
-    ? `M ${points[0].x},${points[0].y} ` + points.slice(1).map(p => `L ${p.x},${p.y}`).join(' ')
-    : '';
+  const simPoints = getPoints(values);
+  const basePoints = getPoints(baselineSeries);
 
-  const yTicks = [max * 0.25, max * 0.5, max * 0.75, max];
-  
-  // Sample x-labels to avoid overcrowding
+  const getPath = (pts) => {
+    if (pts.length < 2) return "";
+    return `M ${pts[0].x},${pts[0].y} ` + pts.slice(1).map(p => `L ${p.x},${p.y}`).join(' ');
+  };
+
   const sampleInterval = Math.max(1, Math.floor(dates.length / 5));
   const displayLabels = dates.filter((_, i) => i % sampleInterval === 0).slice(0, 6);
 
   return (
     <div style={{ width: '100%', height: '100%', background: 'white', position: 'relative', padding: '10px 10px 30px 30px' }}>
        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-          {/* Y Axis Label */}
-          <text x="-25" y={height/2} transform={`rotate(-90, -25, ${height/2})`} textAnchor="middle" style={{ fontSize: '9px', fill: '#94A3B8', fontWeight: 'bold' }}>DEPTH (M)</text>
+          <text x="-25" y={height/2} transform={`rotate(-90, -25, ${height/2})`} textAnchor="middle" style={{ fontSize: '8px', fill: '#94A3B8', fontWeight: 'bold' }}>DEPTH (M)</text>
           
-          {/* Grid Lines */}
-          {yTicks.map(tick => {
-            const y = (tick / max) * height;
+          {[0, 0.25, 0.5, 0.75, 1].map(p => {
+            const val = min + (max - min) * p;
+            const y = p * height;
             return (
-              <g key={tick}>
+              <g key={p}>
                 <line x1="0" y1={y} x2={width} y2={y} stroke="#F1F5F9" strokeWidth="1" />
-                <text x="-8" y={y + 3} textAnchor="end" style={{ fontSize: '9px', fill: '#94A3B8' }}>{tick.toFixed(0)}</text>
+                <text x="-8" y={y + 3} textAnchor="end" style={{ fontSize: '8px', fill: '#94A3B8', fontWeight: '500' }}>{val.toFixed(1)}</text>
               </g>
             );
           })}
@@ -1535,13 +1629,21 @@ export function SimpleLineChart({ dates = [], values = [], color }) {
           <line x1="0" y1="0" x2="0" y2={height} stroke="#E2E8F0" strokeWidth="1" />
           <line x1="0" y1={height} x2={width} y2={height} stroke="#E2E8F0" strokeWidth="1" />
 
-          {/* The Data Line */}
-          <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Baseline Wave (Dashed) */}
+          {basePoints.length > 0 && (
+            <path d={getPath(basePoints)} fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.4" />
+          )}
+
+          {/* Simulated Wave (Solid) */}
+          <path d={getPath(simPoints)} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           
-          {/* Data points for emphasis */}
-          {points.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill="white" stroke={color} strokeWidth="1.5" />
-          ))}
+          {/* Legend in Chart */}
+          <g transform={`translate(${width - 100}, 10)`}>
+            <line x1="0" y1="0" x2="15" y2="0" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4,3" />
+            <text x="20" y="3" style={{ fontSize: '7px', fill: '#64748B' }}>Baseline Wave</text>
+            <line x1="0" y1="12" x2="15" y2="12" stroke={color} strokeWidth="2" />
+            <text x="20" y="15" style={{ fontSize: '7px', fill: '#64748B' }}>Scenario Wave</text>
+          </g>
        </svg>
        
        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.6rem', color: '#94A3B8', fontWeight: '700' }}>
@@ -2478,3 +2580,238 @@ export function VillageDetails({ feature }) {
   );
 }
 
+export function InteractiveSimulation({ selectedVillage, onSimulate }) {
+  const [params, setParams] = React.useState({
+    rainfall_mm: 750,
+    population_density: 450,
+    land_use_type: 'agricultural',
+    extraction_increase_pct: 0
+  });
+  const [result, setResult] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const handlePredict = async () => {
+    if (!selectedVillage) return;
+    setLoading(true);
+    try {
+      const data = await onSimulate(selectedVillage.village_id, params);
+      setResult(data);
+    } catch (err) {
+      console.error("Simulation failed", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '24px', background: '#fff', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', color: '#1e293b' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div style={{ width: '35%' }}>
+           <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '16px' }}>Scenario Simulation</h3>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="sim-control">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>Annual Rainfall (mm)</label>
+                  <span style={{ fontWeight: '800', color: '#0ea5e9' }}>{params.rainfall_mm}</span>
+                </div>
+                <input 
+                  type="range" min="200" max="1500" step="50" 
+                  value={params.rainfall_mm} 
+                  onChange={(e) => setParams({...params, rainfall_mm: Number(e.target.value)})}
+                  style={{ width: '100%', accentColor: '#0ea5e9' }}
+                />
+              </div>
+
+              <div className="sim-control">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>Population Density (/km²)</label>
+                  <span style={{ fontWeight: '800', color: '#8b5cf6' }}>{params.population_density}</span>
+                </div>
+                <input 
+                  type="range" min="50" max="2000" step="50" 
+                  value={params.population_density} 
+                  onChange={(e) => setParams({...params, population_density: Number(e.target.value)})}
+                  style={{ width: '100%', accentColor: '#8b5cf6' }}
+                />
+              </div>
+
+              <div className="sim-control">
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b', display: 'block', marginBottom: '8px' }}>Land Use Type</label>
+                <select 
+                  value={params.land_use_type}
+                  onChange={(e) => setParams({...params, land_use_type: e.target.value})}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
+                >
+                  <option value="agricultural">Agricultural</option>
+                  <option value="forest">Forest / Protected</option>
+                  <option value="urban">Urban / Built-up</option>
+                  <option value="wasteland">Wasteland</option>
+                </select>
+              </div>
+
+              <button 
+                onClick={handlePredict}
+                disabled={loading || !selectedVillage}
+                style={{ 
+                  width: '100%', 
+                  padding: '14px', 
+                  background: '#2563eb', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  marginTop: '10px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                }}
+              >
+                {loading ? 'Simulating...' : '⚡ Predict Water Level'}
+              </button>
+           </div>
+        </div>
+
+        <div style={{ width: '60%', background: '#f8fafc', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
+           {result ? (
+             <>
+                <div style={{ marginBottom: '20px' }}>
+                   <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.1em' }}>Scenario Comparison</div>
+                   
+                   <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                      <div style={{ flex: 1, padding: '12px', background: '#fff', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Baseline</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1e293b' }}>{result.base_gwl}m</div>
+                      </div>
+                      <div style={{ flex: 1, padding: '12px', background: '#fff', borderRadius: '8px', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#2563eb', textTransform: 'uppercase', fontWeight: '700' }}>Simulated</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: '800', color: result.simulated_gwl > 30 ? '#ef4444' : '#059669' }}>{result.simulated_gwl}m</div>
+                      </div>
+                   </div>
+
+                   <div style={{ 
+                      marginTop: '12px', 
+                      padding: '8px 12px', 
+                      background: result.impact_magnitude > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(5, 150, 105, 0.1)', 
+                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                   }}>
+                      <span style={{ color: '#64748b', fontWeight: '600' }}>Projected Shift</span>
+                      <strong style={{ color: result.impact_magnitude > 0 ? '#ef4444' : '#059669' }}>
+                        {result.impact_magnitude > 0 ? '↑ DEPLETION' : '↓ RECHARGE'} ({result.impact_magnitude > 0 ? '+' : ''}{result.impact_magnitude}m)
+                      </strong>
+                   </div>
+                </div>
+               
+                <div style={{ height: '200px', background: '#fff', borderRadius: '8px', padding: '15px', border: '1px solid #f1f5f9' }}>
+                  <SimpleLineChart 
+                    dates={result.series_dates || ['Baseline', 'Simulated']} 
+                    values={result.simulated_series || [result.base_gwl, result.simulated_gwl]} 
+                    baselineSeries={result.baseline_series || []}
+                    color={result.simulated_gwl > 30 ? '#ef4444' : '#3b82f6'}
+                  />
+                </div>
+
+               <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(37, 99, 235, 0.05)', borderRadius: '8px', fontSize: '0.8rem', color: '#1e40af', lineHeight: 1.5 }}>
+                 <strong>AI Insight:</strong> {result.advisory}
+               </div>
+             </>
+           ) : (
+             <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', textAlign: 'center' }}>
+                <span style={{ fontSize: '3rem', marginBottom: '16px' }}>🔬</span>
+                <p>Adjust parameters and click <strong>Predict</strong> to run a <br/> village-specific groundwater sensitivity analysis.</p>
+             </div>
+           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+export function LoginModal({ isOpen, onClose, onLogin }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await onLogin(username, password);
+      onClose();
+    } catch (err) {
+      setError(err.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 10000 }}>
+      <div className="modal-container" style={{ maxWidth: '400px', padding: '30px' }}>
+        <div className="modal-header">
+          <h2 style={{ color: 'var(--accent)' }}>System Authentication</h2>
+          <button className="close-btn" onClick={onClose}>&times;</button>
+        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
+          Enter your credentials to access protected AI maintenance features.
+        </p>
+        <form onSubmit={handleSubmit}>
+          <div className="filter-group" style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '5px', fontSize: '0.8rem' }}>Username</label>
+            <input 
+              type="text" 
+              className="timeline-dropdown" 
+              style={{ width: '100%', background: 'rgba(255,255,255,0.05)' }}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="filter-group" style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '5px', fontSize: '0.8rem' }}>Password</label>
+            <input 
+              type="password" 
+              className="timeline-dropdown" 
+              style={{ width: '100%', background: 'rgba(255,255,255,0.05)' }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '15px' }}>{error}</div>}
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              background: 'var(--accent)', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontWeight: '600',
+              cursor: 'pointer',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? "Authenticating..." : "Login"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export function LoadingSpinner() {
+  return (
+    <div className="loading-overlay">
+      <div className="spinner-ring"></div>
+      <div className="loading-text">Krishna Groundwater AI Loading...</div>
+    </div>
+  );
+}

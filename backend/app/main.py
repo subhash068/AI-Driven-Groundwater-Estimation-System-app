@@ -377,6 +377,13 @@ async def groundwater_village(village_id: int) -> dict:
     return payload
 
 
+@app.get("/api/analytics", response_model=dict)
+async def api_analytics(
+    district: str | None = Query(default=None),
+) -> dict:
+    return gnn_service.get_analytics(district=district)
+
+
 @app.post("/api/groundwater/simulate", response_model=dict)
 async def groundwater_simulate(
     payload: dict = Body(default={}),

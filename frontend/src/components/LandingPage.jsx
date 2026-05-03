@@ -40,6 +40,8 @@ function MiniMapPreview({ villages, stateBoundaryLayer }) {
   return (
     <div className="mini-map-glass h-full w-full">
       <MapContainer 
+        key="landing-mini-map"
+        id="landing-mini-map"
         center={center} 
         zoom={4.5} 
         zoomControl={false} 
@@ -48,6 +50,7 @@ function MiniMapPreview({ villages, stateBoundaryLayer }) {
         scrollWheelZoom={false}
         doubleClickZoom={false}
         style={{ height: '100%', width: '100%', background: 'transparent' }}
+        preferCanvas={false}
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
         {stateBoundaryLayer && (
