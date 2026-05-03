@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildLocationKey, normalizeLocationName } from "../utils/mapUtils";
 import pumpingWorkbook from "../constants/pumping_data.json";
+import { api, LOCAL_DATA_ONLY_MODE } from "../services/api";
 
 const UNIFIED_DATASET_CANDIDATES = [
   "/data/final_dataset.json",
@@ -160,7 +161,7 @@ function recordCompletenessScore(record) {
 
 function isSyntheticVillageName(value) {
   const normalized = String(value ?? "").trim().toLowerCase();
-  return !normalized || normalized === "forest";
+  return !normalized;
 }
 
 function getRecordLocationKey(row) {
@@ -245,10 +246,10 @@ function logCrossDistrictCollisions(records) {
   };
 }
 
-function normalizeRecord(input, index) {
+export function normalizeRecord(input, index = 0) {
   const props = input?.properties || input || {};
   const rawVillageName = String(props.village_name ?? props.Village_Name ?? props.name ?? props.village ?? "").trim();
-  if (!rawVillageName || rawVillageName.toLowerCase() === "forest") return null;
+  if (!rawVillageName) return null;
   const district = normalizeText(props.district ?? props.District);
   const mandal = normalizeText(props.mandal ?? props.Mandal);
   const village_name = normalizeText(rawVillageName, `Village ${index + 1}`);
@@ -316,30 +317,21 @@ function normalizeRecord(input, index) {
     long_term_avg: toNumber(props.long_term_avg, null),
     trend_slope: toNumber(props.trend_slope, null),
     seasonal_variation: toNumber(props.seasonal_variation, null),
-    elevation: toNumber(props.elevation ?? props.Elevation, null),
-    elevation_min: toNumber(props.elevation_min, null),
-    elevation_max: toNumber(props.elevation_max, null),
-    terrain_gradient: toNumber(props.terrain_gradient, null),
-    recharge_index: toNumber(props.recharge_index, null),
-    extraction_stress: toNumber(props.extraction_stress, null),
-    aquifer_storage_factor: toNumber(props.aquifer_storage_factor, 1),
-    rainfall_proxy: toNumber(props.rainfall_proxy, null),
-    built_area_change_pct: toNumber(props.built_area_change_pct, null),
-    soil: normalizeText(props.soil ?? props.Soil),
-    soil_taxonomy: normalizeText(props.soil_taxonomy ?? props.Soil_Taxonomy),
-    soil_map_unit: normalizeText(props.soil_map_unit ?? props.Soil_Map_Unit),
-    aquifer_type: normalizeText(props.aquifer_type ?? props.Aquifer_Type),
-    geomorphology: normalizeText(props.geomorphology),
-    lulc_latest_year: toNumber(props.lulc_latest_year, 0),
-    lulc_start_year: toNumber(props.lulc_start_year, 0),
-    lulc_end_year: toNumber(props.lulc_end_year, 0),
-    lulc_start_dominant: normalizeText(props.lulc_start_dominant),
-    lulc_end_dominant: normalizeText(props.lulc_end_dominant),
+    recharge_score: toNumber(props.recharge_score ?? props.recharge_potential ?? props.recharge_index ?? props.RECHARGE_POTENTIAL ?? props.potential_recharge, null),
+    well_count: toNumber(props.wells_total ?? props.well_count ?? props.wells ?? props.borewell_count ?? props.WELL_COUNT, null),
+    monsoon_draft: toNumber(props.pumping_monsoon_draft_ha_m ?? props.monsoon_draft ?? props.monsoon_draft_ha_m ?? props.draft ?? props.Draft ?? props.MONSOON_DRAFT, null),
+    dist_nearest_piezo: toNumber(props.nearest_piezometer_distance_km ?? props.distance_to_nearest_piezo_km ?? props.dist_nearest_piezo ?? props.dist_nearest_piezo_km ?? props.dist_to_sensor_km ?? props.piezo_distance ?? props.DIST_NEAREST_PIEZO, null),
+    dist_nearest_tank: toNumber(props.distance_to_nearest_tank_km ?? props.dist_nearest_tank ?? props.dist_nearest_tank_km ?? props.tank_distance ?? props.DIST_NEAREST_TANK, null),
+    elevation: toNumber(props.elevation ?? props.Elevation ?? props.height_msl, null),
+    soil: normalizeText(props.soil ?? props.Soil ?? props.soil_type ?? props.SOIL),
+    aquifer_type: normalizeText(props.aquifer_type ?? props.Aquifer_Type ?? props.aquifer ?? props.AQUIFER),
     monthly_depths: parseMonthlyDepths(props.monthly_depths),
     monthly_depths_dates: parseStringArray(props.monthly_depths_dates),
     monthly_depths_full: parseMonthlyDepths(props.monthly_depths_full ?? props.monthly_depths_history),
     monthly_depths_full_dates: parseStringArray(props.monthly_depths_full_dates ?? props.monthly_depths_history_dates),
     monthly_depths_full_pairs: parseObjectArray(props.monthly_depths_full_pairs),
+    monthly_predicted_gw: parseMonthlyDepths(props.monthly_predicted_gw),
+    lstm_forecast: parseMonthlyDepths(props.lstm_forecast),
     available_years: parseNumberArray(props.available_years)
   };
 }
@@ -393,16 +385,32 @@ export function useGroundwaterDataset() {
         setLoading(true);
         const loadedRecords = [];
         const districtSources = [];
-        const candidatePaths = Array.from(new Set([
-          ...UNIFIED_DATASET_CANDIDATES,
-          ...DISTRICT_DATASET_CANDIDATES
-        ]));
-        for (const path of candidatePaths) {
-          const payload = await fetchJsonIfValid(path);
-          const normalized = normalizeDataset(payload, path);
-          if (!normalized) continue;
-          loadedRecords.push(...normalized.records);
-          districtSources.push(path);
+
+        if (!LOCAL_DATA_ONLY_MODE) {
+          try {
+            const payload = await api.getMapData();
+            const normalized = normalizeDataset(payload, "API");
+            if (normalized && normalized.records.length > 0) {
+              loadedRecords.push(...normalized.records);
+              districtSources.push("API");
+            }
+          } catch (err) {
+            console.error("Failed to load map data from API, falling back to local files:", err);
+          }
+        }
+
+        if (loadedRecords.length === 0) {
+          const candidatePaths = Array.from(new Set([
+            ...UNIFIED_DATASET_CANDIDATES,
+            ...DISTRICT_DATASET_CANDIDATES
+          ]));
+          for (const path of candidatePaths) {
+            const payload = await fetchJsonIfValid(path);
+            const normalized = normalizeDataset(payload, path);
+            if (!normalized) continue;
+            loadedRecords.push(...normalized.records);
+            districtSources.push(path);
+          }
         }
 
         if (loadedRecords.length > 0) {

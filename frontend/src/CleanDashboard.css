@@ -136,12 +136,19 @@ div::-webkit-scrollbar-thumb:hover {
   color: black;
 }
 
+.nav-item.methodology-active {
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid #2563EB;
+  color: #60A5FA;
+  box-shadow: inset 0 0 12px rgba(37, 99, 235, 0.2), 0 0 15px rgba(37, 99, 235, 0.15);
+}
+
 /* Main Content Area */
 .clean-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 40px;
+  padding: 24px;
   gap: 24px;
   overflow-y: auto;
   background: white;
@@ -173,7 +180,7 @@ div::-webkit-scrollbar-thumb:hover {
 
 .metric-card {
   background: white;
-  padding: 16px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid #F1F5F9;
   display: flex;
@@ -238,13 +245,14 @@ div::-webkit-scrollbar-thumb:hover {
 /* Control Bar */
 .control-bar {
   background: white;
-  padding: 12px 24px;
+  padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 20px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .control-group {
@@ -306,11 +314,13 @@ div::-webkit-scrollbar-thumb:hover {
 
 /* Map Container */
 .map-container-wrap {
-  flex: 1;
+  width: 1215.6px;
+  height: 640px;
   position: relative;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 /* Data Views (Table/Charts) */
@@ -387,11 +397,16 @@ div::-webkit-scrollbar-thumb:hover {
   position: absolute;
   top: 0;
   right: 0;
-  height: 100%;
-  width: 380px;
+  height: 826px;
+  max-height: 100%;
+  width: 560px;
+  max-width: 100%;
   z-index: 1000;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-left: 1px solid #E2E8F0;
+  background: white;
+  box-shadow: -4px 0 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .clean-insights {
@@ -404,7 +419,7 @@ div::-webkit-scrollbar-thumb:hover {
 }
 
 .insight-header-v2 {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -524,4 +539,174 @@ div::-webkit-scrollbar-thumb:hover {
 .advisory-btn:hover {
   background: #1E293B;
   transform: translateY(-1px);
+}
+/* Premium Top Bar & Filters */
+.dashboard-top-bar-main {
+  background: white;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.topbar-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.topbar-identity {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.topbar-center-controls {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hierarchical-filters {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: #F8FAFC;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  max-width: 100%;
+}
+
+.timeline-dropdown {
+  background-color: #FFFFFF;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 8px 32px 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1E293B;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  width: fit-content;
+  min-width: 140px;
+  max-width: 240px;
+  appearance: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-dropdown:hover:not(:disabled) {
+  border-color: #2563EB;
+  background-color: #F8FAFC;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.timeline-dropdown option {
+  background-color: white;
+  color: #1E293B;
+  font-weight: 500;
+  padding: 12px;
+}
+
+.timeline-dropdown:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+.timeline-dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #F1F5F9;
+  border-color: #E2E8F0;
+  color: #94A3B8;
+}
+
+.topbar-identity strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ai-toggle-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+}
+
+.ai-toggle-main input {
+  accent-color: #2563EB;
+}
+
+.dashboard-toggle-main {
+  background: #0F172A;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dashboard-toggle-main:hover {
+  background: #1E293B;
+  transform: translateY(-1px);
+}
+
+/* Fix for main padding when topbar is present */
+.clean-main {
+  padding-top: 0 !important; /* Remove top padding since topbar handles it */
+}
+
+.header-row {
+  margin-top: 24px; /* Restore spacing after topbar */
+}
+/* Recharge Priority Styling */
+.recharge-priority-high {
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 4px rgba(0, 245, 212, 0.6));
+  animation: recharge-pulse 2s infinite ease-in-out;
+}
+
+@keyframes recharge-pulse {
+  0% { stroke-width: 4; stroke-opacity: 0.8; }
+  50% { stroke-width: 6; stroke-opacity: 1; }
+  100% { stroke-width: 4; stroke-opacity: 0.8; }
+}
+
+.leaflet-tooltip {
+  background: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
+  border: none !important;
 }

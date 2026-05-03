@@ -1,20 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { buildLocationKey, normalizeLocationName } from '../utils/mapUtils';
+import { buildLocationKey, normalizeLocationName, geometryCenter, getDistance } from '../utils/mapUtils';
 import { INDIAN_STATES } from '../constants/data';
 
 const DEFAULT_STATE = "Andhra Pradesh";
-const EXCLUDED_DISTRICTS = new Set([
-  "guntur",
-  "west godavari"
-]);
+const EXCLUDED_DISTRICTS = new Set([]);
 
 const DISTRICT_VILLAGE_DATASET_CANDIDATES = [
-  "/data/villages_with_sensors.geojson",
-  "/data/village_boundaries_imputed.geojson",
-  "/data/village_boundaries.geojson",
-  "/data/villages.geojson",
-  "/data/village_boundaries_ntr.geojson",
-  "/data/villages_ntr.geojson"
+  
+  "/data/map_data_predictions.geojson",
+  "/data/villages_with_sensors.geojson"
 ];
 
 function featureLocationKey(feature) {
@@ -24,7 +18,12 @@ function featureLocationKey(feature) {
 
 function featureCompletenessScore(feature) {
   const props = feature?.properties || {};
-  let score = feature?.geometry ? 1 : 0;
+  let score = 0;
+
+  // Prefer polygons/multipolygons heavily over points
+  const type = feature?.geometry?.type;
+  if (type === "Polygon" || type === "MultiPolygon") score += 100;
+  else if (type === "Point") score += 1;
   for (const value of Object.values(props)) {
     if (Array.isArray(value)) {
       if (value.length > 0) score += 1;
@@ -49,26 +48,33 @@ function normalizeFeatureProperties(feature, index) {
   const lc = Object.fromEntries(
     Object.entries(p).map(([k, v]) => [String(k).toLowerCase().trim(), v])
   );
-  const villageName =
+
+  const rawVillageName =
     lc.village_name ??
     lc.village ??
     lc.dvname ??
-    lc.name ??
-    `Village ${index + 1}`;
-  const district = lc.district ?? lc.dname ?? "Unknown";
-  const mandal = lc.mandal ?? lc.mname ?? lc.taluk ?? "Unknown";
-  const state = lc.state ?? "Andhra Pradesh";
+    lc.name;
+
   const villageId = lc.village_id ?? lc.villageid ?? lc.id ?? index + 1;
+
+  let villageName = String(rawVillageName || "").trim();
+  if (!villageName || /^\d+$/.test(villageName)) {
+    villageName = `Village ${villageId}`;
+  }
+
+  const district = String(lc.district ?? lc.dname ?? "Unknown").trim();
+  const mandal = String(lc.mandal ?? lc.mname ?? lc.taluk ?? "Unknown").trim();
+  const state = String(lc.state ?? "Andhra Pradesh").trim();
 
   return {
     ...feature,
     properties: {
       ...p,
       village_id: villageId,
-      village_name: String(villageName).trim(),
-      district: String(district).trim(),
-      mandal: String(mandal).trim(),
-      state: String(state).trim(),
+      village_name: villageName,
+      district: district,
+      mandal: mandal,
+      state: state,
       location_key: buildLocationKey(district, mandal, villageName)
     }
   };
@@ -99,7 +105,9 @@ function optionLabel(district, mandal, villageName = null) {
 
 async function fetchJsonIfValid(path) {
   try {
-    const response = await fetch(path, { headers: { Accept: "application/json" } });
+    const cacheBuster = `v=${new Date().getTime()}`;
+    const url = path.includes('?') ? `${path}&${cacheBuster}` : `${path}?${cacheBuster}`;
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
     if (!response.ok) return null;
     const text = (await response.text()).trim();
     if (!text) return null;
@@ -138,8 +146,32 @@ async function loadVillageGeojson() {
     normalized.features.forEach((feature) => {
       const key = featureLocationKey(feature);
       if (!key) return;
-      const existing = mergedByKey.get(key);
+
+      const isNumericName = /^\d+$/.test(feature.properties.village_name) || feature.properties.village_name.startsWith("Village ");
+      let existing = mergedByKey.get(key);
+
+      // Spatial match fallback for numeric names
+      if (!existing && isNumericName) {
+        const center = geometryCenter(feature.geometry);
+        const mandalKey = `${normalizeLocationName(feature.properties.district)}|${normalizeLocationName(feature.properties.mandal)}`;
+
+        for (const [otherKey, otherFeature] of mergedByKey.entries()) {
+          if (otherKey.startsWith(mandalKey)) {
+            const otherCenter = geometryCenter(otherFeature.geometry);
+            const dist = getDistance(center, otherCenter);
+            if (dist < 0.015) { // Approx 1.5km
+              existing = otherFeature;
+              break;
+            }
+          }
+        }
+      }
+
       if (!existing || featureCompletenessScore(feature) > featureCompletenessScore(existing)) {
+        if (existing) {
+          // Merge properties if we found a match (keep the best geometry/name from either)
+          feature.properties = { ...existing.properties, ...feature.properties };
+        }
         mergedByKey.set(key, feature);
       }
     });
@@ -240,10 +272,7 @@ export function useVillageData(filters) {
       new Set(
         stateScopedFeatures
           .map((f) => String(f.properties?.district || "").trim())
-          .filter((districtName) => {
-            if (!districtName) return false;
-            return !EXCLUDED_DISTRICTS.has(normalizeLocationName(districtName));
-          })
+          .filter((districtName) => !!districtName)
       )
     ).sort((a, b) => a.localeCompare(b));
   }, [villages, state]);
@@ -253,7 +282,7 @@ export function useVillageData(filters) {
     return new Set(
       villages.features
         .map((f) => String(f.properties?.district || "").trim())
-        .filter((districtName) => districtName && !EXCLUDED_DISTRICTS.has(normalizeLocationName(districtName)))
+        .filter((districtName) => !!districtName)
     ).size;
   }, [villages]);
 
@@ -295,7 +324,13 @@ export function useVillageData(filters) {
         });
       }
     });
-    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    return Array.from(map.values()).sort((a, b) => {
+      const aIsPlaceholder = a.value.startsWith("Village ");
+      const bIsPlaceholder = b.value.startsWith("Village ");
+      if (aIsPlaceholder && !bIsPlaceholder) return 1;
+      if (!aIsPlaceholder && bIsPlaceholder) return -1;
+      return a.label.localeCompare(b.label);
+    });
   }, [villages, stateScopedFeatures, districtScopedFeatures, district]);
 
   const villageOptions = useMemo(() => {
@@ -323,7 +358,13 @@ export function useVillageData(filters) {
         });
       }
     });
-    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    return Array.from(map.values()).sort((a, b) => {
+      const aIsPlaceholder = a.value.startsWith("Village ");
+      const bIsPlaceholder = b.value.startsWith("Village ");
+      if (aIsPlaceholder && !bIsPlaceholder) return 1;
+      if (!aIsPlaceholder && bIsPlaceholder) return -1;
+      return a.label.localeCompare(b.label);
+    });
   }, [villages, stateScopedFeatures, districtScopedFeatures, district, mandal]);
 
   return {

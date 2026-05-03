@@ -83,7 +83,14 @@ function buildForecastSeries(selectedFeature, forecastPayload, statusPayload) {
       ? forecastPayload.forecast_3_month
       : Array.isArray(statusPayload?.forecast_3_month) && statusPayload.forecast_3_month.length
         ? statusPayload.forecast_3_month
-        : []).map((point, index) => ({
+        : Array.isArray(props.monthly_predicted_gw) && props.monthly_predicted_gw.length
+          ? props.monthly_predicted_gw.map((value, index) => ({
+              forecast_date: props.monthly_dates?.[index],
+              predicted_groundwater_depth: Number(value),
+              predicted_lower: Number(value) * 0.9,
+              predicted_upper: Number(value) * 1.1
+            })).slice(0, 12) // Limit to 12 months for chart clarity
+          : []).map((point, index) => ({
           label: formatMonthLabel(point.forecast_date, index),
           groundwater_depth: Number(point.predicted_groundwater_depth),
           kind: "forecast",

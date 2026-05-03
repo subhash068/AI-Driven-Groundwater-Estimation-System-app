@@ -3,7 +3,7 @@ const API_BASE_URL =
     import.meta?.env?.VITE_API_BASE_URL) ||
   "http://127.0.0.1:8000";
 
-export const LOCAL_DATA_ONLY_MODE = true;
+export const LOCAL_DATA_ONLY_MODE = false;
 
 const apiStatusState = {
   usingFallback: false,
@@ -136,16 +136,8 @@ export const api = {
     if (LOCAL_DATA_ONLY_MODE) {
       return readGeoJsonFallback("/data/map_data_predictions.geojson");
     }
-    try {
-      return await requestJson("/api/groundwater/all");
-    } catch {
-      setStatusPatch({ usingFallback: true });
-      try {
-        return await requestJson("/map-data");
-      } catch {
-        return readGeoJsonFallback("/data/map_data_predictions.geojson");
-      }
-    }
+    if (LOCAL_DATA_ONLY_MODE) return readGeoJsonFallback("/data/map_data_predictions.geojson");
+    return requestJson("/v2/map-data");
   },
 
   async getAnomalies(outputFormat = "geojson") {
@@ -239,11 +231,22 @@ export const api = {
         recommended_actions: Array.isArray(props.recommended_actions) ? props.recommended_actions : [],
         anomaly_flag: Boolean(props.anomaly_flag),
         anomaly_score: toNumberOrNull(props.anomaly_score) ?? 0,
+        // Include monthly series for consistency and chart support
+        monthly_rainfall: props.monthly_rainfall || props.normalized_monthly_rainfall || [],
+        monthly_recharge: props.monthly_recharge || props.normalized_monthly_recharge || [],
+        monthly_predicted_gw: props.monthly_predicted_gw || props.normalized_monthly_predicted || [],
+        monthly_actual_gw: props.monthly_actual_gw || props.normalized_monthly_depths || [],
+        monthly_dates: props.monthly_dates || props.normalized_monthly_dates || [],
         mode: "local"
       };
     }
-    const mode = String(options.mode || "batch");
-    return requestJson(`/predict?village_id=${Number(villageId)}&mode=${encodeURIComponent(mode)}`);
+    // Always use V2 for live predictions
+    const data = await requestJson(`/v2/predict?village_id=${Number(villageId)}`);
+    return {
+      ...data,
+      predicted_groundwater_level: data.predicted_groundwater_level ?? data.groundwater_level,
+      confidence_score: data.confidence_score ?? data.confidence
+    };
   },
 
   async getVillageForecast(villageId) {
@@ -292,5 +295,15 @@ export const api = {
     } catch {
       return null;
     }
+  },
+
+  async getLulcTrends(villageId) {
+    if (LOCAL_DATA_ONLY_MODE) return null;
+    return requestJson(`/v2/lulc-trends?village_id=${Number(villageId)}`);
+  },
+
+  async retrain() {
+    if (LOCAL_DATA_ONLY_MODE) return { status: "local-only" };
+    return requestJson("/v2/retrain", { method: "POST" });
   }
 };

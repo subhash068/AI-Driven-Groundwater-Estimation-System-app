@@ -29,14 +29,25 @@ export function geometryCenter(geometry) {
 }
 
 export function healthColor(depth) {
-  if (depth >= 30) return [190, 38, 38, 180]; // critical: red
-  if (depth >= 20) return [217, 160, 52, 175]; // warning
-  return [52, 146, 70, 175]; // safe: green
+  if (depth >= 30) return [239, 68, 68, 180]; // critical: #ef4444 (Red)
+  if (depth >= 15) return [245, 158, 11, 180]; // caution: #f59e0b (Amber)
+  return [34, 197, 94, 180]; // safe: #22c55e (Green)
 }
 
-export function advisoryLabel(depth) {
-  if (depth >= 30) return "Critical";
-  if (depth >= 20) return "Warning";
+export function getRiskFromDepth(depth) {
+  if (depth === null || depth === undefined || !Number.isFinite(depth)) return "safe";
+  if (depth >= 30) return "critical";
+  if (depth >= 15) return "caution";
+  return "safe";
+}
+
+export function advisoryLabel(value) {
+  if (typeof value === 'number') {
+    return getRiskFromDepth(value).charAt(0).toUpperCase() + getRiskFromDepth(value).slice(1);
+  }
+  const r = String(value || "").toLowerCase().trim();
+  if (["critical", "severe", "high"].includes(r)) return "Critical";
+  if (["warning", "medium", "moderate", "caution"].includes(r)) return "Caution";
   return "Safe";
 }
 
@@ -108,57 +119,144 @@ export function shiftGeometryFor3D(geometry, depthFactor) {
 export function normalizeVillageProperties(props) {
   if (!props) return null;
 
-  // 1. Depth Normalization (Priority: Actual > Predicted > Legacy > Static)
+  // 1. Depth Normalization (Priority: Actual > Predicted > Legacy > Static > Series First)
+  const getFirstFiniteInSeries = (s) => {
+    if (Array.isArray(s)) return s.find(v => Number.isFinite(Number(v)));
+    if (typeof s === 'string' && s.startsWith('[')) {
+       try {
+         const p = JSON.parse(s);
+         if (Array.isArray(p)) return p.find(v => Number.isFinite(Number(v)));
+       } catch(e) {}
+    }
+    return undefined;
+  };
+
   const depthCandidates = [
     props.current_depth,
-    props.actual_last_month,
-    props.target_last_month,
     props.gw_level,
     props.GW_Level,
     props.depth,
     props.predicted_groundwater_level,
-    props.groundwater_estimate
+    props.predicted_groundwater,
+    props.groundwater_level,
+    props.groundwater_estimate,
+    props.predicted_gw,
+    props.actual_last_month,
+    props.target_last_month,
+    getFirstFiniteInSeries(props.monthly_depths),
+    getFirstFiniteInSeries(props.monthly_predicted_gw),
+    getFirstFiniteInSeries(props.predicted_groundwater_series)
   ];
   
-  const currentDepthRaw = depthCandidates.find(v => v !== null && v !== undefined && String(v).trim() !== "" && Number.isFinite(Number(v)));
-  const currentDepth = currentDepthRaw !== undefined ? Number(currentDepthRaw) : null;
+  const currentDepthRaw = depthCandidates.find(v => v !== null && v !== undefined && String(v).trim() !== "" && !isNaN(parseFloat(v)) && isFinite(v));
+  const currentDepth = (currentDepthRaw !== undefined && currentDepthRaw !== null) ? parseFloat(currentDepthRaw) : null;
   
-  // 2. Risk Normalization (Critical/Warning/Safe)
-  let risk = String(props.risk_level || "").trim().toLowerCase();
-  if (!["critical", "warning", "safe", "high", "medium", "low"].includes(risk)) {
-    // If risk is missing or invalid, derive from depth
-    if (currentDepth !== null) {
-      if (currentDepth >= 30) risk = "critical";
-      else if (currentDepth >= 20) risk = "warning";
-      else risk = "safe";
-    } else {
-      risk = "safe";
-    }
+  // 2. Risk Normalization (Critical/Caution/Safe)
+  let risk = "";
+  if (currentDepth !== null && Number.isFinite(currentDepth) && currentDepth > 0) {
+    risk = getRiskFromDepth(currentDepth);
+  } else {
+    risk = String(
+      props.risk_level || 
+      props.normalized_risk || 
+      props.Risk || 
+      props.risk || 
+      ""
+    ).trim().toLowerCase();
   }
   
-  // Map Aliases
-  if (risk === "high") risk = "critical";
-  if (risk === "medium" || risk === "moderate") risk = "warning";
-  if (risk === "low") risk = "safe";
+  // Final fallback if still empty
+  if (!risk) risk = "safe";
+  
+  // Map Aliases to canonical keys: 'critical', 'caution', 'safe'
+  if (["high", "severe", "critical"].includes(risk)) risk = "critical";
+  if (["medium", "moderate", "caution", "warning"].includes(risk)) risk = "caution";
+  if (["low", "safe"].includes(risk)) risk = "safe";
+  
+  if (!["critical", "caution", "safe"].includes(risk)) {
+      risk = "safe";
+  }
 
-  // 4. Series Normalization (Map various names to a standard set)
+  // 4. Attribute Normalization (Richer extraction for insights)
+  const toNumber = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // Explicitly map qualitative strings if present
+  let mapped_potential = null;
+  const raw_potential = String(props.recharge_potential || props.potential_recharge || "").toLowerCase().trim();
+  if (raw_potential === "high") mapped_potential = 0.82;
+  else if (raw_potential === "medium" || raw_potential === "moderate") mapped_potential = 0.54;
+  else if (raw_potential === "low") mapped_potential = 0.28;
+
+  const recharge_score = toNumber(
+    props.recharge_score ?? 
+    props.recharge_index ?? 
+    mapped_potential ?? 
+    props.effective_recharge ?? 
+    props.RECHARGE_POTENTIAL ?? 
+    0.53 // Default Krishna baseline
+  );
+  const well_count = toNumber(props.wells_total ?? props.well_count ?? props.wells ?? props.borewell_count ?? props.WELL_COUNT);
+  const monsoon_draft = toNumber(props.pumping_monsoon_draft_ha_m ?? props.monsoon_draft ?? props.monsoon_draft_ha_m ?? props.draft ?? props.Draft ?? props.MONSOON_DRAFT);
+  const dist_nearest_piezo = toNumber(props.nearest_piezometer_distance_km ?? props.distance_to_nearest_piezo_km ?? props.dist_nearest_piezo ?? props.dist_nearest_piezo_km ?? props.dist_to_sensor_km ?? props.piezo_distance ?? props.DIST_NEAREST_PIEZO);
+  const dist_nearest_tank = toNumber(props.distance_to_nearest_tank_km ?? props.dist_nearest_tank ?? props.dist_nearest_tank_km ?? props.tank_distance ?? props.DIST_NEAREST_TANK);
+
+  // 5. Series Normalization (Map various names to a standard set)
   const getSeries = (...candidates) => {
     for (const c of candidates) {
+      if (!c) continue;
       if (Array.isArray(c) && c.length > 0) return c;
-      if (typeof c === 'string' && c.startsWith('[') && c.length > 2) {
-        try {
-          const parsed = JSON.parse(c);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch(e) {}
+      if (typeof c === 'string' && c.length > 2) {
+        let text = c.trim();
+        if (text.startsWith('[') && text.endsWith(']')) {
+          try {
+            // Try standard JSON first
+            return JSON.parse(text);
+          } catch (e) {
+            try {
+              // Try fixing Python-style single quotes and None
+              const fixed = text.replace(/'/g, '"').replace(/None/g, 'null');
+              return JSON.parse(fixed);
+            } catch (e2) {
+              // Last resort: manual split
+              return text.slice(1, -1).split(',').map(s => {
+                const val = s.trim().replace(/^["']|["']$/g, '');
+                return val === 'None' ? null : val;
+              });
+            }
+          }
+        }
       }
     }
     return [];
   };
 
-  const monthly_depths = getSeries(props.monthly_depths, props.observed_series, props.monthly_actual_gw);
-  const monthly_dates = getSeries(props.monthly_depths_full_dates, props.monthly_depths_dates, props.monthly_dates, props.observed_dates);
-  const monthly_rainfall = getSeries(props.monthly_rainfall, props.rainfall_series);
-  const monthly_recharge = getSeries(props.monthly_recharge, props.recharge_series);
+  let monthly_depths = getSeries(props.monthly_depths_full, props.monthly_depths, props.observed_series, props.monthly_actual_gw);
+  let monthly_dates = getSeries(props.monthly_depths_full_dates, props.monthly_depths_dates, props.monthly_dates, props.observed_dates);
+
+  // If we have depths but no dates, or vice versa, try the "pairs" field which is common in Python exports
+  if (monthly_depths.length === 0 || monthly_dates.length === 0) {
+    const pairs = getSeries(props.monthly_depths_full_pairs, props.monthly_depths_pairs);
+    if (Array.isArray(pairs) && pairs.length > 0) {
+      // If pairs is an array of objects like [{date: '...', depth: ...}]
+      if (typeof pairs[0] === 'object' && pairs[0] !== null) {
+        if (monthly_depths.length === 0) {
+          monthly_depths = pairs.map(p => {
+            const val = p.depth ?? p.value ?? p.gw_level;
+            return (val === null || val === undefined || val === 'None') ? null : Number(val);
+          });
+        }
+        if (monthly_dates.length === 0) {
+          monthly_dates = pairs.map(p => p.date ?? p.month ?? p.time);
+        }
+      }
+    }
+  }
+
+  const monthly_rainfall = getSeries(props.monthly_rainfall_full, props.monthly_rainfall, props.rainfall_series);
+  const monthly_recharge = getSeries(props.monthly_recharge_full, props.monthly_recharge, props.recharge_series);
   const monthly_predicted = getSeries(props.monthly_predicted_gw, props.predicted_groundwater_series, props.lstm_forecast);
   const confidence = props.confidence ?? props.combined_reliability ?? props.reliability ?? 0.85;
 
@@ -167,6 +265,11 @@ export function normalizeVillageProperties(props) {
     normalized_depth: currentDepth,
     normalized_risk: risk.charAt(0).toUpperCase() + risk.slice(1),
     normalized_confidence: confidence,
+    normalized_recharge_score: recharge_score,
+    normalized_well_count: well_count,
+    normalized_monsoon_draft: monsoon_draft,
+    normalized_dist_nearest_piezo: dist_nearest_piezo,
+    normalized_dist_nearest_tank: dist_nearest_tank,
     normalized_monthly_depths: monthly_depths,
     normalized_monthly_dates: monthly_dates,
     normalized_monthly_rainfall: monthly_rainfall,
@@ -174,4 +277,15 @@ export function normalizeVillageProperties(props) {
     normalized_monthly_predicted: monthly_predicted,
     is_hydrated: Boolean(props.is_hydrated || props.forecast_yearly || props.lstm_forecast || (Array.isArray(monthly_predicted) && monthly_predicted.length > 0))
   };
+}
+
+export function getDistance(c1, c2) {
+  if (!c1 || !c2) return Infinity;
+  const lat1 = c1.latitude || c1[1];
+  const lon1 = c1.longitude || c1[0];
+  const lat2 = c2.latitude || c2[1];
+  const lon2 = c2.longitude || c2[0];
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+  return Math.sqrt(dLat * dLat + dLon * dLon);
 }

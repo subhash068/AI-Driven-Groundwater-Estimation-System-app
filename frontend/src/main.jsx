@@ -7,6 +7,11 @@ import "./styles.css";
 
 function getRoute(pathname) {
   if (pathname.startsWith("/dashboard")) return "/dashboard";
+  if (pathname.startsWith("/forecasts")) return "/forecasts";
+  if (pathname.startsWith("/anomalies")) return "/anomalies";
+  if (pathname.startsWith("/recharge")) return "/recharge";
+  if (pathname.startsWith("/explainability")) return "/explainability";
+  if (pathname.startsWith("/methodology")) return "/methodology";
   if (pathname === "/" || pathname === "") return "/";
   return "/";
 }

@@ -1,8 +1,10 @@
+# Cache flushed for NTR district reconciliation at 2026-05-03T03:22:00
 from datetime import date
 from pathlib import Path
 
 from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from reportlab.lib.pagesizes import A4
@@ -43,6 +45,8 @@ from .services import (
     upsert_village_estimate,
 )
 from .services.prediction_service import gnn_service
+from .utils.key import build_location_key
+from .api import v2
 
 
 
@@ -55,6 +59,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+app.include_router(v2.router)
 @app.post("/auth/token", response_model=TokenResponse)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -338,14 +345,16 @@ async def groundwater_all(
     min_confidence: float | None = Query(default=None, ge=0.0, le=1.0),
     anomalies_only: bool = Query(default=False),
     recharge_only: bool = Query(default=False),
+    refresh_cache: bool = Query(default=False),
 ) -> dict:
+    if refresh_cache:
+        gnn_service.clear_cache()
     return gnn_service.get_all(
         district=district,
         min_confidence=min_confidence,
         anomalies_only=anomalies_only,
         recharge_only=recharge_only,
     )
-
 
 @app.get("/api/groundwater/anomalies", response_model=dict)
 async def groundwater_anomalies(

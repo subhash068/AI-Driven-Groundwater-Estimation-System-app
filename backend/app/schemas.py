@@ -14,6 +14,9 @@ class VillageStatusResponse(BaseModel):
     alert_status: str | None = None
     trend_direction: str | None = None
     recommended_actions: list[str] = Field(default_factory=list)
+    dist_nearest_tank_km: float | None = Field(default=None)
+    recharge_score: float | None = Field(default=None)
+    nearest_piezo_id: str | None = Field(default=None)
 
 
 class RechargeRecommendationResponse(BaseModel):
@@ -91,3 +94,38 @@ class AnomalyAlert(BaseModel):
 
 class AnomalyAlertResponse(BaseModel):
     alerts: list[AnomalyAlert]
+
+
+class ShapFactor(BaseModel):
+    label: str
+    value: float
+
+class V2PredictResponse(BaseModel):
+    village_id: int
+    village_name: str
+    mandal: str | None = None
+    district: str | None = None
+    groundwater_level: float | None
+    confidence: float
+    risk_level: str
+    trend: str
+    monthly_predicted_gw: list[float] = Field(default_factory=list)
+    monthly_dates: list[str] = Field(default_factory=list)
+    water_pct: float | None = None
+    trees_pct: float | None = None
+    crops_pct: float | None = None
+    built_area_pct: float | None = None
+    dist_to_sensor_km: float | None = Field(default=None)
+    dist_nearest_tank_km: float | None = Field(default=None)
+    recharge_score: float | None = Field(default=None)
+    nearest_piezo_id: str | None = Field(default=None)
+    top_factors: list[ShapFactor] = Field(default_factory=list)
+
+
+class V2LulcTrendsResponse(BaseModel):
+    village_id: int
+    built_area_change_pct: float | None
+    lulc_start_year: int | None
+    lulc_end_year: int | None
+    lulc_start_dominant: str | None
+    lulc_end_dominant: str | None

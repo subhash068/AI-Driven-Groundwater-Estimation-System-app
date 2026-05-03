@@ -646,18 +646,23 @@ body,
 
 /* Sliding Village Insight Panel */
 .insights-dock {
-  width: 420px;
-  height: 100%;
-  background: var(--bg-sidebar);
-  border-left: 1px solid var(--glass-border);
-  transition: var(--transition);
+  width: 560px;
+  height: 826px;
+  background: white;
+  border-left: 1px solid var(--border);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
-  z-index: 80;
+  z-index: 1000;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.05);
 }
 
 .insights-dock.closed {
-  width: 0;
-  border-left: none;
+  transform: translateX(100%);
+  width: 560px; /* Keep width fixed for animation */
+}
+
+.insights-dock.open {
+  transform: translateX(0);
 }
 
 /* Draggable/Fixed Panel in UI.jsx */
@@ -1216,40 +1221,7 @@ body,
   align-items: center;
 }
 
-.timeline-dropdown {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #e0f2fe;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 14px;
-  padding-right: 32px;
-}
-
-.timeline-dropdown:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(56, 189, 248, 0.6);
-}
-
-.timeline-dropdown:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.timeline-option {
-  background: #0f172a;
-  color: #e0f2fe;
-}
+/* Removed conflicting timeline-dropdown styles */
 
 .ai-toggle-main {
   white-space: nowrap;
@@ -4464,3 +4436,40 @@ body,
   font-size: 14px;
 }
 .skeleton-pulse { background: rgba(255, 255, 255, 0.05); animation: pulse 1.5s infinite ease-in-out; } @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }
+
+/* Hydrological Influence Zone Animations */
+@keyframes influence-pulse {
+  0% {
+    stroke-opacity: 0.12;
+    fill-opacity: 0.03;
+  }
+  50% {
+    stroke-opacity: 0.35;
+    fill-opacity: 0.07;
+  }
+  100% {
+    stroke-opacity: 0.12;
+    fill-opacity: 0.03;
+  }
+}
+
+.influence-zone-circle {
+  animation: influence-pulse 5s infinite ease-in-out;
+  transition: stroke-width 0.3s ease, stroke-opacity 0.3s ease;
+}
+
+.influence-zone-circle:hover {
+  stroke-opacity: 0.8 !important;
+  fill-opacity: 0.12 !important;
+  stroke-width: 2.5px !important;
+  cursor: help;
+}
+
+.piezometer-sensor-node {
+  filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.6));
+  transition: transform 0.2s ease;
+}
+
+.piezometer-sensor-node:hover {
+  transform: scale(1.3);
+}

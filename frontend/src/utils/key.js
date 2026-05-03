@@ -1,8 +1,16 @@
 function normalizeKeyPart(value) {
-  return String(value ?? "")
+  let s = String(value ?? "")
     .trim()
     .toLowerCase()
-    .replace(/\./g, "")
+    .replace(/\(v\)$/g, "")
+    .replace(/\(m\)$/g, "")
+    .replace(/\(ct\)$/g, "")
+    .replace(/\(rf\)$/g, "")
+    .replace(/\.v$/g, "")
+    .replace(/\.m$/g, "")
+    .replace(/\./g, "");
+    
+  return s
     .replace(/\s+/g, " ")
     .replace(/[^a-z0-9]+/g, "");
 }

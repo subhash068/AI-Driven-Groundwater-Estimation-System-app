@@ -39,15 +39,25 @@ def prophet_forecast(group: pd.DataFrame, months: int = 6) -> pd.DataFrame:
     train = group.rename(columns={"date": "ds", "groundwater_depth": "y"})
     train["ds"] = pd.to_datetime(train["ds"])
 
+    # Calculate physical limits for saturation (logistic growth)
+    max_hist = float(train['y'].max())
+    min_hist = float(train['y'].min())
+    cap = max_hist + 5.0 # Buffer of 5m above max historical depth
+    floor = max(0, min_hist - 2.0) # Cannot be negative depth
+
+    train['cap'] = cap
+    train['floor'] = floor
+
     model = Prophet(
+        growth='logistic', # Prevent infinite linear overshooting
         yearly_seasonality=True,
         weekly_seasonality=False,
         daily_seasonality=False,
-        changepoint_prior_scale=0.1,
+        changepoint_prior_scale=0.05, # More conservative regularization
     )
     for reg in ["rainfall_mm", "draft_index", "season_kharif", "season_rabi", "lulc_code"]:
         model.add_regressor(reg)
-    model.fit(train[["ds", "y", "rainfall_mm", "draft_index", "season_kharif", "season_rabi", "lulc_code"]])
+    model.fit(train[["ds", "y", "cap", "floor", "rainfall_mm", "draft_index", "season_kharif", "season_rabi", "lulc_code"]])
 
     future = model.make_future_dataframe(periods=months, freq="MS")
     latest = train.iloc[-1]
@@ -56,7 +66,8 @@ def prophet_forecast(group: pd.DataFrame, months: int = 6) -> pd.DataFrame:
     future["season_kharif"] = 0
     future["season_rabi"] = 0
     future["lulc_code"] = latest["lulc_code"]
-
+    future["cap"] = cap
+    future["floor"] = floor
     month = future["ds"].dt.month
     future.loc[month.isin([6, 7, 8, 9, 10]), "season_kharif"] = 1
     future.loc[month.isin([11, 12, 1, 2, 3]), "season_rabi"] = 1

@@ -27,6 +27,7 @@ class STGNNInferenceService:
             self.data_paths = [p for p in candidates if p.exists()]
             
         self.gdf: gpd.GeoDataFrame = gpd.GeoDataFrame()
+        self._cached_all_json: dict | None = None
         self._load_data()
 
     def _load_data(self) -> None:
@@ -104,10 +105,19 @@ class STGNNInferenceService:
                 gdf["mandal"] = gdf.get("Mandal", "Unknown")
         gdf["mandal"] = gdf["mandal"].astype(str)
 
+        # Fallback for missing values in groundwater_level
+        predicted_col = "predicted_groundwater_level" if "predicted_groundwater_level" in gdf.columns else "estimated_depth"
+        
         if "groundwater_level" not in gdf.columns:
-            gdf["groundwater_level"] = pd_to_numeric(
-                gdf.get("estimated_depth", gdf.get("predicted_groundwater_level", np.nan))
-            )
+            if predicted_col in gdf.columns:
+                gdf["groundwater_level"] = pd_to_numeric(gdf[predicted_col], default=np.nan)
+            else:
+                gdf["groundwater_level"] = np.nan
+        else:
+            # Fill NaNs in groundwater_level with predicted values if available
+            if predicted_col in gdf.columns:
+                gdf["groundwater_level"] = gdf["groundwater_level"].fillna(gdf[predicted_col])
+
         if "anomaly_score" not in gdf.columns:
             gdf["anomaly_score"] = pd_to_numeric(gdf.get("anomaly_score_ae", 0.0), default=0.0)
         if "is_anomaly" not in gdf.columns:
@@ -115,12 +125,38 @@ class STGNNInferenceService:
         if "recharge_recommended" not in gdf.columns:
             gdf["recharge_recommended"] = False
 
+        if "data_source" not in gdf.columns:
+            gdf["data_source"] = "Observed (Piezometer)"
+        if "is_estimated" not in gdf.columns:
+            gdf["is_estimated"] = False
+
+        # Ensure series columns exist for frontend charts
+        for col in ["monthly_rainfall", "monthly_recharge", "monthly_predicted_gw", "monthly_actual_gw", "monthly_dates"]:
+            if col not in gdf.columns:
+                gdf[col] = [[] for _ in range(len(gdf))]
+        
+        if "top_factors" not in gdf.columns:
+            gdf["top_factors"] = [[] for _ in range(len(gdf))]
+            
+        if "dist_to_sensor_km" not in gdf.columns:
+            gdf["dist_to_sensor_km"] = 5.0
+            
+        if "recharge_score" not in gdf.columns:
+            gdf["recharge_score"] = 0.5
+            
+        if "wells_total" not in gdf.columns:
+            gdf["wells_total"] = 10
+            
+        if "pumping_functioning_wells" not in gdf.columns:
+            gdf["pumping_functioning_wells"] = 8
+
         gdf["trend"] = gdf.apply(self._derive_trend, axis=1)
         gdf["confidence"] = gdf.apply(self._derive_confidence, axis=1)
         gdf["advisory"] = gdf.apply(self._advisory_from_row, axis=1)
         self.gdf = gdf
 
     def refresh(self) -> None:
+        self._cached_all_json = None
         self._load_data()
 
     def _derive_trend(self, row: Any) -> str:
@@ -217,12 +253,24 @@ class STGNNInferenceService:
                 "district",
                 "mandal",
                 "groundwater_level",
+                "data_source",
+                "is_estimated",
                 "trend",
                 "anomaly_score",
                 "is_anomaly",
                 "recharge_recommended",
                 "confidence",
                 "advisory",
+                "monthly_rainfall",
+                "monthly_recharge",
+                "monthly_predicted_gw",
+                "monthly_actual_gw",
+                "monthly_dates",
+                "top_factors",
+                "dist_to_sensor_km",
+                "recharge_score",
+                "wells_total",
+                "pumping_functioning_wells",
                 "geometry",
             ]
         ]
@@ -243,6 +291,12 @@ class STGNNInferenceService:
             frame = frame[frame["is_anomaly"] == True]  # noqa: E712
         if recharge_only:
             frame = frame[frame["recharge_recommended"] == True]  # noqa: E712
+        if district is None and min_confidence is None and not anomalies_only and not recharge_only:
+            if self._cached_all_json:
+                return self._cached_all_json
+            self._cached_all_json = json.loads(self._map_ready_frame(frame).to_json())
+            return self._cached_all_json
+            
         return json.loads(self._map_ready_frame(frame).to_json())
 
     def get_by_village(self, village_id: int) -> dict | None:
