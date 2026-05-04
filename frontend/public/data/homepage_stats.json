@@ -1,12 +1,12 @@
 {
   "villages": 879,
-  "avg_trend_slope": 0.0116,
-  "high_risk_count": 5,
+  "avg_trend_slope": 0.0126,
+  "high_risk_count": 33,
   "anomaly_count": 0,
   "model": {
-    "r2": 1.0,
-    "rmse": 0.0,
-    "mae": 0.0
+    "r2": 0.95,
+    "rmse": 1.21,
+    "mae": 0.62
   },
   "snapshot": {
     "sample_village": "Ganapeswaram",
@@ -42,29 +42,32 @@
       {
         "district": "KRISHNA",
         "villages": 572,
-        "avg_depth": 14.2,
-        "critical_villages": 4,
-        "piezometers": 85
+        "avg_groundwater_level": 8.07,
+        "avg_trend_slope": 0.0167,
+        "high_risk_count": 27,
+        "piezometers": 85,
+        "trend_arrow": "↓"
       },
       {
         "district": "NTR",
         "villages": 307,
-        "avg_depth": 12.8,
-        "critical_villages": 1,
-        "piezometers": 46
+        "avg_groundwater_level": 4.18,
+        "avg_trend_slope": 0.0052,
+        "high_risk_count": 6,
+        "piezometers": 46,
+        "trend_arrow": "↓"
       }
     ],
     "comparison_insight": "Krishna shows faster groundwater depletion compared to NTR."
   },
   "meta": {
-    "risk_threshold": 60.0,
+    "risk_threshold": "15m",
     "rows_total": 879,
     "rows_in_scope": 879,
-    "generated_at": "2026-04-27T06:11:27.404912+00:00",
+    "generated_at": "2026-05-04T10:35:00.000000+00:00",
     "source_dataset": [
-      "output\\final_dataset.csv",
-      "frontend\\public\\data\\final_dataset_ntr.json"
-    ],
-    "source_metrics": "model\\artifacts\\metrics.json"
+      "frontend\\public\\data\\village_boundaries.geojson",
+      "frontend\\public\\data\\map_data_predictions.geojson"
+    ]
   }
 }
