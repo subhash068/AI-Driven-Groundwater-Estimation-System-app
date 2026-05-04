@@ -1332,7 +1332,7 @@ export default function App({ navigate, pathname }) {
             </div>
             {isSidebarOpen && (
               <div className="logo-text">
-                <h2>Krishna Groundwater AI</h2>
+                <h2>Groundwater AI</h2>
                 <p>ANDHRA PRADESH • HYBRID ML SYSTEM</p>
               </div>
             )}

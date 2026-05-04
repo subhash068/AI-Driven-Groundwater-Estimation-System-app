@@ -3,7 +3,11 @@ const API_BASE_URL =
     import.meta?.env?.VITE_API_BASE_URL) ||
   "http://127.0.0.1:8000";
 
-export const LOCAL_DATA_ONLY_MODE = false;
+// Automatically use local data mode if we're deployed (not on localhost) and no custom API URL was provided.
+export const LOCAL_DATA_ONLY_MODE = 
+  (typeof import.meta !== "undefined" && import.meta?.env?.VITE_API_BASE_URL) 
+    ? false 
+    : (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1");
 
 const apiStatusState = {
   usingFallback: false,

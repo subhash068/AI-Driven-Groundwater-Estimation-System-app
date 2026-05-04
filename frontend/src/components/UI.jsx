@@ -975,16 +975,7 @@ export function DashboardTopBar({
           </div>
         </div>
 
-        <div className="topbar-actions">
-          <label className="ai-toggle ai-toggle-main">
-            <input
-              type="checkbox"
-              checked={aiPredictionEnabled}
-              onChange={() => setAiPredictionEnabled(!aiPredictionEnabled)}
-            />
-            <span>AI Prediction</span>
-          </label>
-        </div>
+
       </div>
     </header>
   );
@@ -2880,7 +2871,7 @@ export function LoadingSpinner() {
   return (
     <div className="loading-overlay">
       <div className="spinner-ring"></div>
-      <div className="loading-text">Krishna Groundwater AI Loading...</div>
+      <div className="loading-text">Groundwater AI Loading...</div>
     </div>
   );
 }
