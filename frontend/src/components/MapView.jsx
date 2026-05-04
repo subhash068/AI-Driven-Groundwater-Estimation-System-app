@@ -7,7 +7,10 @@ import { buildLocationKey, healthColor, shiftGeometryFor3D, clamp, getRiskFromDe
 import WellsLayerController from './WellsLayer';
 
 const isValidGeoJSON = (data) => {
-  return data && (data.type === "FeatureCollection" || data.type === "Feature") && Array.isArray(data.features || [data.geometry]);
+  if (!data) return false;
+  const isFC = data.type === "FeatureCollection" || (Array.isArray(data.features) && !data.type);
+  const isF = data.type === "Feature" || (data.geometry && !data.features);
+  return !!(isFC || isF);
 };
 
 const LULC_COLORS = {
@@ -172,7 +175,7 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
   const dataSource = props.data_source || (props.has_piezometer ? "Observed" : "Estimated");
 
   return `
-    <div style="font-family: 'Inter', sans-serif; min-width: 170px; color: #e2e8f0; line-height: 1.5;">
+    <div class="premium-tooltip-container">
       <strong style="color: #fff; font-size: 0.95rem; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;">${displayVillage}</strong>
       <div style="color: #94a3b8; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">${mandal}</div>
       <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -182,7 +185,6 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
       </div>
     </div>
   `;
-
 }
 
 function villageTooltipHtml(feature, datasetRow = null, monthIndex = 0, mapMode, baseMapTheme = 'prediction') {
@@ -354,11 +356,14 @@ function surfaceLayerStyle(layerKey, feature) {
   const geomType = String(feature?.geometry?.type || "").toLowerCase();
   const isPolygon = geomType.includes("polygon");
   if (layerKey === "contours") {
+    const elevation = feature?.properties?.elevation_m || 0;
+    const weight = elevation > 200 ? 1.5 : 0.8;
+    const opacity = elevation > 200 ? 0.6 : 0.3;
     return {
-      color: config.lineColor,
-      weight: config.lineWeight,
-      opacity: config.opacity,
-      fillOpacity: 0
+      color: "#94a3b8",
+      weight: weight,
+      opacity: opacity,
+      fill: false
     };
   }
   if (isPolygon) {
@@ -428,6 +433,7 @@ function surfaceLayerTooltip(layerKey, feature) {
     body += getVal("Perimeter", props.length_km, formatLengthKm);
   } else {
     body += getRow("Elevation", firstValidText(props.contour_label, props.elevation_m, ""));
+    body += getRow("Type", props.elevation_m % 50 === 0 ? "Index" : "Intermediate");
   }
 
   return `
@@ -528,10 +534,13 @@ function FlyToSelection({ popupLngLat, selectedFeature, filters }) {
     // When a broader filter is active (state/district/mandal), filter-fit should own zoom behavior.
     if ((filters?.state || filters?.district || filters?.mandal) && !filters?.villageName) return;
     if (!selectedFeature) return;
-    const bounds = L.geoJSON(selectedFeature).getBounds();
-    if (bounds.isValid()) {
-      map.fitBounds(bounds.pad(0.35), { duration: 0.9 });
-      return;
+    try {
+      const bounds = L.geoJSON(selectedFeature).getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.35), { duration: 0.9 });
+      }
+    } catch (err) {
+      console.warn("FlyToSelection: Could not calculate bounds for selected feature", err);
     }
     if (popupLngLat) {
       map.flyTo([popupLngLat[1], popupLngLat[0]], 10.5, { duration: 0.9 });
@@ -743,14 +752,15 @@ export function MapView({
   showStreams,
   showDrains,
   showTanks,
-  showDemSurface,
+  showDemSurface = false,
+  showHillshade = false,
+  showAnomalies = false,
   mapMode,
   baseMapTheme,
   showStateBoundary,
   stateBoundaryLayer,
   showAquifer,
-  showSoil,
-  showAnomalies
+  showSoil
 }) {
   const [hoverBadge, setHoverBadge] = useState(null);
   const [hoveredDistrictName, setHoveredDistrictName] = useState(null);
@@ -901,15 +911,16 @@ export function MapView({
     );
     const displayVillage = villageName && villageId && villageName !== String(villageId) ? `${villageName} (${villageId})` : villageName;
     return `
-      <div style="min-width: 190px; font-family: 'Inter', sans-serif; color: #e2e8f0; line-height: 1.5;">
-        <strong style="color: #ef4444; font-size: 0.9rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding-bottom: 4px;">Hydrogeological Anomaly</strong>
-        <div style="display: flex; flex-direction: column; gap: 2px;">
-          <div><span style="color: #94a3b8; font-weight: 600;">Village:</span> <span style="color: #fff;">${displayVillage}</span></div>
-          <div><span style="color: #94a3b8; font-weight: 600;">District:</span> <span style="color: #fff;">${district}</span></div>
-          <div><span style="color: #94a3b8; font-weight: 600;">Mandal:</span> <span style="color: #fff;">${mandal}</span></div>
-          <div style="margin-top: 4px;"><span style="color: #94a3b8; font-weight: 600;">Deviation:</span> <span style="color: #fca5a5; font-weight: 700;">${Number.isFinite(deviation) ? `${deviation.toFixed(2)} m` : "NA"}</span></div>
-          <div><span style="color: #94a3b8; font-weight: 600;">Type:</span> <span style="color: #fff; font-weight: 600;">${anomalyClass}</span></div>
-          <div><span style="color: #94a3b8; font-weight: 600;">Current GWL:</span> <span style="color: #fff;">${Number.isFinite(currentGroundwater) ? `${currentGroundwater.toFixed(2)} m` : "NA"}</span></div>
+      <div class="premium-tooltip-container">
+        <strong style="color: #ef4444; font-size: 0.95rem; display: block; margin-bottom: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding-bottom: 4px;">Hydrogeological Anomaly</strong>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div><span style="color: #94a3b8; font-weight: 600;">Location:</span> <span style="color: #fff; font-weight: 700;">${displayVillage}</span></div>
+          <div style="font-size: 0.7rem; color: #64748b; margin-bottom: 4px;">${mandal} / ${district}</div>
+          <div style="padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 4px;">
+            <div><span style="color: #94a3b8;">Type:</span> <span style="color: #fca5a5; font-weight: 700;">${anomalyClass.toUpperCase()}</span></div>
+            <div><span style="color: #94a3b8;">GW Depth:</span> <strong style="color: #fff">${Number.isFinite(currentGroundwater) ? currentGroundwater.toFixed(2) + 'm' : "NA"}</strong></div>
+            ${Number.isFinite(deviation) ? `<div><span style="color: #94a3b8;">Deviation:</span> <span style="color: #f87171;">${deviation > 0 ? '+' : ''}${deviation.toFixed(2)}m</span></div>` : ""}
+          </div>
         </div>
       </div>
     `;
@@ -1134,6 +1145,15 @@ export function MapView({
 
   const selectedVillageStyle = (feature) => groundwaterStyle(feature);
 
+  const selectedKey = useMemo(() => {
+    if (!selectedFeature) return null;
+    return buildLocationKey(
+      selectedFeature?.properties?.district,
+      selectedFeature?.properties?.mandal,
+      selectedFeature?.properties?.village_name
+    );
+  }, [selectedFeature]);
+
   const isSelectedVillageFeature = (feature) => {
     if (!feature || !selectedFeature) return false;
     
@@ -1142,11 +1162,6 @@ export function MapView({
       feature?.properties?.district ?? feature?.properties?.District,
       feature?.properties?.mandal ?? feature?.properties?.Mandal,
       feature?.properties?.village_name ?? feature?.properties?.Village_Name ?? feature?.properties?.VILLAGE
-    );
-    const selectedKey = buildLocationKey(
-      selectedFeature?.properties?.district,
-      selectedFeature?.properties?.mandal,
-      selectedFeature?.properties?.village_name
     );
     
     if (featureKey && selectedKey && featureKey === selectedKey) return true;
@@ -1257,7 +1272,7 @@ export function MapView({
 
   useEffect(() => {
     return () => {
-      if (hoverFrameRef.current !== null) {
+    if (hoverFrameRef.current !== null) {
         window.cancelAnimationFrame(hoverFrameRef.current);
       }
     };
@@ -1265,26 +1280,60 @@ export function MapView({
 
   const visibleAnomalies = useMemo(() => {
     if (!showAnomalies || !anomalies || !isValidGeoJSON(anomalies)) return null;
-    const selected = Array.isArray(selectedAnomalyTypes) ? selectedAnomalyTypes : [];
+
+    const selected = selectedAnomalyTypes || [];
     const allowedVillageIds = new Set(
       (visibleFeatures?.features || [])
         .map((feature) => Number(feature?.properties?.village_id))
         .filter((value) => Number.isFinite(value))
     );
-    if (selected.length === 0) {
+
+    const selectedDistrictNorm = normalizeDistrictName(selectedDistrict || "");
+    const isStateLevel = !selectedDistrict || selectedDistrictNorm === "ANDHRA PRADESH";
+    
+    // Fallback: If we have no visible features (villages) on map, we rely purely on district name
+    const useDistrictOnly = allowedVillageIds.size === 0;
+
+    try {
+      const features = (anomalies?.features || []).filter((feature) => {
+          const villageId = Number(feature?.properties?.village_id);
+          const districtMatch = isStateLevel || 
+                normalizeDistrictName(feature?.properties?.district || "") === selectedDistrictNorm;
+          
+          const villageMatch = allowedVillageIds.has(villageId);
+          
+          // Show if district matches OR the specific village is visible.
+          // This ensures immediate visibility when switching districts.
+          const finalMatch = districtMatch || (allowedVillageIds.size > 0 && villageMatch);
+          
+          const typeLabel = anomalyMeta(feature).label;
+          return selected.includes(typeLabel) && finalMatch;
+      }).map(f => {
+          // Force geometry to Point for circleMarker rendering
+          if (f.geometry && f.geometry.type !== "Point") {
+            const center = geometryCenter(f.geometry);
+            return {
+              ...f,
+              geometry: {
+                type: "Point",
+                coordinates: [center.longitude, center.latitude]
+              }
+            };
+          }
+          return f;
+      });
+
+      console.log(`[Anomaly Layer] Visible: ${features.length} / Total: ${anomalies.features.length}. Filter: ${selectedDistrictNorm || 'State'}. Types: ${selected.join(',')}`);
+
+      return {
+        ...anomalies,
+        features
+      };
+    } catch (err) {
+      console.error("Error filtering anomalies:", err);
       return { type: "FeatureCollection", features: [] };
     }
-    return {
-      ...anomalies,
-      features: anomalies.features.filter((feature) => {
-        const villageId = Number(feature?.properties?.village_id);
-        const district = normalizeDistrictName(feature?.properties?.district);
-        const districtMatch = !selectedDistrictNorm || district === selectedDistrictNorm;
-        const villageMatch = !allowedVillageIds.size || allowedVillageIds.has(villageId);
-        return selected.includes(anomalyMeta(feature).label) && districtMatch && villageMatch;
-      })
-    };
-  }, [anomalies, selectedAnomalyTypes, selectedDistrictNorm, visibleFeatures]);
+  }, [anomalies, showAnomalies, selectedAnomalyTypes, selectedDistrict, visibleFeatures]);
 
   const severeAnomalyHighlightGeojson = useMemo(() => {
     if (!visibleFeatures?.features?.length || !visibleAnomalies?.features?.length) return null;
@@ -1499,8 +1548,22 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
   const baseTileAttribution =
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+  const [showMap, setShowMap] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowMap(true), 100);
+    return () => {
+      clearTimeout(timer);
+      setShowMap(false);
+    };
+  }, []);
+
+  if (!showMap) {
+    return <div style={{ height: "100%", width: "100%", background: "#0f172a" }} />;
+  }
+
   return (
     <>
+      {/* Existing UI overlays... */}
       {!visibleFeatures?.features?.length && (
         <div
           style={{
@@ -1624,8 +1687,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         </div>
       )}
       <MapContainer
-        key={`map-instance-${is3D ? "3d" : "2d"}`}
-        id="dashboard-leaflet-map"
+        key={is3D ? "3d-map" : "2d-map"}
         center={[INITIAL_VIEW_STATE.latitude, INITIAL_VIEW_STATE.longitude]}
         zoom={INITIAL_VIEW_STATE.zoom}
         style={{ height: "100%", width: "100%", background: "#0f172a" }}
@@ -1758,6 +1820,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         {lulcGeojson && (
           <GeoJSON
             data={lulcGeojson}
+            interactive={false}
             style={(feature) => {
               const category = feature?.properties?.__lulcCategory || "unclassified";
               const color = LULC_COLORS[category] || LULC_COLORS.unclassified;
@@ -1847,6 +1910,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           <GeoJSON
             key="soil-layer"
             data={visibleFeatures}
+            interactive={false}
             style={(feature) => {
               const soil = String(feature?.properties?.soil_type || feature?.properties?.soil || "Other").toLowerCase();
               let color = "#CBD5E1";
@@ -1882,6 +1946,7 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           <GeoJSON
             key={`rainfall-${monthIndex}`}
             data={visibleFeatures}
+            interactive={false}
             style={(feature) => {
               const props = feature?.properties || {};
               const rain = Number(props.rainfall ?? props.rainfall_mm ?? 0);
@@ -1977,25 +2042,58 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           />
         )}
 
-        {showDemSurface && surfaceLayers.demContours && (
-          <GeoJSON
-            data={surfaceLayers.demContours}
-            style={(feature) => surfaceLayerStyle("contours", feature)}
-            interactive={false}
+        {showHillshade && (
+          <ImageOverlay
+            url="/data/krishna_dem_hillshade.png"
+            bounds={[
+              [15.70772150145, 80.00098138025],
+              [17.15344940645, 81.56340603675]
+            ]}
+            opacity={0.45}
+            zIndex={10}
           />
         )}
 
-        {visibleAnomalies && visibleAnomalies.features.length > 0 && (
+        {showDemSurface && surfaceLayers.demContours && (
+          <GeoJSON
+            key={`contours-${showDemSurface}`}
+            data={surfaceLayers.demContours}
+            style={(feature) => surfaceLayerStyle("contours", feature)}
+            onEachFeature={(feature, layer) => {
+              const elev = feature?.properties?.elevation_m ?? 0;
+              layer.bindTooltip(`Elevation: ${elev} m`, { 
+                sticky: true, 
+                className: 'elevation-tooltip' 
+              });
+            }}
+          />
+        )}
+
+        {showAnomalies && visibleAnomalies && visibleAnomalies.features.length > 0 && (
           <GeoJSON 
+            key={`anomalies-${visibleAnomalies.features.length}-${selectedAnomalyTypes.join(',')}`}
             data={visibleAnomalies} 
-            pointToLayer={(feature, latlng) => L.circleMarker(latlng, {
-              radius: anomalyMeta(feature).radius,
+            pane="markerPane"
+            style={(feature) => ({
               fillColor: anomalyMeta(feature).color,
-              color: "#f8fafc",
-              weight: 1.3,
-              opacity: 1,
-              fillOpacity: 0.88
+              color: "#ffffff",
+              weight: 2,
+              fillOpacity: 0.4,
+              dashArray: "3, 5"
             })}
+            pointToLayer={(feature, latlng) => {
+              // Basic sanity check for coordinates
+              if (!latlng || isNaN(latlng.lat) || isNaN(latlng.lng)) return null;
+              
+              return L.circleMarker(latlng, {
+                radius: (anomalyMeta(feature).radius || 6) + 1.5,
+                fillColor: anomalyMeta(feature).color,
+                color: "#ffffff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.95
+              });
+            }}
             onEachFeature={(feature, layer) => {
               layer.bindTooltip(anomalyTooltipHtml(feature), {
                 sticky: true,
@@ -2157,7 +2255,9 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
         {(showAquifer || showRecharge) && aquiferGeojson && (
           <GeoJSON
+            key={`aquifer-layer-${selectedDistrictNorm}-${showAquifer}`}
             data={aquiferGeojson}
+            interactive={true}
             style={(feature) => {
               const meta = aquiferTypeMeta(feature);
               return {
@@ -2201,10 +2301,11 @@ const baseTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
           <GeoJSON
             data={severeAnomalyHighlightGeojson}
             style={{
-              color: "#F97316",
-              weight: 2.8,
-              fillOpacity: 0.02,
-              dashArray: "3, 5"
+              color: "#f97316",
+              weight: 3.5,
+              fillColor: "#fb923c",
+              fillOpacity: 0.15,
+              dashArray: "5, 8"
             }}
             interactive={false}
           />

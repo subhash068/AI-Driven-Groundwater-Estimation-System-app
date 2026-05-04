@@ -27,3 +27,4 @@ torch>=2.2.0
 torch_geometric>=2.5.0
 networkx==3.4.2
 folium==0.20.0
+python-dotenv==1.0.1

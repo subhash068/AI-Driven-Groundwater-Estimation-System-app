@@ -129,11 +129,12 @@ const StratificationCore = memo(({ weatheredDepth, fracturedDepth, dtw, elevatio
 export default function AquiferScene({ weatheredDepth, fracturedDepth, dtw, elevation }) {
   return (
     <div style={{ width: "100%", height: "100%", background: "#050b14", position: 'relative' }}>
-      <ErrorBoundary fallback={<div style={{ padding: '20px', color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center' }}>3D View temporarily unavailable. GPU resources exhausted.</div>}>
+      <ErrorBoundary fallback={<div style={{ padding: '20px', color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center', background: '#0a101f', borderRadius: '12px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3D View temporarily unavailable. GPU resources exhausted.</div>}>
         <Canvas
         camera={{ position: [8, 5, 12], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
         shadows
+        frameloop="demand"
       >
         <color attach="background" args={["#050b14"]} />
         <ambientLight intensity={0.5} />

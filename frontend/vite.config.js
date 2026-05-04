@@ -14,13 +14,15 @@ export default defineConfig({
     }
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 5000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-leaflet': ['leaflet', 'react-leaflet'],
-          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('three')) return 'vendor-three';
+            if (id.includes('leaflet')) return 'vendor-leaflet';
+            return 'vendor-others';
+          }
         }
       }
     }

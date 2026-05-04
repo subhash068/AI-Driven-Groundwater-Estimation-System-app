@@ -1,6 +1,6 @@
 /* UI Design System - v2.1 (Restructured) */
 import React, { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
-import AquiferScene from '../AquiferScene';
+
 import { advisoryLabel, normalizeVillageProperties, getRiskFromDepth } from '../utils/mapUtils';
 
 const MONTH_LABELS = [
@@ -477,15 +477,15 @@ function WaterTrendChart({
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
            </div>
            <div>
-             <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>Groundwater Trend</strong>
-             <small style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Yearly averages & AI forecast</small>
+             <strong style={{ fontSize: '0.95rem', color: '#f8fafc', display: 'block' }}>Groundwater Trend</strong>
+             <small style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Yearly averages & AI forecast</small>
            </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-           <div style={{ fontSize: '0.85rem', fontWeight: '700', color: trendDirection.label.includes('Declin') ? 'var(--danger)' : 'var(--secondary)' }}>
+           <div style={{ fontSize: '0.85rem', fontWeight: '700', color: trendDirection.label.includes('Declin') ? '#ef4444' : '#22c55e' }}>
              {trendDirection.arrow} {trendDirection.label}
            </div>
-           <small style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Long-term trajectory</small>
+           <small style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Long-term trajectory</small>
         </div>
       </div>
 
@@ -493,8 +493,8 @@ function WaterTrendChart({
         {/* Background Grid & Thresholds */}
         {[0, 0.25, 0.5, 0.75, 1].map(p => (
           <g key={p}>
-            <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-            <text x={margin.left - 10} y={margin.top + p * innerH} textAnchor="end" fontSize="10" fill="var(--text-muted)" dominantBaseline="middle">
+            <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+            <text x={margin.left - 10} y={margin.top + p * innerH} textAnchor="end" fontSize="10" fill="#94a3b8" dominantBaseline="middle">
               {Math.round(roundedMax * p)}m
             </text>
           </g>
@@ -537,7 +537,7 @@ function WaterTrendChart({
           const skip = series.length > 12 ? (i % Math.ceil(series.length / 6) !== 0) : false;
           if (skip) return null;
           return (
-            <text key={`x-${i}`} x={getX(i)} y={margin.top + innerH + 20} textAnchor="middle" fontSize="10" fill="var(--text-muted)" fontWeight="500">
+            <text key={`x-${i}`} x={getX(i)} y={margin.top + innerH + 20} textAnchor="middle" fontSize="10" fill="#cbd5e1" fontWeight="500">
               {p.label}
             </text>
           );
@@ -548,23 +548,23 @@ function WaterTrendChart({
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px', marginTop: '15px', fontSize: '0.7rem', fontWeight: '600' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%' }}></div>
-          <span style={{ color: '#64748b' }}>Safe</span>
+          <span style={{ color: '#94a3b8' }}>Safe</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '8px', height: '8px', background: '#f59e0b', borderRadius: '50%' }}></div>
-          <span style={{ color: '#64748b' }}>Caution</span>
+          <span style={{ color: '#94a3b8' }}>Caution</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></div>
-          <span style={{ color: '#64748b' }}>Critical</span>
+          <span style={{ color: '#94a3b8' }}>Critical</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
           <div style={{ width: '12px', height: '2px', background: '#0ea5e9' }}></div>
-          <span style={{ color: '#64748b' }}>Observed</span>
+          <span style={{ color: '#94a3b8' }}>Observed</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '12px', height: '2px', background: '#6366f1', borderTop: '2px dashed #6366f1' }}></div>
-          <span style={{ color: '#64748b' }}>AI Forecast</span>
+          <span style={{ color: '#94a3b8' }}>AI Forecast</span>
         </div>
       </div>
 
@@ -1223,33 +1223,30 @@ export function VillageInsightsPanel({
     );
   }
 
-  if (isHydrating) {
-    return (
-      <div className="clean-insights">
-        <div style={{ padding: '24px', textAlign: 'center' }}>
-          <div className="skeleton-pulse" style={{ height: '32px', width: '70%', margin: '0 auto 20px', borderRadius: '4px' }}></div>
-          <div className="skeleton-pulse" style={{ height: '120px', width: '100%', marginBottom: '16px', borderRadius: '8px' }}></div>
-          <div className="skeleton-pulse" style={{ height: '100px', width: '100%', borderRadius: '8px' }}></div>
-          <p style={{ color: 'var(--accent)', fontSize: '0.7rem', marginTop: '20px', letterSpacing: '0.1em', fontWeight: 'bold' }}>HYDRATING ANALYTICS...</p>
-        </div>
-      </div>
-    );
-  }
-
   const props = selectedFeature?.properties || {};
-  const displayProps = normalizeVillageProperties(props);
   const villageId = Number(props.village_id);
-  const locationKey = props.location_key || buildLocationKey(props.district, props.mandal, props.village_name);
+  const locationKey = props.location_key || (props.district && props.mandal && props.village_name ? buildLocationKey(props.district, props.mandal, props.village_name) : null);
   const datasetRow = (Number.isFinite(villageId) ? datasetRowsById?.get(villageId) : null) || (locationKey && datasetRowsByLocation?.get(locationKey));
 
   return (
-    <VillageInsightsPanelContentImpl
-      selectedFeature={{ ...selectedFeature, properties: displayProps }}
-      datasetRow={datasetRow}
-      monthIndex={monthIndex}
-      aiPredictionEnabled={aiPredictionEnabled}
-      onClose={onClose}
-    />
+    <DraggableInsightsShell>
+      <ErrorBoundary fallback={<div className="p-8 text-center text-slate-500">Insights panel encountered an error. Please try another village.</div>}>
+        {isHydrating && !datasetRow ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px' }}>
+            <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '50%', marginBottom: '16px' }} />
+            <p style={{ color: 'var(--accent)', fontSize: '0.7rem', marginTop: '20px', letterSpacing: '0.1em', fontWeight: 'bold' }}>HYDRATING ANALYTICS...</p>
+          </div>
+        ) : (
+          <VillageInsightsPanelContentImpl
+            selectedFeature={selectedFeature}
+            datasetRow={datasetRow}
+            monthIndex={monthIndex}
+            aiPredictionEnabled={aiPredictionEnabled}
+            onClose={onClose}
+          />
+        )}
+      </ErrorBoundary>
+    </DraggableInsightsShell>
   );
 }
 
@@ -1263,10 +1260,14 @@ function VillageInsightsPanelContentImpl({
   onClose
 }) {
   const props = selectedFeature?.properties || {};
-  
-  // Apply robust normalization to handle sparse/variant GeoJSON properties
-  const normalized = normalizeVillageProperties(selectedFeature?.properties || {});
-  const displayProps = { ...props, ...normalized };
+  let displayProps = {};
+  try {
+    const normalized = normalizeVillageProperties(props);
+    displayProps = { ...props, ...normalized };
+  } catch (err) {
+    console.error("Property normalization failed", err);
+    displayProps = props;
+  }
 
   const vName = String(displayProps.village_name ?? displayProps.Village_Name ?? displayProps.VILLAGE ?? displayProps.NAME ?? "").trim();
   const mName = String(displayProps.mandal ?? displayProps.Mandal ?? displayProps.MANDAL ?? displayProps.mandal_name ?? "").trim();
@@ -1354,8 +1355,8 @@ function VillageInsightsPanelContentImpl({
   const isPiezometer = displayProps.has_piezometer === 1 || props.has_piezometer === 1 || props.is_piezometer === true;
 
   return (
-    <div className="clean-insights" style={{ height: '100%', width: '100%', background: 'white', display: 'flex', flexDirection: 'column' }}>
-      <div className="insight-header-v2" style={{ padding: '12px 20px', borderBottom: '1px solid #E5E5E2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="clean-insights" style={{ height: '100%', width: '100%', background: 'var(--bg-card, #fff)', color: 'var(--text-primary, #0F172A)', display: 'flex', flexDirection: 'column' }}>
+      <div className="insight-header-v2" style={{ padding: '12px 20px', borderBottom: '1px solid var(--line, #E5E5E2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="location" style={{ fontSize: '0.7rem', fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {mandalName} • {districtName}
@@ -1370,7 +1371,7 @@ function VillageInsightsPanelContentImpl({
               {isPiezometer ? "SENSOR MEASURED" : "AI ESTIMATED"}
             </span>
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '4px 0', color: '#0F172A' }}>{displayTitle}</h2>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '4px 0', color: 'var(--text-primary, #0F172A)' }}>{displayTitle}</h2>
           {(() => {
             const rScore = rechargeScore ?? 0.5;
             const rRisk = riskLabel.toLowerCase();
@@ -1388,8 +1389,8 @@ function VillageInsightsPanelContentImpl({
 
       <div className="p-4 space-y-4" style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
         <div className="grid grid-cols-3 gap-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
-          <div className="border border-[#E5E5E2] p-2" style={{ border: '1px solid #E5E5E2', padding: '8px', borderRadius: '4px' }}>
-            <div className="text-xs uppercase tracking-[0.2em] text-[#5C5D58]" style={{ fontSize: '0.65rem', textTransform: 'uppercase', tracking: '0.2em', color: '#5C5D58', marginBottom: '2px' }}>Depth</div>
+          <div className="border border-[#E5E5E2] p-2" style={{ border: '1px solid var(--line, #E5E5E2)', padding: '8px', borderRadius: '4px' }}>
+            <div className="text-xs uppercase tracking-[0.2em]" style={{ fontSize: '0.65rem', textTransform: 'uppercase', tracking: '0.2em', color: 'var(--text-muted, #5C5D58)', marginBottom: '2px' }}>Depth</div>
             <div className="font-mono text-2xl" style={{ fontFamily: 'monospace', fontSize: '1.25rem', color: riskColor }}>{Number.isFinite(currentDepth) ? currentDepth.toFixed(2) + 'm' : "NA"}</div>
           </div>
           <div className="border border-[#E5E5E2] p-2" style={{ border: '1px solid #E5E5E2', padding: '8px', borderRadius: '4px' }}>
@@ -1418,21 +1419,21 @@ function VillageInsightsPanelContentImpl({
               flexDirection: 'column', 
               gap: '2px', 
               gridColumn: item.fullWidth ? 'span 2' : 'span 1',
-              borderBottom: '1px solid #F1F5F9',
+              borderBottom: '1px solid var(--line, rgba(255,255,255,0.05))',
               paddingBottom: '8px'
             }}>
-              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '700', letterSpacing: '0.05em' }}>{item.label}</span>
-              <span style={{ color: '#1E293B', fontWeight: '500', lineHeight: '1.4' }}>{item.value}</span>
+              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-muted, #94A3B8)', fontWeight: '700', letterSpacing: '0.05em' }}>{item.label}</span>
+              <span style={{ color: 'var(--text-primary, #1E293B)', fontWeight: '500', lineHeight: '1.4' }}>{item.value}</span>
             </div>
           ))}
         </div>
 
         {/* AI Advisory Section */}
-        <div style={{ marginBottom: '20px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px' }}>
-          <div style={{ fontSize: '0.65rem', color: '#0F172A', fontWeight: '800', marginBottom: '10px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ marginBottom: '20px', background: 'var(--bg-app, #F8FAFC)', borderRadius: '12px', border: '1px solid var(--line, #E2E8F0)', padding: '16px' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-primary, #0F172A)', fontWeight: '800', marginBottom: '10px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '1rem' }}>💡</span> FARMER-LEVEL ADVISORY
           </div>
-          <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
             {(() => {
               const rRisk = riskLabel.toLowerCase();
               const rScore = rechargeScore ?? 0.5;
@@ -1449,31 +1450,18 @@ function VillageInsightsPanelContentImpl({
             })()}
           </p>
         </div>
-        
-        {/* 3D Aquifer Stratification Section */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.1em', marginBottom: '8px' }}>
-            3D Aquifer Stratification
-          </div>
-          <div style={{ height: '240px', background: '#050b14', borderRadius: '12px', overflow: 'hidden', border: '1px solid #1e293b' }}>
-            <AquiferScene 
-               weatheredDepth={displayProps.weathered_rock || displayProps.weathered}
-               fracturedDepth={displayProps.fractured_rock || displayProps.fractured}
-               dtw={displayProps.predicted_groundwater_level ?? displayProps.depth ?? displayProps.gw_level}
-               elevation={displayProps.elevation_dem ?? displayProps.elevation}
-            />
-          </div>
-        </div>
 
         <div style={{ marginBottom: '16px' }}>
-          <div className="text-xs uppercase tracking-[0.2em] text-[#5C5D58] mb-1" style={{ fontSize: '0.65rem', textTransform: 'uppercase', tracking: '0.2em', color: '#5C5D58', marginBottom: '4px' }}>Actual History 1997–2024 (Rainfall vs. Depth)</div>
-          <div className="border border-[#E5E5E2] p-2" style={{ border: '1px solid #E5E5E2', padding: '8px', borderRadius: '4px' }}>
-            <SmartHydrograph 
-              dates={displayDates} 
-              actualGW={displayDepths} 
-              rainfall={displayRainfall}
-              isFullView={true} 
-            />
+          <div className="text-xs uppercase tracking-[0.2em]" style={{ fontSize: '0.65rem', textTransform: 'uppercase', tracking: '0.2em', color: 'var(--text-muted, #5C5D58)', marginBottom: '4px' }}>Actual History 1997–2024 (Rainfall vs. Depth)</div>
+          <div className="border border-[#E5E5E2] p-2" style={{ border: '1px solid var(--line, #E5E5E2)', padding: '8px', borderRadius: '4px' }}>
+            <ErrorBoundary fallback={<div style={{ padding: '20px', color: '#94a3b8', fontSize: '0.8rem', textAlign: 'center' }}>Hydrograph temporarily unavailable.</div>}>
+              <SmartHydrograph 
+                dates={displayDates} 
+                actualGW={displayDepths} 
+                rainfall={displayRainfall}
+                isFullView={true} 
+              />
+            </ErrorBoundary>
           </div>
         </div>
 
@@ -1496,7 +1484,7 @@ function VillageInsightsPanelContentImpl({
         }}>
           <div style={{ 
             fontSize: '0.7rem', 
-            color: '#475569', 
+            color: 'var(--text-secondary, #475569)', 
             fontWeight: '800', 
             marginBottom: '12px', 
             textTransform: 'uppercase', 
@@ -1518,7 +1506,7 @@ function VillageInsightsPanelContentImpl({
                 borderRadius: '8px', 
                 fontSize: '0.75rem', 
                 fontWeight: '600', 
-                color: '#1e293b',
+                color: 'var(--text-primary, #1e293b)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1541,7 +1529,7 @@ function VillageInsightsPanelContentImpl({
                 borderRadius: '8px', 
                 fontSize: '0.75rem', 
                 fontWeight: '600', 
-                color: '#1e293b',
+                color: 'var(--text-primary, #1e293b)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1559,7 +1547,7 @@ function VillageInsightsPanelContentImpl({
           <div style={{ 
             marginTop: '12px', 
             fontSize: '0.65rem', 
-            color: '#64748b', 
+            color: 'var(--text-muted, #64748b)', 
             fontStyle: 'italic',
             lineHeight: '1.4',
             borderTop: '1px solid rgba(0,0,0,0.05)',
@@ -1574,8 +1562,7 @@ function VillageInsightsPanelContentImpl({
   );
 }
 
-
-export function SimpleLineChart({ dates = [], values = [], baselineSeries = [], color }) {
+export function SimpleLineChart({ dates = [], values = [], baselineSeries = [], color, targetIndex = null }) {
   const validValues = [...values, ...baselineSeries].filter(v => Number.isFinite(v));
   if (!validValues.length) return <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>No data available</div>;
 
@@ -1637,6 +1624,36 @@ export function SimpleLineChart({ dates = [], values = [], baselineSeries = [], 
           {/* Simulated Wave (Solid) */}
           <path d={getPath(simPoints)} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           
+          {/* Target Index Highlight */}
+          {targetIndex !== null && simPoints[targetIndex] && (
+            <g>
+              <line 
+                x1={simPoints[targetIndex].x} y1="0" 
+                x2={simPoints[targetIndex].x} y2={height} 
+                stroke="#f59e0b" strokeWidth="2" strokeDasharray="3,2" 
+              />
+              <circle cx={simPoints[targetIndex].x} cy={simPoints[targetIndex].y} r="4" fill="#f59e0b" stroke="white" strokeWidth="2" />
+              <text x={simPoints[targetIndex].x + 5} y="15" style={{ fontSize: '8px', fill: '#f59e0b', fontWeight: '800' }}>TARGET DATE</text>
+            </g>
+          )}
+
+          {/* X-Axis Labels inside SVG */}
+          {dates.map((label, i) => {
+            if (i % 3 !== 0) return null; // Show every 3rd month (4 labels total)
+            const x = (i / (dates.length - 1)) * width;
+            return (
+              <text 
+                key={i} 
+                x={x} 
+                y={height + 15} 
+                textAnchor={i === 0 ? "start" : i === dates.length - 1 ? "end" : "middle"}
+                style={{ fontSize: '8px', fill: '#94A3B8', fontWeight: '700' }}
+              >
+                {label}
+              </text>
+            );
+          })}
+
           {/* Legend in Chart */}
           <g transform={`translate(${width - 100}, 10)`}>
             <line x1="0" y1="0" x2="15" y2="0" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4,3" />
@@ -1645,10 +1662,6 @@ export function SimpleLineChart({ dates = [], values = [], baselineSeries = [], 
             <text x="20" y="15" style={{ fontSize: '7px', fill: '#64748B' }}>Scenario Wave</text>
           </g>
        </svg>
-       
-       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.6rem', color: '#94A3B8', fontWeight: '700' }}>
-          {displayLabels.map(label => <span key={label}>{label}</span>)}
-       </div>
     </div>
   );
 }
@@ -1975,7 +1988,7 @@ export function DashboardAnalyticsPanel({
         <section className="meaning-panel">
           <div className="insight-section-heading">
             <small>Backend Model Upgrade Summary</small>
-            <span>Live pipeline validation and explainability</span>
+            <span>Live pipeline validation and model metrics</span>
           </div>
           {upgradeOverall && (
             <div className="full-dashboard-summary" style={{ marginBottom: "12px" }}>
@@ -2262,7 +2275,7 @@ export function PlotlyHydrograph({
     const layout = {
       title: {
         text: title,
-        font: { size: 16, family: 'Inter, sans-serif', color: '#1e293b', weight: 'bold' }
+        font: { size: 16, family: 'Inter, sans-serif', color: 'var(--text-primary, #1e293b)', weight: 'bold' }
       },
       margin: { l: 60, r: 60, t: 80, b: 60 },
       hovermode: 'x unified',
@@ -2351,7 +2364,6 @@ function SmartHydrograph({
     const full = d_dates.map((d, i) => {
       const rawActual = d_actual[i];
       const rawPredicted = d_pred[i];
-      
       const parseVal = (v) => {
         if (v === null || v === undefined || v === "" || v === "NA") return null;
         const n = Number(v);
@@ -2407,28 +2419,22 @@ function SmartHydrograph({
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" strokeWidth="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m8 17 4 4 4-4" /></svg>
            </div>
            <div>
-             <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>Hydro-Climatic Profile</strong>
-             <small style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Rainfall vs. Groundwater Depth</small>
+             <strong style={{ fontSize: '0.95rem', color: '#f8fafc', display: 'block' }}>Hydro-Climatic Profile</strong>
+             <small style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Rainfall vs. Groundwater Depth</small>
            </div>
         </div>
-        <button 
-          onClick={onViewFullHistory}
-          className="panel-link"
-        >
-          View Full History
-        </button>
       </div>
 
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
         {[0, 0.25, 0.5, 0.75, 1].map(p => (
           <g key={p}>
-            <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-            <text x={margin.left - 12} y={margin.top + (1-p) * innerH} textAnchor="end" fontSize="10" fill="var(--secondary)" dominantBaseline="middle" fontWeight="500">{Math.round(maxRain * p)}</text>
-            <text x={width - margin.right + 12} y={margin.top + p * innerH} textAnchor="start" fontSize="10" fill="var(--primary)" dominantBaseline="middle" fontWeight="500">{Math.round(maxGW * p)}m</text>
+            <line x1={margin.left} y1={margin.top + p * innerH} x2={width - margin.right} y2={margin.top + p * innerH} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+            <text x={margin.left - 12} y={margin.top + (1-p) * innerH} textAnchor="end" fontSize="10" fill="#4ade80" dominantBaseline="middle" fontWeight="500">{Math.round(maxRain * p)}</text>
+            <text x={width - margin.right + 12} y={margin.top + p * innerH} textAnchor="start" fontSize="10" fill="#60a5fa" dominantBaseline="middle" fontWeight="500">{Math.round(maxGW * p)}m</text>
           </g>
         ))}
-        <text x={margin.left - 45} y={margin.top + innerH/2} transform={`rotate(-90, ${margin.left - 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="var(--secondary)" fontWeight="bold">Rainfall (mm)</text>
-        <text x={width - margin.right + 45} y={margin.top + innerH/2} transform={`rotate(90, ${width - margin.right + 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="var(--primary)" fontWeight="bold">Depth (m)</text>
+        <text x={margin.left - 45} y={margin.top + innerH/2} transform={`rotate(-90, ${margin.left - 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#4ade80" fontWeight="bold">Rainfall (mm)</text>
+        <text x={width - margin.right + 45} y={margin.top + innerH/2} transform={`rotate(90, ${width - margin.right + 45}, ${margin.top + innerH/2})`} textAnchor="middle" fontSize="10" fill="#60a5fa" fontWeight="bold">Depth (m)</text>
         {data.map((d, i) => (
           <rect key={`r-${i}`} x={getX(i) - 6} y={getYRain(d.rainfall)} width={12} height={innerH - (getYRain(d.rainfall) - margin.top)} fill="var(--secondary)" fillOpacity="0.3" rx={2} />
         ))}
@@ -2444,8 +2450,8 @@ function SmartHydrograph({
           const i = data.indexOf(d);
           return (
             <g key={`x-${i}`} transform={`translate(${getX(i)}, ${margin.top + innerH + 15})`}>
-              <text textAnchor="middle" fontSize="10" fill="var(--text-muted)" fontWeight="500">{d.date.split('-')[1]}</text>
-              <text y="12" textAnchor="middle" fontSize="9" fill="var(--text-muted)" opacity="0.7">{d.date.split('-')[0]}</text>
+              <text textAnchor="middle" fontSize="10" fill="#cbd5e1" fontWeight="500">{String(d.date || "").split('-')[1] || ""}</text>
+              <text y="12" textAnchor="middle" fontSize="9" fill="#94a3b8" opacity="0.8">{String(d.date || "").split('-')[0] || ""}</text>
             </g>
           );
         })}
@@ -2458,12 +2464,12 @@ function SmartHydrograph({
       {/* Legend */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', fontSize: '0.7rem', fontWeight: '500' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <div style={{ width: '12px', height: '12px', background: '#10b981', opacity: 0.4, borderRadius: '2px' }}></div>
-          <span style={{ color: '#059669' }}>Rainfall</span>
+          <div style={{ width: '12px', height: '12px', background: '#10b981', opacity: 0.6, borderRadius: '2px' }}></div>
+          <span style={{ color: '#4ade80' }}>Rainfall</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <div style={{ width: '12px', height: '2px', background: '#1d4ed8' }}></div>
-          <span style={{ color: '#1d4ed8' }}>Actual Level</span>
+          <div style={{ width: '12px', height: '2px', background: '#3b82f6' }}></div>
+          <span style={{ color: '#60a5fa' }}>Actual Level</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <div style={{ width: '12px', height: '2px', background: '#60a5fa', borderStyle: 'dashed', borderTop: '2px dashed #60a5fa' }}></div>
@@ -2536,7 +2542,7 @@ export function VillageDetails({ feature }) {
       <h2 style={{ fontSize: '1.2rem', margin: '0 0 4px 0', color: '#fff' }}>
         {props.village_name || "Village Details"}
       </h2>
-      <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: '12px' }}>
+      <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '12px' }}>
         {props.mandal}, {props.district}
       </div>
 
@@ -2585,7 +2591,8 @@ export function InteractiveSimulation({ selectedVillage, onSimulate }) {
     rainfall_mm: 750,
     population_density: 450,
     land_use_type: 'agricultural',
-    extraction_increase_pct: 0
+    extraction_increase_pct: 0,
+    prediction_date: '2025-10-02'
   });
   const [result, setResult] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
@@ -2649,6 +2656,16 @@ export function InteractiveSimulation({ selectedVillage, onSimulate }) {
                 </select>
               </div>
 
+              <div className="sim-control">
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b', display: 'block', marginBottom: '8px' }}>Prediction Target Date</label>
+                <input 
+                  type="date" 
+                  value={params.prediction_date}
+                  onChange={(e) => setParams({...params, prediction_date: e.target.value})}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
+                />
+              </div>
+
               <button 
                 onClick={handlePredict}
                 disabled={loading || !selectedVillage}
@@ -2710,6 +2727,7 @@ export function InteractiveSimulation({ selectedVillage, onSimulate }) {
                     values={result.simulated_series || [result.base_gwl, result.simulated_gwl]} 
                     baselineSeries={result.baseline_series || []}
                     color={result.simulated_gwl > 30 ? '#ef4444' : '#3b82f6'}
+                    targetIndex={result.target_index}
                   />
                 </div>
 
@@ -2805,6 +2823,23 @@ export function LoginModal({ isOpen, onClose, onLogin }) {
       </div>
     </div>
   );
+}
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("UI Component Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback || <div className="p-4 text-center text-slate-500">Something went wrong.</div>;
+    return this.props.children;
+  }
 }
 
 export function LoadingSpinner() {

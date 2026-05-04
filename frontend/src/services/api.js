@@ -78,6 +78,9 @@ async function readGeoJsonFallback(path) {
   if (!res.ok) throw new Error(`Fallback file missing: ${path}`);
   const payload = await res.json();
   if (payload?.type === "FeatureCollection") return payload;
+  if (payload && Array.isArray(payload.features)) {
+    return { ...payload, type: "FeatureCollection" };
+  }
   return { type: "FeatureCollection", features: [] };
 }
 

@@ -1,4 +1,5 @@
 {
+  "type": "FeatureCollection",
   "generated_from": "final_dataset.json + map_data_predictions.geojson",
   "district": "KRISHNA",
   "featureCount": 119,

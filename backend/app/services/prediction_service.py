@@ -9,8 +9,11 @@ import numpy as np
 import pandas as pd
 
 
+from sqlalchemy import text
+from ..db import SessionLocal
+
 class STGNNInferenceService:
-    """Serves ST-GNN outputs from cached GeoJSON artifacts."""
+    """Serves ST-GNN outputs from Database (priority) or cached GeoJSON artifacts."""
 
     def __init__(self, data_path: str | None = None):
         project_root = Path(__file__).resolve().parents[3]
@@ -28,7 +31,23 @@ class STGNNInferenceService:
             
         self.gdf: gpd.GeoDataFrame = gpd.GeoDataFrame()
         self._cached_all_json: dict | None = None
+        # In a real async app, we'd fetch this on demand, 
+        # but for compatibility with the existing sync service structure, 
+        # we'll keep the GeoJSON loader as a fallback and add DB methods.
         self._load_data()
+
+    async def get_db_data(self, village_id: int | None = None) -> dict | None:
+        """Fetch village data directly from the database dashboard."""
+        async with SessionLocal() as db:
+            if village_id:
+                query = text("SELECT * FROM groundwater.village_dashboard WHERE village_id = :vid")
+                res = await db.execute(query, {"vid": village_id})
+                row = res.mappings().first()
+                return dict(row) if row else None
+            else:
+                query = text("SELECT * FROM groundwater.village_dashboard")
+                res = await db.execute(query)
+                return [dict(r) for r in res.mappings().all()]
 
     def _load_data(self) -> None:
         if not self.data_paths:
@@ -238,44 +257,86 @@ class STGNNInferenceService:
             "wasteland": 0.8      # Low infiltration
         }
         lulc_impact = lulc_coeffs.get(lulc, 0)
+
+        # 4. Seasonal & Temporal Shift (Date Awareness)
+        target_date_str = params.get("prediction_date", "2025-10-02")
+        seasonal_impact = 0.0
+        yearly_trend = 0.0
+        try:
+            from datetime import datetime
+            dt = datetime.strptime(target_date_str, "%Y-%m-%d")
+            month = dt.month
+            year = dt.year
+            
+            # Andhra Pradesh Seasonality:
+            # March-May: Summer/High Depletion (+2.0m)
+            # June-Sept: Monsoon/High Recharge (-1.5m)
+            # Oct-Feb: Post-monsoon/Stable (-0.5m)
+            if 3 <= month <= 5: seasonal_impact = 2.0
+            elif 6 <= month <= 9: seasonal_impact = -1.5
+            elif 10 <= month <= 12 or month <= 2: seasonal_impact = -0.5
+            
+            # Long-term trend: +0.2m depletion per year beyond 2024 baseline
+            yearly_trend = max(0, (year - 2024) * 0.2)
+        except:
+            pass
         
-        total_impact = rain_impact + extraction_impact + lulc_impact
+        total_impact = rain_impact + extraction_impact + lulc_impact + seasonal_impact + yearly_trend
         simulated_gwl = base_gwl + total_impact
         
         # Keep simulated value within physical bounds (AP aquifers: 0-60m)
         simulated_gwl = np.clip(simulated_gwl, 0.5, 60.0)
 
-        # 4. Generate 'Waves' (Temporal Series)
-        # Fetch the baseline forecast series (next 24-36 months) if available
-        raw_series = row.get("monthly_predicted_gw", [])
-        if isinstance(raw_series, str):
-            try: raw_series = json.loads(raw_series.replace("'", '"'))
-            except: raw_series = []
+        # 4. Generate Dynamic Timeline (12-month window around target)
+        from datetime import datetime, timedelta
+        try:
+            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
+        except:
+            target_dt = datetime(2025, 10, 2)
+            
+        # Create a 12-month window (6 months before, 6 months after)
+        start_dt = target_dt - timedelta(days=180)
+        simulated_series = []
+        baseline_series = []
+        series_dates = []
         
-        # If no series found, fallback to a 12-month seasonal wave
-        if not raw_series:
-            raw_series = [base_gwl + np.sin(i/2.0)*1.5 for i in range(12)]
+        # Scenario-only impact (excluding the target date's specific seasonal shift)
+        scenario_impact = rain_impact + extraction_impact + lulc_impact
         
-        baseline_series = [float(v) for v in raw_series[:24]] # Cap at 24 months
-        simulated_series = [np.clip(float(v) + total_impact, 0.5, 60.0) for v in baseline_series]
-        series_dates = row.get("monthly_dates", [])
-        if isinstance(series_dates, str):
-            try: series_dates = json.loads(series_dates.replace("'", '"'))
-            except: series_dates = [f"M{i+1}" for i in range(24)]
-        series_dates = series_dates[:24]
+        for i in range(12):
+            curr_dt = start_dt + timedelta(days=30 * i)
+            m = curr_dt.month
+            y = curr_dt.year
+            
+            # Month-specific seasonal baseline
+            m_seasonal = 0
+            if 3 <= m <= 5: m_seasonal = 2.0
+            elif 6 <= m <= 9: m_seasonal = -1.5
+            elif 10 <= m <= 12 or m <= 2: m_seasonal = -0.5
+            
+            m_trend = max(0, (y - 2024) * 0.2)
+            
+            m_base = base_gwl + m_seasonal + m_trend
+            m_sim = m_base + scenario_impact
+            
+            baseline_series.append(round(float(np.clip(m_base, 0.5, 60.0)), 2))
+            simulated_series.append(round(float(np.clip(m_sim, 0.5, 60.0)), 2))
+            series_dates.append(curr_dt.strftime("%b %Y"))
 
         return {
             "village_id": village_id,
-            "base_gwl": round(base_gwl, 2),
+            "base_gwl": round(base_gwl + seasonal_impact + yearly_trend, 2),
             "simulated_gwl": round(float(simulated_gwl), 2),
             "impact_magnitude": round(float(total_impact), 2),
             "baseline_series": baseline_series,
             "simulated_series": simulated_series,
             "series_dates": series_dates,
+            "target_index": 6, # The target date is roughly in the middle
             "factors": {
                 "rain_impact": round(rain_impact, 2),
                 "extraction_impact": round(extraction_impact, 2),
-                "lulc_impact": round(lulc_impact, 2)
+                "lulc_impact": round(lulc_impact, 2),
+                "seasonal_impact": round(seasonal_impact, 2)
             },
             "advisory": self._advisory_from_row({
                 "groundwater_level": simulated_gwl, 

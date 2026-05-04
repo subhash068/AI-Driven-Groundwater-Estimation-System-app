@@ -121,6 +121,15 @@ export function MapPreview({ villages, stats }) {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const [showMap, setShowMap] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowMap(true), 100);
+    return () => {
+      clearTimeout(timer);
+      setShowMap(false);
+    };
+  }, []);
+
   return (
     <section id="map-preview" className="home-section reveal-up">
       <div className="section-head">
@@ -184,56 +193,59 @@ export function MapPreview({ villages, stats }) {
               <strong>District:</strong> {selectedDistrict}
             </p>
           </div>
-          <MapContainer 
-            key="home-preview-map"
-            id="home-preview-map"
-            center={DEFAULT_CENTER} 
-            zoom={8} 
-            zoomControl 
-            style={{ height: "100%", width: "100%" }}
-          >
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+          {showMap ? (
+            <MapContainer 
+              key="home-preview-map-instance"
+              center={DEFAULT_CENTER} 
+              zoom={8} 
+              zoomControl 
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
 
-            {layers.groundwater && (
-              <GeoJSON
-                data={previewGeoJson}
-                style={(feature) => ({
-                  color: "#155e75",
-                  weight: 0.4,
-                  fillColor: getWaterColor(feature),
-                  fillOpacity: 0.5
-                })}
-              />
-            )}
+              {layers.groundwater && (
+                <GeoJSON
+                  data={previewGeoJson}
+                  style={(feature) => ({
+                    color: "#155e75",
+                    weight: 0.4,
+                    fillColor: getWaterColor(feature),
+                    fillOpacity: 0.5
+                  })}
+                />
+              )}
 
-            {layers.piezometers &&
-              piezometers.map((point) => (
-                <CircleMarker
-                  key={`pz-${point.id}`}
-                  center={point.position}
-                  radius={3.5}
-                  pathOptions={{ color: "#0369a1", fillColor: "#38bdf8", fillOpacity: 0.95, weight: 0.9 }}
-                >
-                  <Tooltip direction="top" offset={[0, -6]} opacity={0.95}>
-                    {point.village}: {point.count} station{point.count > 1 ? "s" : ""}
-                  </Tooltip>
-                </CircleMarker>
-              ))}
+              {layers.piezometers &&
+                piezometers.map((point) => (
+                  <CircleMarker
+                    key={`pz-${point.id}`}
+                    center={point.position}
+                    radius={3.5}
+                    pathOptions={{ color: "#0369a1", fillColor: "#38bdf8", fillOpacity: 0.95, weight: 0.9 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -6]} opacity={0.95}>
+                      {point.village}: {point.count} station{point.count > 1 ? "s" : ""}
+                    </Tooltip>
+                  </CircleMarker>
+                ))}
 
-            {layers.anomalies &&
-              anomalies.map((point) => (
-                <CircleMarker
-                  key={`an-${point.id}`}
-                  center={point.position}
-                  radius={5}
-                  pathOptions={{ color: "#7f1d1d", fillColor: "#ef4444", fillOpacity: 0.9, weight: 1.1 }}
-                >
-                  <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
-                    {point.village}: +{point.drop} m deviation
-                  </Tooltip>
-                </CircleMarker>
-              ))}
-          </MapContainer>
+              {layers.anomalies &&
+                anomalies.map((point) => (
+                  <CircleMarker
+                    key={`an-${point.id}`}
+                    center={point.position}
+                    radius={5}
+                    pathOptions={{ color: "#7f1d1d", fillColor: "#ef4444", fillOpacity: 0.9, weight: 1.1 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
+                      {point.village}: +{point.drop} m deviation
+                    </Tooltip>
+                  </CircleMarker>
+                ))}
+            </MapContainer>
+          ) : (
+            <div style={{ height: "100%", width: "100%", background: "#f8fafc" }} />
+          )}
         </div>
       </div>
     </section>

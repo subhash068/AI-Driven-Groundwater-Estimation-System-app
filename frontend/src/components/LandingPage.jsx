@@ -37,11 +37,23 @@ function MiniMapPreview({ villages, stateBoundaryLayer }) {
     };
   }, [villages]);
 
+  const [showMap, setShowMap] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowMap(true), 100);
+    return () => {
+      clearTimeout(timer);
+      setShowMap(false);
+    };
+  }, []);
+
+  if (!showMap) {
+    return <div className="mini-map-glass h-full w-full" style={{ background: 'transparent' }} />;
+  }
+
   return (
     <div className="mini-map-glass h-full w-full">
       <MapContainer 
-        key="landing-mini-map"
-        id="landing-mini-map"
+        key="landing-mini-map-instance"
         center={center} 
         zoom={4.5} 
         zoomControl={false} 

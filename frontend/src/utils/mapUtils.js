@@ -21,11 +21,16 @@ export function geometryCenter(geometry) {
     return { longitude: lon, latitude: lat };
   }
   if (!coords.length) return { longitude: 79.74, latitude: 15.91 };
-  const sum = coords.reduce((acc, [lon, lat]) => ({ lon: acc.lon + lon, lat: acc.lat + lat }), {
+  const sum = (coords || []).reduce((acc, c) => {
+    const lon = (Array.isArray(c) && Number.isFinite(c[0])) ? c[0] : 0;
+    const lat = (Array.isArray(c) && Number.isFinite(c[1])) ? c[1] : 0;
+    return { lon: acc.lon + lon, lat: acc.lat + lat };
+  }, {
     lon: 0,
     lat: 0
   });
-  return { longitude: sum.lon / coords.length, latitude: sum.lat / coords.length };
+  const count = (coords || []).length || 1;
+  return { longitude: sum.lon / count, latitude: sum.lat / count };
 }
 
 export function healthColor(depth) {

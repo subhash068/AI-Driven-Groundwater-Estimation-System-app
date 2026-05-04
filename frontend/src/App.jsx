@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from "react";
-import { DashboardTopBar, DashboardAnalyticsPanel, VillageInsightsPanel, VillageAnalysisDock, ComprehensiveAnalysisModal, SimpleLineChart, ShapBarChart, InteractiveSimulation, LoginModal } from "./components/UI";
+import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from "react";
+import { DashboardTopBar, DashboardAnalyticsPanel, VillageInsightsPanel, ComprehensiveAnalysisModal, SimpleLineChart, ShapBarChart, InteractiveSimulation, LoginModal, ErrorBoundary } from "./components/UI";
 import "./CleanDashboard.css";
 
 import { useVillageData } from "./hooks/useVillageData";
@@ -284,7 +284,7 @@ export default function App({ navigate, pathname }) {
   const [showDistrictBoundaries, setShowDistrictBoundaries] = useState(false);
   const [showMandalBoundaries, setShowMandalBoundaries] = useState(false);
   const [showStateBoundary, setShowStateBoundary] = useState(true);
-  const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(["Severe drop", "Moderate drop"]);
+  const [selectedAnomalyTypes, setSelectedAnomalyTypes] = useState(["Severe drop", "Moderate drop", "Rise", "Normal"]);
   const [selectedLulcClasses, setSelectedLulcClasses] = useState(LULC_CLASS_KEYS);
   const [showRainfall, setShowRainfall] = useState(false);
   const [showCanals, setShowCanals] = useState(false);
@@ -292,9 +292,10 @@ export default function App({ navigate, pathname }) {
   const [showDrains, setShowDrains] = useState(false);
   const [showTanks, setShowTanks] = useState(false);
   const [showDemSurface, setShowDemSurface] = useState(false);
+  const [showHillshade, setShowHillshade] = useState(false);
   const [baseMapTheme, setBaseMapTheme] = useState("satellite");
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
-  const [isAnalysisDockOpen, setIsAnalysisDockOpen] = useState(false);
+
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -347,18 +348,15 @@ export default function App({ navigate, pathname }) {
   const [showAquifer, setShowAquifer] = useState(false);
   const [showRechargeZones, setShowRechargeZones] = useState(false);
   const [showSoil, setShowSoil] = useState(false);
+  const [showAllHighPriority, setShowAllHighPriority] = useState(false);
+  const [showAllModeratePriority, setShowAllModeratePriority] = useState(false);
+  const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
   const [apiStatus, setApiStatus] = useState(() => getApiStatusSummary());
   const [modelUpgradeSummary, setModelUpgradeSummary] = useState(null);
   const [isHydrating, setIsHydrating] = useState(false);
   const [anomaliesLoading, setAnomaliesLoading] = useState(false);
 
-  useEffect(() => {
-    if (selectedFeature) {
-      setIsAnalysisDockOpen(true);
-    } else {
-      setIsAnalysisDockOpen(false);
-    }
-  }, [selectedFeature]);
+
 
   const { 
     villages, 
@@ -385,7 +383,7 @@ export default function App({ navigate, pathname }) {
 
 
   useEffect(() => {
-    if (aiPredictionEnabled && showAnomalies && !anomalies && !anomaliesLoading) {
+    if (showAnomalies && !anomalies && !anomaliesLoading) {
       setAnomaliesLoading(true);
       api.getAnomalies()
         .then(setAnomalies)
@@ -493,7 +491,7 @@ export default function App({ navigate, pathname }) {
   };
 
   useEffect(() => {
-    if (!selectedFeature) return;
+    if (!selectedFeature || selectedFeature.properties?.is_hydrated) return;
     const villageId = selectedFeature.properties?.village_id;
     if (!villageId || selectedFeature.properties?.is_hydrated) {
       if (selectedFeature && !selectedFeature.properties?.is_hydrated) {
@@ -1277,7 +1275,12 @@ export default function App({ navigate, pathname }) {
     return unsubscribe;
   }, []);
 
-  const isDashboardRoute = ["/dashboard", "/forecasts", "/recharge", "/simulation", "/validation", "/explainability", "/methodology"].includes(pathname);
+  const handleSimulateGroundwater = useCallback(async (vid, params) => {
+    const result = await api.simulateGroundwater({ village_id: vid, ...params });
+    return result;
+  }, []);
+
+  const isDashboardRoute = ["/dashboard", "/forecasts", "/recharge", "/simulation", "/validation", "/methodology"].includes(pathname);
   const openDashboard = () => {
     if (typeof navigate === "function") {
       navigate("/dashboard");
@@ -1308,7 +1311,18 @@ export default function App({ navigate, pathname }) {
   }
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
+    <ErrorBoundary 
+      fallback={
+        <div style={{ height: '100vh', background: '#050b14', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px' }}>
+          <h2 style={{ color: '#00e5ff', marginBottom: '16px' }}>Dashboard Encountered an Issue</h2>
+          <p style={{ maxWidth: '400px', marginBottom: '24px', fontSize: '0.9rem' }}>The application hit an unexpected rendering error. This can happen due to GPU resource limits or data inconsistencies.</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', background: 'rgba(0, 229, 255, 0.1)', border: '1px solid #00e5ff', color: '#00e5ff', borderRadius: '8px', cursor: 'pointer' }}>Reload Application</button>
+        </div>
+      }
+      onError={(error, errorInfo) => {
+        console.error("Dashboard Crash Caught by ErrorBoundary:", error, errorInfo);
+      }}
+    >
       <div className="clean-dashboard">
         {/* New Sidebar Implementation */}
         <aside className={`clean-sidebar ${isSidebarOpen ? "" : "collapsed"}`}>
@@ -1341,10 +1355,7 @@ export default function App({ navigate, pathname }) {
               <span className="nav-icon">🔬</span>
               {isSidebarOpen && <span>What-If Simulator</span>}
             </div>
-            <div className={`nav-item ${pathname === "/explainability" ? "active" : ""}`} onClick={() => navigate("/explainability")}>
-              <span className="nav-icon">🧠</span>
-              {isSidebarOpen && <span>Explainability</span>}
-            </div>
+
             <div className={`nav-item ${pathname === "/methodology" ? "methodology-active" : ""}`} onClick={() => navigate("/methodology")}>
               <span className="nav-icon">📖</span>
               {isSidebarOpen && <span>Methodology</span>}
@@ -1460,7 +1471,8 @@ export default function App({ navigate, pathname }) {
             villageOptions={villageOptions}
           />
           <main className="clean-main">
-            {pathname === "/dashboard" && (
+            <Suspense fallback={<LoadingSpinner />}>
+              {pathname === "/dashboard" && (
               <>
                 {/* Header Section */}
                 <div className="header-row">
@@ -1574,13 +1586,49 @@ export default function App({ navigate, pathname }) {
                     </div>
                   </div>
 
+                  <div className="control-group">
+                    <span className="control-label">Terrain & Altitude</span>
+                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: 'center' }}>
+                      <label className="layer-checkbox">
+                        <input type="checkbox" checked={showHillshade} onChange={() => setShowHillshade(!showHillshade)} />
+                        <span style={{ color: "#818cf8" }}>HILLSHADE (3D)</span>
+                      </label>
+                      <label className="layer-checkbox">
+                        <input type="checkbox" checked={showDemSurface} onChange={() => setShowDemSurface(!showDemSurface)} />
+                        <span style={{ color: "#94a3b8" }}>CONTOURS</span>
+                      </label>
+                    </div>
+                  </div>
 
-
+                  {showAnomalies && (
+                    <div className="control-group">
+                      <span className="control-label">Anomaly Types</span>
+                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: 'center' }}>
+                        {["Severe drop", "Moderate drop", "Rise", "Normal"].map(type => (
+                          <label key={type} className="layer-checkbox">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedAnomalyTypes.includes(type)} 
+                              onChange={() => {
+                                if (selectedAnomalyTypes.includes(type)) {
+                                  setSelectedAnomalyTypes(selectedAnomalyTypes.filter(t => t !== type));
+                                } else {
+                                  setSelectedAnomalyTypes([...selectedAnomalyTypes, type]);
+                                }
+                              }} 
+                            />
+                            <span>{type.toUpperCase()}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-
                 {/* Map and Insights Section */}
                 <div className="map-container-wrap">
-                  <MapView 
+                  <Suspense fallback={<div className="loading-map-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#94a3b8' }}>Loading Map Engine...</div>}>
+                    <MapView 
+                      key={pathname}
                     filteredGeojson={dashboardGeojson}
                     monthIndex={monthIndex}
                     is3D={is3D}
@@ -1593,6 +1641,8 @@ export default function App({ navigate, pathname }) {
                     showTanks={showTanks}
                     showCanals={showCanals}
                     showAquifer={showAquifer}
+                    showDemSurface={showDemSurface}
+                    showHillshade={showHillshade}
                     showSoil={showSoil}
                     showRainfall={showRainfall}
                     showLulc={showLulc}
@@ -1616,21 +1666,22 @@ export default function App({ navigate, pathname }) {
                     stateBoundaryLayer={stateBoundaryLayer}
                     showStateBoundary={showStateBoundary}
                   />
+                </Suspense>
                   
                   <div className={`insights-dock ${isInsightsOpen && selectedVillageFeature && pathname !== "/forecasts" ? "open" : "closed"}`}>
                     {isInsightsOpen && selectedVillageFeature && pathname !== "/forecasts" && (
-                      <VillageInsightsPanel
-                        selectedFeature={selectedVillageFeature}
-                        isHydrating={isHydrating}
-                        monthIndex={monthIndex}
-                        aiPredictionEnabled={aiPredictionEnabled}
-                        datasetRowsById={datasetRowsById}
-                        datasetRowsByLocation={datasetRowsByLocation}
-                        onClose={() => {
-                          setSelectedFeature(null);
-                          setIsInsightsOpen(false);
-                        }}
-                      />
+                      <>
+
+                        <VillageInsightsPanel
+                          selectedFeature={selectedVillageFeature}
+                          isHydrating={isHydrating}
+                          monthIndex={monthIndex}
+                          aiPredictionEnabled={aiPredictionEnabled}
+                          datasetRowsById={datasetRowsById}
+                          datasetRowsByLocation={datasetRowsByLocation}
+                          onClose={() => setIsInsightsOpen(false)}
+                        />
+                      </>
                     )}
                   </div>
                 </div>
@@ -1652,10 +1703,7 @@ export default function App({ navigate, pathname }) {
                 
                 <InteractiveSimulation 
                   selectedVillage={selectedVillageFeature?.properties} 
-                  onSimulate={async (vid, params) => {
-                    const result = await api.simulateGroundwater({ village_id: vid, ...params });
-                    return result;
-                  }}
+                  onSimulate={handleSimulateGroundwater}
                 />
                 
                 {!selectedVillageFeature && (
@@ -1671,98 +1719,7 @@ export default function App({ navigate, pathname }) {
               </div>
             )}
 
-            {pathname === "/validation" && (
-              <div style={{ padding: '30px', height: '100%', overflowY: 'auto' }}>
-                <div className="header-row" style={{ marginTop: 0 }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: '600', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
-                    System Trust & Accuracy Metrics
-                  </div>
-                  <h1>Model Validation Dashboard</h1>
-                  <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                    Real-time performance benchmarks comparing AI predictions against physical piezometer ground-truth.
-                  </p>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '24px' }}>
-                   <div className="metric-card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <h4>OVERALL RMSE</h4>
-                      <strong style={{ fontSize: '2rem', color: '#0ea5e9' }}>
-                        {modelUpgradeSummary?.overall_metrics?.rmse ? modelUpgradeSummary.overall_metrics.rmse.toFixed(3) : "0.748"}
-                      </strong>
-                      <span>Meters (Lower is better)</span>
-                   </div>
-                   <div className="metric-card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <h4>MEAN ABSOLUTE ERROR</h4>
-                      <strong style={{ fontSize: '2rem', color: '#8b5cf6' }}>
-                        {modelUpgradeSummary?.overall_metrics?.mae ? modelUpgradeSummary.overall_metrics.mae.toFixed(3) : "0.521"}
-                      </strong>
-                      <span>Global average deviation</span>
-                   </div>
-                   <div className="metric-card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <h4>PIEZO CORRELATION</h4>
-                      <strong style={{ fontSize: '2rem', color: '#10b981' }}>0.94</strong>
-                      <span>Pearson Coefficient (R)</span>
-                   </div>
-                </div>
 
-                <div style={{ marginTop: '30px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
-                  <h3 style={{ margin: '0 0 16px 0' }}>Spatio-Temporal Generalization</h3>
-                  <div style={{ height: '300px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                    [Validation Chart: Predicted vs Actual Scatter Plot - {totalCount} points]
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {pathname === "/recharge" && (
-              <div style={{ padding: '30px', height: '100%', overflowY: 'auto' }}>
-                <div className="header-row" style={{ marginTop: 0 }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: '600', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
-                    Water Resources Department • Site Selection
-                  </div>
-                  <h1>Advanced Recharge Planning</h1>
-                  <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                    AI-driven ranking of villages for Artificial Recharge of Groundwater (ARGS) interventions.
-                  </p>
-                </div>
-                
-                <div style={{ marginTop: '30px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>
-                   <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
-                      <h3 style={{ margin: '0 0 20px 0' }}>Priority Hotspots</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {[
-                          { name: 'Kanchikacherla', score: 0.89, reason: 'High slope + Pumping stress' },
-                          { name: 'Telaprolu', score: 0.84, reason: 'Critical depletion + Porous soil' },
-                          { name: 'Gannavaram', score: 0.78, reason: 'Proximity to surface tanks' }
-                        ].map((v, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
-                            <div>
-                              <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{v.name}</div>
-                              <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{v.reason}</div>
-                            </div>
-                            <div style={{ background: '#0ea5e9', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '800' }}>
-                              {(v.score * 100).toFixed(0)}%
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                   </div>
-                   <div style={{ background: '#0f172a', borderRadius: '16px', padding: '24px', color: '#fff' }}>
-                      <h3 style={{ margin: '0 0 16px 0', color: '#00e5ff' }}>Site Selection logic</h3>
-                      <p style={{ fontSize: '0.8rem', lineHeight: 1.6, color: '#94a3b8' }}>
-                        Priority (S) = 0.4*Potential + 0.4*Urgency + 0.2*Feasibility
-                        <br/><br/>
-                        Potential is derived from the Hydrogeological Infiltration Factor, while Urgency is calculated from the 3-year depletion trend.
-                      </p>
-                      <button 
-                        onClick={() => { navigate("/dashboard"); setShowRechargeZones(true); }}
-                        style={{ width: '100%', padding: '12px', background: '#00e5ff', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: '800', marginTop: '20px', cursor: 'pointer' }}>
-                        View on Map
-                      </button>
-                   </div>
-                </div>
-              </div>
-            )}
 
 
             {pathname === "/forecasts" && (() => {
@@ -2114,8 +2071,8 @@ Generated by AI-Driven Groundwater System
                       <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#0D9488', textTransform: 'uppercase', marginBottom: '4px' }}>High Priority: AI Recommended Recharge</div>
                       <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Top 10 Intervention Sites</h3>
                     </div>
-                    <div style={{ padding: '0' }}>
-                       {rechargeHighPrioritySites.slice(0, 10).map((f, i) => (
+                    <div style={{ padding: '0', maxHeight: showAllHighPriority ? '600px' : 'none', overflowY: showAllHighPriority ? 'auto' : 'visible' }}>
+                       {rechargeHighPrioritySites.slice(0, showAllHighPriority ? 100 : 10).map((f, i) => (
                          <div key={i} style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#ccfbf1', color: '#0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.75rem' }}>{i + 1}</div>
@@ -2132,7 +2089,12 @@ Generated by AI-Driven Groundwater System
                        ))}
                     </div>
                     <div style={{ padding: '16px', textAlign: 'center', background: '#F8FAFC' }}>
-                      <button style={{ background: 'transparent', border: 'none', color: '#0D9488', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>VIEW ALL HIGH PRIORITY →</button>
+                      <button 
+                        onClick={() => setShowAllHighPriority(!showAllHighPriority)}
+                        style={{ background: 'transparent', border: 'none', color: '#0D9488', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}
+                      >
+                        {showAllHighPriority ? '← SHOW TOP 10' : 'VIEW ALL HIGH PRIORITY →'}
+                      </button>
                     </div>
                   </div>
 
@@ -2141,8 +2103,8 @@ Generated by AI-Driven Groundwater System
                       <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#7C3AED', textTransform: 'uppercase', marginBottom: '4px' }}>Moderate Priority: Protection Zones</div>
                       <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Top 10 Conservation Sites</h3>
                     </div>
-                    <div style={{ padding: '0' }}>
-                      {rechargeModeratePrioritySites.slice(0, 10).map((f, i) => (
+                    <div style={{ padding: '0', maxHeight: showAllModeratePriority ? '600px' : 'none', overflowY: showAllModeratePriority ? 'auto' : 'visible' }}>
+                      {rechargeModeratePrioritySites.slice(0, showAllModeratePriority ? 100 : 10).map((f, i) => (
                          <div key={i} style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#ede9fe', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.75rem' }}>{i + 1}</div>
@@ -2159,7 +2121,12 @@ Generated by AI-Driven Groundwater System
                        ))}
                     </div>
                     <div style={{ padding: '16px', textAlign: 'center', background: '#F8FAFC' }}>
-                      <button style={{ background: 'transparent', border: 'none', color: '#7C3AED', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>VIEW ALL PROTECTION ZONES →</button>
+                      <button 
+                        onClick={() => setShowAllModeratePriority(!showAllModeratePriority)}
+                        style={{ background: 'transparent', border: 'none', color: '#7C3AED', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}
+                      >
+                        {showAllModeratePriority ? '← SHOW TOP 10' : 'VIEW ALL PROTECTION ZONES →'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2231,74 +2198,7 @@ Note: PDF format with geomorphological cross-sections is available in the Pro ve
                 </div>
               </div>
             )}
-            {pathname === "/explainability" && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '20px 0' }}>
-                <div className="header-row" style={{ marginTop: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                    <span style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.65rem', fontWeight: '800', border: '1px solid rgba(37, 99, 235, 0.2)' }}>
-                      🧠 SHAP TREEEXPLAINER • XGBOOST REGRESSOR
-                    </span>
-                  </div>
-                  <h1 style={{ fontSize: '2.8rem', letterSpacing: '-0.03em' }}>Model Interpretability</h1>
-                  <p style={{ fontSize: '1rem', color: '#64748B', maxWidth: '800px' }}>
-                    Understanding the "Why" behind the predictions. We use SHAP (SHapley Additive exPlanations) values to quantify the contribution of each hydrogeological feature to the final groundwater depth estimation.
-                  </p>
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
-                  <div className="data-view-container" style={{ padding: '40px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ marginBottom: '32px' }}>
-                      <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Global Feature Importance</h3>
-                      <p style={{ margin: '4px 0 0 0', color: '#64748B', fontSize: '0.85rem' }}>Mean absolute SHAP value across all 917 villages.</p>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      {[
-                        { label: 'dist_nearest_piezo_km', value: 0.994, desc: 'Distance to manual monitoring station' },
-                        { label: 'idw_baseline', value: 0.946, desc: 'Inverse Distance Weighting spatial prior' },
-                        { label: 'mean_dist_5piezo_km', value: 0.940, desc: 'Regional cluster density' },
-                        { label: 'dist_nearest_tank_km', value: 0.680, desc: 'Proximity to surface water bodies' },
-                        { label: 'elevation', value: 0.676, desc: 'SRTM Digital Elevation Model' },
-                        { label: 'slope', value: 0.632, desc: 'Terrain gradient' },
-                      ].map((item, i) => (
-                        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0F172A' }}>{item.label}</div>
-                              <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{item.desc}</div>
-                            </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--accent)' }}>{item.value.toFixed(3)}</div>
-                          </div>
-                          <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ width: `${item.value * 100}%`, height: '100%', background: 'linear-gradient(to right, #3B82F6, #2563EB)', borderRadius: '4px' }}></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <div className="metric-card" style={{ padding: '24px', background: '#F8FAFC' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '12px' }}>📊</div>
-                      <h4>MODEL PERFORMANCE</h4>
-                      <strong style={{ fontSize: '1.8rem' }}>92.4%</strong>
-                      <span>R² Coefficient</span>
-                    </div>
-                    <div className="metric-card" style={{ padding: '24px', background: '#F8FAFC' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🎯</div>
-                      <h4>ACCURACY (RMSE)</h4>
-                      <strong style={{ fontSize: '1.8rem' }}>1.42m</strong>
-                      <span>Mean Error Margin</span>
-                    </div>
-                    <div style={{ background: 'var(--accent-light)', border: '1px solid var(--accent)', padding: '24px', borderRadius: '12px', color: 'var(--accent)' }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', fontWeight: '800' }}>AI INSIGHT</h4>
-                      <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: '1.6', fontWeight: '600' }}>
-                        Distance to the nearest piezometer remains the strongest predictor, accounting for ~34% of model variance. This justifies the "Hybrid" approach of using physical stations to ground ML predictions.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
             {pathname === "/methodology" && (
               <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
                 <Suspense fallback={<LoadingSpinner />}>
@@ -2385,9 +2285,9 @@ Note: PDF format with geomorphological cross-sections is available in the Pro ve
                             <td style={{ paddingLeft: '24px', fontWeight: '700', color: '#0F172A' }}>{row.id}</td>
                             <td style={{ fontWeight: '600' }}>{row.village}</td>
                             <td>{row.mandal}</td>
-                            <td style={{ fontWeight: '700' }}>{row.actual.toFixed(2)}m</td>
-                            <td style={{ color: '#3B82F6', fontWeight: '700' }}>{row.pred.toFixed(2)}m</td>
-                            <td style={{ color: '#EF4444', fontWeight: '600' }}>+{row.error.toFixed(2)}m</td>
+                            <td style={{ fontWeight: '700' }}>{row.actual?.toFixed(2) ?? "N/A"}m</td>
+                            <td style={{ color: '#3B82F6', fontWeight: '700' }}>{row.pred?.toFixed(2) ?? "N/A"}m</td>
+                            <td style={{ color: '#EF4444', fontWeight: '600' }}>+{row.error?.toFixed(2) ?? "0.00"}m</td>
                             <td style={{ textAlign: 'right', paddingRight: '24px' }}>
                               <span style={{ padding: '4px 10px', borderRadius: '4px', background: '#ECFDF5', color: '#10B981', fontSize: '0.7rem', fontWeight: '800' }}>VERIFIED</span>
                             </td>
@@ -2424,6 +2324,7 @@ Note: PDF format with geomorphological cross-sections is available in the Pro ve
                 </div>
               </div>
             )}
+            </Suspense>
           </main>
         </div>
       </div>
@@ -2449,7 +2350,7 @@ Note: PDF format with geomorphological cross-sections is available in the Pro ve
           setIsLoggedIn(true);
         }} 
       />
-    </Suspense>
+    </ErrorBoundary>
   );
 
 }

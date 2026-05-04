@@ -4049,12 +4049,43 @@ body,
   margin: 14px !important;
 }
 
-.village-tooltip {
-  background: rgba(5, 11, 20, 0.95);
-  color: #f8fafc;
-  border: 1px solid rgba(34, 211, 238, 0.26);
-  border-radius: 10px;
-  box-shadow: 0 14px 24px rgba(2, 8, 23, 0.36);
+.village-tooltip,
+.aquifer-tooltip,
+.anomaly-tooltip,
+.piezometer-tooltip,
+.recharge-tooltip,
+.surface-layer-tooltip {
+  background: rgba(8, 15, 24, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(0, 229, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 229, 255, 0.05) !important;
+  font-family: 'Inter', sans-serif !important;
+  padding: 0 !important; /* Managed by container */
+  overflow: hidden !important;
+}
+
+.premium-tooltip-container {
+  padding: 12px 16px;
+  min-width: 180px;
+  animation: premium-tooltip-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center bottom;
+}
+
+@keyframes premium-tooltip-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.leaflet-tooltip-pane .leaflet-tooltip {
+  transition: opacity 0.2s ease-out !important;
 }
 
 @media (max-width: 900px) {
