@@ -1473,6 +1473,7 @@ export default function App({ navigate, pathname }) {
             districtOptions={districtOptions}
             mandalOptions={mandalOptions}
             villageOptions={villageOptions}
+            onHome={() => navigate("/")}
           />
           <main className="clean-main">
             <Suspense fallback={<LoadingSpinner />}>

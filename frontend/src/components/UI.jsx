@@ -874,7 +874,8 @@ export function DashboardTopBar({
   stateOptions = [],
   districtOptions = [],
   mandalOptions = [],
-  villageOptions = []
+  villageOptions = [],
+  onHome
 }) {
   const baseYear = 1997;
   const year = baseYear + Math.floor(monthIndex / 12);
@@ -896,6 +897,9 @@ export function DashboardTopBar({
   return (
     <header className="dashboard-top-bar dashboard-top-bar-main">
       <div className="topbar-main-row">
+        <button className="topbar-home-btn" onClick={onHome} title="Return to Home">
+          🏠
+        </button>
         <div className="topbar-identity">
           <strong>{titleScope}</strong>
           <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>

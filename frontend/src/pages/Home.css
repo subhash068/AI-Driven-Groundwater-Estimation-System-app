@@ -24,11 +24,36 @@
 
 .home-header {
   max-width: 1200px;
-  margin: -10px auto 10px auto;
+  margin: -10px auto 20px auto;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 15px;
+}
+
+.hackathon-branding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.hackathon-title {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  color: #ff7a00; /* Vibrant orange as in the image */
+  margin: 0;
+  letter-spacing: 0.05em;
+  font-family: sans-serif;
+}
+
+.govt-label {
+  font-size: clamp(1rem, 2vw, 1.8rem);
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .home-header-banner {

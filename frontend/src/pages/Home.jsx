@@ -17,7 +17,10 @@ export function Home({ onEnterDashboard, villages }) {
   return (
     <div className="home-page">
       <header className="home-header">
-        <img src="/ap_banner.png" alt="Government Header" className="home-header-banner" />
+        <div className="hackathon-branding">
+          <h2 className="hackathon-title">AI - HACKATHON</h2>
+          <p className="govt-label">Government of Andhra Pradesh</p>
+        </div>
         <h1 className="home-header-title">AI-Driven Groundwater Estimation System</h1>
       </header>
       <HeroSection onEnterDashboard={onEnterDashboard} stats={stats} />
