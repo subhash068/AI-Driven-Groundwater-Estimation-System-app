@@ -386,8 +386,13 @@ export default function App({ navigate, pathname }) {
     if (showAnomalies && !anomalies && !anomaliesLoading) {
       setAnomaliesLoading(true);
       api.getAnomalies()
-        .then(setAnomalies)
-        .catch(console.error)
+        .then(data => {
+          console.log("[App] Anomalies fetched successfully:", data?.features?.length || 0, "features");
+          setAnomalies(data);
+        })
+        .catch(err => {
+          console.error("[App] Failed to load anomalies:", err);
+        })
         .finally(() => setAnomaliesLoading(false));
     }
     if (aiPredictionEnabled && showRecharge && !rechargeZones) {
@@ -1559,10 +1564,6 @@ export default function App({ navigate, pathname }) {
                         <span>LULC</span>
                       </label>
                       <label className="layer-checkbox">
-                        <input type="checkbox" checked={showAnomalies} onChange={() => setShowAnomalies(!showAnomalies)} />
-                        <span>ANOMALIES</span>
-                      </label>
-                      <label className="layer-checkbox">
                         <input type="checkbox" checked={showWells} onChange={() => setShowWells(!showWells)} />
                         <span>WELLS</span>
                       </label>
@@ -1661,8 +1662,9 @@ export default function App({ navigate, pathname }) {
                     datasetRowsByLocation={datasetRowsByLocation}
                     showAnomalies={showAnomalies}
                     anomalies={anomalies}
-                    rechargeZones={rechargeZones}
                     selectedAnomalyTypes={selectedAnomalyTypes}
+                    setSelectedAnomalyTypes={setSelectedAnomalyTypes}
+                    rechargeZones={rechargeZones}
                     selectedLulcClasses={selectedLulcClasses}
                     selectedDistrict={filters.district}
                     showRecharge={showRecharge}

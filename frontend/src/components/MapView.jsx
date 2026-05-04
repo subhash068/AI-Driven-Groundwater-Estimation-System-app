@@ -1294,25 +1294,33 @@ export function MapView({
     const selectedDistrictNorm = normalizeDistrictName(selectedDistrict || "");
     const isStateLevel = !selectedDistrict || selectedDistrictNorm === "ANDHRA PRADESH";
     
-    // Fallback: If we have no visible features (villages) on map, we rely purely on district name
+    // If we have no specific village filters active, we rely purely on district name
     const useDistrictOnly = allowedVillageIds.size === 0;
 
     try {
       const features = (anomalies?.features || []).filter((feature) => {
-          const villageId = Number(feature?.properties?.village_id);
+          const props = feature?.properties || {};
+          const villageId = Number(props.village_id);
+          
+          // Try multiple district property variants
+          const featDistrict = props.district || props.District || props.DISTRICT || "";
           const districtMatch = isStateLevel || 
-                normalizeDistrictName(feature?.properties?.district || "") === selectedDistrictNorm;
+                normalizeDistrictName(featDistrict) === selectedDistrictNorm;
           
-          const villageMatch = allowedVillageIds.has(villageId);
+          const villageMatch = villageId > 0 && allowedVillageIds.has(villageId);
           
-          // Show if district matches OR the specific village is visible.
-          // This ensures immediate visibility when switching districts.
-          const finalMatch = districtMatch || (allowedVillageIds.size > 0 && villageMatch);
-          
+          // Show if:
+          // 1. It's state level (show all)
+          // 2. District matches
+          // 3. The specific village is in the visible set
+          const finalMatch = isStateLevel || districtMatch || (allowedVillageIds.size > 0 && villageMatch);  
           const typeLabel = anomalyMeta(feature).label;
-          return selected.includes(typeLabel) && finalMatch;
+          const typeMatch = selected.length === 0 || selected.includes(typeLabel);
+          
+          return typeMatch && finalMatch;
       }).map(f => {
           // Force geometry to Point for circleMarker rendering
+          // This is essential as the anomalies file contains Polygons but we render them as Markers
           if (f.geometry && f.geometry.type !== "Point") {
             const center = geometryCenter(f.geometry);
             return {
@@ -1326,14 +1334,14 @@ export function MapView({
           return f;
       });
 
-      console.log(`[Anomaly Layer] Visible: ${features.length} / Total: ${anomalies.features.length}. Filter: ${selectedDistrictNorm || 'State'}. Types: ${selected.join(',')}`);
+      console.log(`[Anomaly Layer] Rendering ${features.length} / ${anomalies.features.length} features. (State: ${isStateLevel}, Dist: ${selectedDistrictNorm}, VillageFilterSize: ${allowedVillageIds.size})`);
 
       return {
         ...anomalies,
         features
       };
     } catch (err) {
-      console.error("Error filtering anomalies:", err);
+      console.error("[Anomaly Layer] Filtering Error:", err);
       return { type: "FeatureCollection", features: [] };
     }
   }, [anomalies, showAnomalies, selectedAnomalyTypes, selectedDistrict, visibleFeatures]);
