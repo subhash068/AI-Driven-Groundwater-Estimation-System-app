@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON, CircleMarker, Tooltip } from "react-leaflet";
+import { geometryCenter } from "../../utils/mapUtils";
 
 const DEFAULT_CENTER = [16.35, 80.85];
 
@@ -22,8 +23,9 @@ function buildAnomalyPoints(features) {
       const props = feature?.properties || {};
       const current = Number(props.actual_last_month ?? props.depth ?? NaN);
       const baseline = Number(props.long_term_avg ?? NaN);
-      const lat = Number(props.centroid_lat);
-      const lon = Number(props.centroid_lon);
+      const center = geometryCenter(feature.geometry);
+      const lat = center.latitude;
+      const lon = center.longitude;
       const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
       if (!hasCoords || !Number.isFinite(current) || !Number.isFinite(baseline)) return null;
       const drop = Number((current - baseline).toFixed(2));
@@ -43,8 +45,9 @@ function buildPiezometerPoints(features) {
   return features
     .map((feature) => {
       const props = feature?.properties || {};
-      const lat = Number(props.centroid_lat);
-      const lon = Number(props.centroid_lon);
+      const center = geometryCenter(feature.geometry);
+      const lat = center.latitude;
+      const lon = center.longitude;
       // Support multiple possible keys for station count
       const count = Number(props.obs_station_count ?? props.nearby_piezometer_count_10km ?? (props.has_piezometer ? 1 : 0));
       
@@ -205,6 +208,7 @@ export function MapPreview({ villages, stats }) {
 
               {layers.groundwater && (
                 <GeoJSON
+                  key={`geojson-${selectedDistrict}-${previewGeoJson.features.length}`}
                   data={previewGeoJson}
                   style={(feature) => ({
                     color: "#155e75",

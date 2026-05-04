@@ -10,6 +10,9 @@
   --home-warm: #f59e0b;
   --home-danger: #dc2626;
   min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 30px 18px 56px;
   color: var(--home-text);
   background:
