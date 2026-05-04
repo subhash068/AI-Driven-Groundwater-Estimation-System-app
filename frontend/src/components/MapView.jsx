@@ -181,7 +181,10 @@ function villageInfoHtml(feature, datasetRow = null, monthIndex = 0) {
       <div style="display: flex; flex-direction: column; gap: 2px;">
         <div><span style="color: #94a3b8;">Depth:</span> <strong style="color: #fff">${Number.isFinite(gwl) ? gwl.toFixed(2) + 'm' : "NA"}</strong></div>
         <div><span style="color: #94a3b8;">Status:</span> <span style="color: ${normalizedRisk === 'critical' ? '#fca5a5' : normalizedRisk === 'caution' ? '#fcd34d' : '#4ade80'}; font-weight: 700;">${normalizedRisk.toUpperCase()}</span></div>
-        <div style="font-size: 0.65rem; color: #64748b; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px;">Source: <span style="color: #94a3b8;">${dataSource}</span></div>
+        <div style="margin-top: 8px; font-size: 0.75rem; color: #facc15; font-style: italic; line-height: 1.3; border-top: 1px solid rgba(250,204,21,0.2); padding-top: 8px;">
+          💡 AI Advice: ${normalizedRisk === 'critical' ? 'Limit extraction immediately.' : normalizedRisk === 'caution' ? 'Monitor extraction carefully.' : 'Sustainable for current season.'}
+        </div>
+        <div style="font-size: 0.65rem; color: #64748b; margin-top: 4px;">Source: <span style="color: #94a3b8;">${dataSource}</span></div>
       </div>
     </div>
   `;

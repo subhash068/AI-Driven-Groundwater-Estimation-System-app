@@ -3,35 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Farmer Water Advisory</title>
+    <title>Farmer Water Advisory | Krishna AI</title>
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/i18next@24.2.3/dist/umd/i18next.min.js"></script>
   </head>
   <body>
+    <div class="glass-bg"></div>
     <main class="app">
-      <header class="top">
-        <h1 data-i18n="title">Farmer Water Advisory</h1>
-        <select id="langSelect" aria-label="Language">
+      <header class="top-nav">
+        <div class="brand">
+          <span class="logo">💧</span>
+          <div>
+            <h1>Farmer Advisory</h1>
+            <p>KRISHNA BASIN • AI INSIGHTS</p>
+          </div>
+        </div>
+        <select id="langSelect" class="lang-picker">
           <option value="en">English</option>
           <option value="te">తెలుగు</option>
         </select>
       </header>
 
-      <section class="card">
-        <button id="locateBtn" class="btn" data-i18n="locate">Locate My Village</button>
-        <p id="villageLabel" class="muted" data-i18n="villageUnknown">Village not identified yet</p>
+      <section class="card hero-card">
+        <div class="status-badge" data-i18n="locate">Locate My Village</div>
+        <button id="locateBtn" class="btn pulse-btn">
+          <span>📍</span> <span data-i18n="locate">Locate My Village</span>
+        </button>
+        <p id="villageLabel" class="village-name" data-i18n="villageUnknown">Village not identified yet</p>
       </section>
 
-      <section class="card center">
-        <img id="tankIcon" src="./tank-safe.svg" alt="tank status" width="86" height="86" />
-        <h2 id="statusText">Safe</h2>
-        <p id="depthText" class="muted">--</p>
-      </section>
+      <div class="metrics-grid">
+        <section class="card status-card center">
+          <div class="tank-wrap">
+            <img id="tankIcon" src="./tank-safe.svg" alt="tank status" />
+          </div>
+          <h2 id="statusText">--</h2>
+          <div class="depth-badge">
+            <span id="depthText">--</span>
+          </div>
+        </section>
 
-      <section class="card">
-        <h3 data-i18n="cropTitle">Crop Recommendation</h3>
-        <p id="cropText">--</p>
-      </section>
+        <section class="card crop-card">
+          <div class="card-header">
+            <span class="icon">🌾</span>
+            <h3 data-i18n="cropTitle">Crop Recommendation</h3>
+          </div>
+          <div class="crop-content">
+            <p id="cropText">Please locate your village to see personalized agricultural advice based on current groundwater levels.</p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="portal-footer">
+        <p>AI-Driven Groundwater Estimation System • POC v2.1</p>
+      </footer>
     </main>
 
     <script src="./main.js"></script>

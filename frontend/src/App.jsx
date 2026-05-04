@@ -1280,7 +1280,7 @@ export default function App({ navigate, pathname }) {
     return result;
   }, []);
 
-  const isDashboardRoute = ["/dashboard", "/forecasts", "/recharge", "/simulation", "/validation", "/methodology"].includes(pathname);
+  const isDashboardRoute = ["/dashboard", "/forecasts", "/recharge", "/simulation", "/validation", "/methodology", "/advisory"].includes(pathname);
   const openDashboard = () => {
     if (typeof navigate === "function") {
       navigate("/dashboard");
@@ -1359,6 +1359,10 @@ export default function App({ navigate, pathname }) {
             <div className={`nav-item ${pathname === "/methodology" ? "methodology-active" : ""}`} onClick={() => navigate("/methodology")}>
               <span className="nav-icon">📖</span>
               {isSidebarOpen && <span>Methodology</span>}
+            </div>
+            <div className={`nav-item ${pathname === "/advisory" ? "active" : ""}`} onClick={() => navigate("/advisory")}>
+              <span className="nav-icon">💡</span>
+              {isSidebarOpen && <span>Farmer Advisories</span>}
             </div>
             <div className={`nav-item ${pathname === "/validation" ? "active" : ""}`} onClick={() => navigate("/validation")}>
               <span className="nav-icon">🎯</span>
@@ -2204,6 +2208,25 @@ Note: PDF format with geomorphological cross-sections is available in the Pro ve
                 <Suspense fallback={<LoadingSpinner />}>
                   <AIModelMethodology isPage={true} />
                 </Suspense>
+              </div>
+            )}
+            {pathname === "/advisory" && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', gap: '20px', padding: '10px 0' }}>
+                <div className="header-row" style={{ marginTop: 0, paddingBottom: '0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <span style={{ background: 'rgba(250, 204, 21, 0.1)', color: '#facc15', padding: '4px 12px', borderRadius: '20px', fontSize: '0.65rem', fontWeight: '800', border: '1px solid rgba(250, 204, 21, 0.2)' }}>
+                      💡 LIVE FARMER ADVISORY • MULTILINGUAL (EN/TE)
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--line)', overflow: 'hidden', position: 'relative' }}>
+                   <iframe 
+                     src="/farmer/index.html" 
+                     style={{ width: '100%', height: '100%', border: 'none', background: 'transparent' }}
+                     title="Farmer Water Advisory"
+                   />
+                </div>
               </div>
             )}
             {pathname === "/validation" && (
