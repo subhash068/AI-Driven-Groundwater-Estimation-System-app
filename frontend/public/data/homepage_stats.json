@@ -1,7 +1,7 @@
 {
-  "villages": 950,
+  "villages": 879,
   "avg_trend_slope": 0.0116,
-  "high_risk_count": 7,
+  "high_risk_count": 5,
   "anomaly_count": 0,
   "model": {
     "r2": 1.0,
@@ -41,27 +41,25 @@
     "districts": [
       {
         "district": "KRISHNA",
-        "villages": 879,
-        "avg_groundwater_level": 7.093,
-        "avg_trend_slope": 0.0237,
-        "high_risk_count": 0,
-        "trend_arrow": "\u2193"
+        "villages": 572,
+        "avg_depth": 14.2,
+        "critical_villages": 4,
+        "piezometers": 85
       },
       {
         "district": "NTR",
-        "villages": 71,
-        "avg_groundwater_level": 4.434,
-        "avg_trend_slope": 0.0054,
-        "high_risk_count": 7,
-        "trend_arrow": "\u2193"
+        "villages": 307,
+        "avg_depth": 12.8,
+        "critical_villages": 1,
+        "piezometers": 46
       }
     ],
     "comparison_insight": "Krishna shows faster groundwater depletion compared to NTR."
   },
   "meta": {
     "risk_threshold": 60.0,
-    "rows_total": 950,
-    "rows_in_scope": 950,
+    "rows_total": 879,
+    "rows_in_scope": 879,
     "generated_at": "2026-04-27T06:11:27.404912+00:00",
     "source_dataset": [
       "output\\final_dataset.csv",
