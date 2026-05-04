@@ -1979,9 +1979,9 @@ export default function App({ navigate, pathname }) {
 =========================================
 GROUNDWATER FORECAST REPORT (2025-2027)
 =========================================
-Village: ${fProps.village_name}
-Mandal: ${fProps.mandal}
-District: ${fProps.district}
+Village: ${mergedProps.village_name || fProps.village_name}
+Mandal: ${mergedProps.mandal || fProps.mandal || "N/A"}
+District: ${mergedProps.district || fProps.district || "N/A"}
 -----------------------------------------
 Current Estimated Depth: ${normalizedFProps.normalized_depth?.toFixed(2)}m
 Risk Level: ${normalizedFProps.normalized_risk}
