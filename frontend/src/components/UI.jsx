@@ -2808,45 +2808,105 @@ export function LoginModal({ isOpen, onClose, onLogin }) {
           Enter your credentials to access protected AI maintenance features.
         </p>
         <form onSubmit={handleSubmit}>
-          <div className="filter-group" style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '5px', fontSize: '0.8rem' }}>Username</label>
+          <div className="login-field-group" style={{ marginBottom: '20px' }}>
+            <label style={{ 
+              display: 'block', 
+              color: 'var(--text-muted, #94a3b8)', 
+              marginBottom: '8px', 
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>Username</label>
             <input 
               type="text" 
-              className="timeline-dropdown" 
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)' }}
+              style={{ 
+                width: '100%', 
+                padding: '12px 16px', 
+                background: 'rgba(15, 23, 42, 0.6)', 
+                border: '1px solid rgba(56, 189, 248, 0.2)', 
+                borderRadius: '10px',
+                color: '#fff',
+                fontSize: '0.9rem',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              placeholder="Enter admin username"
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(56, 189, 248, 0.2)'}
             />
           </div>
-          <div className="filter-group" style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '5px', fontSize: '0.8rem' }}>Password</label>
+          <div className="login-field-group" style={{ marginBottom: '24px' }}>
+            <label style={{ 
+              display: 'block', 
+              color: 'var(--text-muted, #94a3b8)', 
+              marginBottom: '8px', 
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>Password</label>
             <input 
               type="password" 
-              className="timeline-dropdown" 
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)' }}
+              style={{ 
+                width: '100%', 
+                padding: '12px 16px', 
+                background: 'rgba(15, 23, 42, 0.6)', 
+                border: '1px solid rgba(56, 189, 248, 0.2)', 
+                borderRadius: '10px',
+                color: '#fff',
+                fontSize: '0.9rem',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              placeholder="••••••••"
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(56, 189, 248, 0.2)'}
             />
           </div>
-          {error && <div style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '15px' }}>{error}</div>}
+          {error && (
+            <div style={{ 
+              color: '#ef4444', 
+              fontSize: '0.8rem', 
+              marginBottom: '20px',
+              padding: '10px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid rgba(239, 68, 68, 0.2)'
+            }}>
+              {error}
+            </div>
+          )}
           <button 
             type="submit" 
             disabled={loading}
+            className="login-submit-btn"
             style={{ 
               width: '100%', 
-              padding: '12px', 
-              background: 'var(--accent)', 
+              padding: '14px', 
+              background: 'linear-gradient(135deg, var(--accent, #38bdf8), #1d4ed8)', 
               color: 'white', 
               border: 'none', 
-              borderRadius: '8px', 
-              fontWeight: '600',
+              borderRadius: '12px', 
+              fontWeight: '700',
+              fontSize: '1rem',
               cursor: 'pointer',
-              opacity: loading ? 0.7 : 1
+              opacity: loading ? 0.7 : 1,
+              boxShadow: '0 10px 20px rgba(56, 189, 248, 0.15)',
+              transition: 'transform 0.2s, box-shadow 0.2s'
             }}
+            onMouseOver={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 12px 24px rgba(56, 189, 248, 0.25)'; }}
+            onMouseOut={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 10px 20px rgba(56, 189, 248, 0.15)'; }}
           >
-            {loading ? "Authenticating..." : "Login"}
+            {loading ? "Authenticating..." : "Sign In to Admin"}
           </button>
         </form>
       </div>
